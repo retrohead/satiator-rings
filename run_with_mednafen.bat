@@ -1,5 +1,5 @@
 @ECHO Off
-SET EMULATOR_DIR=..\..\Emulators
+SET EMULATOR_DIR=jo_engine\Emulators
 SET MEDNAFEN_EXECUTABLE_PATH=%EMULATOR_DIR%\mednafen\mednafen.exe
 
 if not exist %MEDNAFEN_EXECUTABLE_PATH% (

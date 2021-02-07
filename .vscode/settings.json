@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "string.h": "c",
+        "stdio.h": "c",
+        "stdlib.h": "c",
+        "backup-satiator.h": "c",
+        "satiator.h": "c",
+        "backup.h": "c",
+        "main.h": "c",
+        "filelist.h": "c",
+        "util.h": "c"
+    }
+}

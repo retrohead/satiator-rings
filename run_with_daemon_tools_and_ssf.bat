@@ -1,6 +1,6 @@
 @ECHO Off
 
-SET EMULATOR_DIR=..\..\Emulators
+SET EMULATOR_DIR=jo_engine\Emulators
 SET DT_DIR=C:\Program Files (x86)\DAEMON Tools Lite
 
 if exist game.iso (

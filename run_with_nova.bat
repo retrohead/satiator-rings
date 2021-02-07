@@ -1,5 +1,5 @@
 @ECHO Off
-SET EMULATOR_DIR=..\..\Emulators
+SET EMULATOR_DIR=jo_engine\Emulators
 SET NOVA_BIOS_PATH=%EMULATOR_DIR%\nova\bios\bios.bin
 
 if not exist %NOVA_BIOS_PATH% (
