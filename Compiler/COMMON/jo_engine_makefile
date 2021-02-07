@@ -1,0 +1,316 @@
+#
+# Jo Engine Makefile
+#
+
+ifeq (${JO_ENGINE_SRC_DIR},)
+	JO_ENGINE_SRC_DIR=../../jo_engine
+endif
+
+ifeq (${COMPILER_DIR},)
+	COMPILER_DIR=../../Compiler
+endif
+
+ifeq (${JO_FRAMERATE},)
+	CCFLAGS += -DJO_FRAMERATE=1
+else
+	CCFLAGS += -DJO_FRAMERATE=${JO_FRAMERATE}
+endif
+
+ifeq (${JO_COMPILE_USING_SGL},)
+	JO_COMPILE_USING_SGL = 1
+endif
+
+ifeq (${JO_COMPILE_WITH_FS_MODULE},)
+	JO_COMPILE_WITH_FS_MODULE = 1
+endif
+
+ifeq (1,${JO_PSEUDO_SATURN_KAI_SUPPORT})
+	JO_COMPILE_WITH_RAM_CARD_MODULE = 0
+endif
+
+ifeq (1,${JO_COMPILE_WITH_CONSOLE_SUPPORT})
+	# Console support depends on keyboard support
+	JO_COMPILE_WITH_KEYBOARD_SUPPORT = 1
+endif
+
+ifeq (1,${JO_COMPILE_USING_SGL})
+	CCFLAGS += -DJO_COMPILE_USING_SGL
+endif
+
+ifeq (1,${JO_COMPILE_WITH_FAST_BUT_LESS_ACCURATE_MATH})
+	CCFLAGS += -DJO_COMPILE_WITH_FAST_BUT_LESS_ACCURATE_MATH
+endif
+
+ifeq (1,${JO_COMPILE_WITH_KEYBOARD_SUPPORT})
+	CCFLAGS += -DJO_COMPILE_WITH_KEYBOARD_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/keyboard.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_CONSOLE_SUPPORT})
+	CCFLAGS += -DJO_COMPILE_WITH_CONSOLE_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/console.c
+	SRCS += $(JO_ENGINE_SRC_DIR)/console_builtins.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_VIDEO_MODULE})
+	ifeq (1,${JO_COMPILE_USING_SGL})
+		LIBS += $(SGLLDR)/LIBCPK.A $(SGLLDR)/LIBSND.A
+	endif
+
+	CCFLAGS += -DJO_COMPILE_WITH_VIDEO_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/video.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_BACKUP_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_BACKUP_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/backup.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_TGA_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_TGA_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/tga.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_SOFTWARE_RENDERER_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_SOFTWARE_RENDERER_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/software_renderer.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_AUDIO_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_AUDIO_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/audio.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_3D_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_3D_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/3d.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_FS_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_FS_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/fs.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_STORYBOARD_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_STORYBOARD_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/storyboard.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_PSEUDO_MODE7_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_PSEUDO_MODE7_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/mode7.c
+endif
+
+ifeq (1,${JO_COMPILE_WITH_EFFECTS_MODULE})
+	CCFLAGS += -DJO_COMPILE_WITH_EFFECTS_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/effects.c
+endif
+
+ifeq (${JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC},)
+	CCFLAGS += -DJO_GLOBAL_MEMORY_SIZE_FOR_MALLOC=393216
+else
+	CCFLAGS += -DJO_GLOBAL_MEMORY_SIZE_FOR_MALLOC=${JO_GLOBAL_MEMORY_SIZE_FOR_MALLOC}
+endif
+
+ifeq (${JO_MAX_SPRITE},)
+	CCFLAGS += -DJO_MAX_SPRITE=255
+else
+	CCFLAGS += -DJO_MAX_SPRITE=${JO_MAX_SPRITE}
+endif
+
+ifeq (${JO_MAX_FILE_IN_IMAGE_PACK},)
+	CCFLAGS += -DJO_MAX_FILE_IN_IMAGE_PACK=32
+else
+	CCFLAGS += -DJO_MAX_FILE_IN_IMAGE_PACK=${JO_MAX_FILE_IN_IMAGE_PACK}
+endif
+
+ifeq (${JO_MAP_MAX_LAYER},)
+	CCFLAGS += -DJO_MAP_MAX_LAYER=8
+else
+	CCFLAGS += -DJO_MAP_MAX_LAYER=${JO_MAP_MAX_LAYER}
+endif
+
+ifeq (${JO_MAX_SPRITE_ANIM},)
+	CCFLAGS += -DJO_MAX_SPRITE_ANIM=16
+else
+	CCFLAGS += -DJO_MAX_SPRITE_ANIM=${JO_MAX_SPRITE_ANIM}
+endif
+
+ifeq (${JO_MAX_FS_BACKGROUND_JOBS},)
+	CCFLAGS += -DJO_MAX_FS_BACKGROUND_JOBS=1
+else
+	CCFLAGS += -DJO_MAX_FS_BACKGROUND_JOBS=${JO_MAX_FS_BACKGROUND_JOBS}
+endif
+
+ifeq (${JO_DEBUG},)
+	CCFLAGS += -DJO_DEBUG
+else
+	ifeq (1,${JO_DEBUG})
+		CCFLAGS += -DJO_DEBUG
+	endif
+endif
+
+ifeq (${JO_COMPILE_WITH_PRINTF_MODULE},)
+	CCFLAGS += -DJO_COMPILE_WITH_PRINTF_SUPPORT
+else
+	ifeq (1,${JO_COMPILE_WITH_PRINTF_MODULE})
+		CCFLAGS += -DJO_COMPILE_WITH_PRINTF_SUPPORT
+	endif
+endif
+
+ifeq (${JO_COMPILE_WITH_SPRITE_HASHTABLE},)
+	CCFLAGS += -DJO_COMPILE_WITH_SPRITE_HASHTABLE
+else
+	ifeq (1,${JO_COMPILE_WITH_SPRITE_HASHTABLE})
+		CCFLAGS += -DJO_COMPILE_WITH_SPRITE_HASHTABLE
+	endif
+endif
+
+ifeq (${JO_480i},)
+else
+	CCFLAGS += -DJO_480i
+endif
+
+ifeq (${JO_NTSC},)
+	CCFLAGS += -DJO_NTSC_VERSION
+else
+	ifeq (1,${JO_NTSC})
+		CCFLAGS += -DJO_NTSC_VERSION
+	else
+		CCFLAGS += -DJO_PAL_VERSION
+	endif
+endif
+
+ifeq (${JO_COMPILE_WITH_RAM_CARD_MODULE},)
+	CCFLAGS += -DJO_COMPILE_WITH_RAM_CARD_SUPPORT
+else
+	ifeq (1,${JO_COMPILE_WITH_RAM_CARD_MODULE})
+		CCFLAGS += -DJO_COMPILE_WITH_RAM_CARD_SUPPORT
+	endif
+endif
+
+ifeq (${JO_COMPILE_WITH_DUAL_CPU_MODULE},)
+	CCFLAGS += -DJO_COMPILE_WITH_DUAL_CPU_SUPPORT
+	SRCS += $(JO_ENGINE_SRC_DIR)/slave.c
+else
+	ifeq (1,${JO_COMPILE_WITH_DUAL_CPU_MODULE})
+		CCFLAGS += -DJO_COMPILE_WITH_DUAL_CPU_SUPPORT
+		SRCS += $(JO_ENGINE_SRC_DIR)/slave.c
+	endif
+endif
+
+SRCS += $(JO_ENGINE_SRC_DIR)/font.c $(JO_ENGINE_SRC_DIR)/input.c $(JO_ENGINE_SRC_DIR)/physics.c $(JO_ENGINE_SRC_DIR)/core.c \
+		$(JO_ENGINE_SRC_DIR)/math.c $(JO_ENGINE_SRC_DIR)/malloc.c $(JO_ENGINE_SRC_DIR)/tools.c $(JO_ENGINE_SRC_DIR)/palette.c \
+		$(JO_ENGINE_SRC_DIR)/sprites.c $(JO_ENGINE_SRC_DIR)/map.c $(JO_ENGINE_SRC_DIR)/list.c $(JO_ENGINE_SRC_DIR)/sprite_animator.c \
+		$(JO_ENGINE_SRC_DIR)/image.c $(JO_ENGINE_SRC_DIR)/vdp2.c $(JO_ENGINE_SRC_DIR)/time.c $(JO_ENGINE_SRC_DIR)/vdp1_command_pipeline.c \
+		$(JO_ENGINE_SRC_DIR)/vdp2_malloc.c
+
+SYSOBJS =
+
+# remove the comment below when nosgl.linker is fixed
+#ifeq (1,${JO_COMPILE_USING_SGL})
+	SYSOBJS += $(SGLLDR)/SGLAREA.O
+#endif
+
+OBJS = $(SRCS:.c=.o)
+
+# remove the comment below when nosgl.linker is fixed
+#ifeq (1,${JO_COMPILE_USING_SGL})
+	LIBS +=  $(SGLLDR)/SEGA_SYS.A $(SGLLDR)/LIBCD.A $(SGLLDR)/LIBSGL.A
+#endif
+
+ifeq ($(OS), Windows_NT)
+	CC=$(COMPILER_DIR)/WINDOWS/bin/sh-elf-gcc.exe
+	CONV=$(COMPILER_DIR)/WINDOWS/bin/sh-elf-objcopy.exe
+	CUE_MAKER=JoEngineCueMaker.exe
+else
+	CC=$(COMPILER_DIR)/LINUX/bin/sh-none-elf-gcc-8.2.0
+	CONV=$(COMPILER_DIR)/LINUX/bin/sh-none-elf-objcopy
+	CUE_MAKER="$(COMPILER_DIR)/LINUX/Other Utilities/CueMaker"
+endif
+
+ASSETS_DIR=./cd
+MKISOFS=mkisofs
+RM = rm -rf
+
+# remove the comment below when nosgl.linker is fixed
+#ifeq (1,${JO_COMPILE_USING_SGL})
+	SGLDIR = $(COMPILER_DIR)/COMMON/SGL_302j
+	SGLIDR = $(SGLDIR)/INC
+	SGLLDR = $(SGLDIR)/LIB_ELF
+#endif
+
+CMNDIR = $(COMPILER_DIR)/COMMON
+
+CCFLAGS += -fkeep-inline-functions -W -Wall -Wshadow -Wbad-function-cast -Winline -Wcomment \
+-Winline -Wlong-long -Wsign-compare -Wextra -Wno-strict-aliasing \
+-fno-common -ffast-math \
+--param max-inline-insns-single=50 -fms-extensions -std=gnu99 \
+-fmerge-all-constants -fno-ident -fno-unwind-tables -fno-asynchronous-unwind-tables \
+-fomit-frame-pointer -fstrength-reduce -frerun-loop-opt -O2 -nodefaultlibs -nostdlib -fno-builtin \
+-m2 -c -I$(JO_ENGINE_SRC_DIR)
+
+ifneq ($(OS), Windows_NT)
+CCFLAGS += -flto
+endif
+
+# remove the comment below when nosgl.linker is fixed
+#ifeq (1,${JO_COMPILE_USING_SGL})
+	CCFLAGS += -I$(SGLIDR)
+#endif
+
+LDFLAGS = -m2
+# remove the comment below when nosgl.linker is fixed
+#ifeq (1,${JO_COMPILE_USING_SGL})
+	LDFLAGS += -L$(SGLLDR)
+#endif
+LDFLAGS +=-Xlinker --format=elf32-sh -Xlinker -T$(LDFILE) -Xlinker -Map \
+          -Xlinker $(MPFILE) -Xlinker -e -Xlinker ___Start -nostartfiles
+ifneq ($(OS), Windows_NT)
+LIBS += -L.$(COMPILER_DIR)/LINUX/sh-elf/sh-elf/lib/ -Wl,--format=elf32-sh -Wl,--relax -lgcc
+endif
+DFLAGS =
+
+TARGET   = game.elf
+TARGET1  = $(TARGET:.elf=.bin)
+TARGET2  = $(TARGET:.elf=.iso)
+TARGET3  = $(TARGET:.elf=.cue)
+MPFILE   = $(TARGET:.elf=.map)
+IPFILE   = $(CMNDIR)/IP.BIN
+ifeq (1,${JO_COMPILE_USING_SGL})
+	LDFILE   = $(CMNDIR)/sgl.linker
+else
+	LDFILE   = $(CMNDIR)/nosgl.linker
+endif
+
+MKISOFS_FLAGS=-quiet -sysid "SEGA SATURN" -volid "SaturnApp" -volset "SaturnApp" -sectype 2352 \
+	-publisher "SEGA ENTERPRISES, LTD." -preparer "SEGA ENTERPRISES, LTD." -appid "SaturnApp" \
+	-abstract "$(ASSETS_DIR)/ABS.TXT" -copyright "$(ASSETS_DIR)/CPY.TXT" -biblio "$(ASSETS_DIR)/BIB.TXT" -generic-boot $(IPFILE) \
+	-full-iso9660-filenames -o $(TARGET2) $(ASSETS_DIR) $(ENTRYPOINT)
+
+MAKEFILE = makefile
+
+.PHONY : all clean re
+
+all: $(TARGET) $(TARGET1) $(TARGET2) $(TARGET3)
+
+$(TARGET) : $(SYSOBJS) $(OBJS) $(MAKEFILE) $(LDFILE)
+	$(CC) $(LDFLAGS) $(SYSOBJS) $(OBJS) $(LIBS) -o $@
+
+$(TARGET1) : $(TARGET) $(SYSOBJS) $(OBJS) $(MAKEFILE) $(LDFILE)
+	$(CONV) -O binary $(TARGET) $(TARGET1)
+
+$(TARGET2): $(TARGET1)
+	$(CONV) -O binary $(TARGET) cd/0.bin
+	$(MKISOFS) $(MKISOFS_FLAGS)
+
+$(TARGET3): $(TARGET1) $(TARGET2)
+	$(CUE_MAKER)
+
+.c.o:
+	$(CC) $< $(DFLAGS) $(CCFLAGS) $(_CCFLAGS) -o $@
+
+clean:
+	$(RM) $(OBJS) $(TARGET) $(TARGET1) $(TARGET2) $(MPFILE) cd/0.bin
+
+re: clean all
