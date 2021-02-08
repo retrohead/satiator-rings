@@ -11,7 +11,6 @@
 #define MAX_FILENAME            32
 #define MAX_SAVES               255
 
-#define SatiatorBackup (JoExternalDeviceBackup + 1)
 #define CdMemoryBackup (SatiatorBackup + 1)
 #define MemoryBackup (CdMemoryBackup + 1)
 #define MODEBackup (MemoryBackup + 1)

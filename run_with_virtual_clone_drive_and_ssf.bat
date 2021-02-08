@@ -1,5 +1,5 @@
 @ECHO Off
-SET EMULATOR_DIR=jo_engine\Emulators
+SET EMULATOR_DIR=..\..\Emulators
 SET VCD_DIR=C:\Program Files (x86)\Elaborate Bytes\VirtualCloneDrive
 
 if exist game.iso (

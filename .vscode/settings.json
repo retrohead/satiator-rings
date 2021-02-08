@@ -8,6 +8,8 @@
         "backup.h": "c",
         "main.h": "c",
         "filelist.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "jo.h": "c",
+        "satiator_functions.h": "c"
     }
 }

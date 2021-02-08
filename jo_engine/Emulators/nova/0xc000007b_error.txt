@@ -1,3 +1,0 @@
-Download X86 Visual C++ Redistributable for Visual Studio 2015 here:
-
-https://www.microsoft.com/en-US/download/details.aspx?id=48145

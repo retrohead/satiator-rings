@@ -34,7 +34,6 @@
 #include "main.h"
 #include "filelist.h"
 #include "satiator_functions.h"
-#include "Save-Game-Copier/satiator/satiator.h"
 
 static int gamebox_sprite_id;
 static int gamepad_sprite_id;
@@ -104,8 +103,6 @@ void image_menu(void) {
             //name = NULL;
         }
 }
-
-
 
 void my_draw(void)
 {

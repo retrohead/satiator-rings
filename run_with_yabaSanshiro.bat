@@ -1,5 +1,5 @@
 @ECHO Off
-SET EMULATOR_DIR=jo_engine\Emulators
+SET EMULATOR_DIR=..\..\Emulators
 
 if exist game.iso (
 echo Please wait, it's very slow, but I don't know why...

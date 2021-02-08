@@ -1,4 +1,3 @@
-#include "Save-Game-Copier/satiator/satiator.h"
 #include "filelist.h"
 #include <jo/jo.h>
 #include <string.h>
