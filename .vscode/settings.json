@@ -10,6 +10,13 @@
         "filelist.h": "c",
         "util.h": "c",
         "jo.h": "c",
-        "satiator_functions.h": "c"
+        "satiator_functions.h": "c",
+        "sprites.h": "c",
+        "atomic": "c",
+        "routine_states.h": "c",
+        "random": "c",
+        "menu.h": "c",
+        "controllers.h": "c",
+        "sprite_manager.h": "c"
     }
 }

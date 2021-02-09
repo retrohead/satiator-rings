@@ -5,6 +5,7 @@ SET PATH=%COMPILER_DIR%\WINDOWS\Other Utilities;%PATH%
 
 rm -f ./cd/0.bin
 rm -f *.o
+rm -f ./states/*.o
 rm -f ./mode/*.o
 rm -f ./md5/*.o
 rm -f ./*.o

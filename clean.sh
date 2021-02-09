@@ -4,6 +4,7 @@ rm -f *.o
 rm -f ./Save-Game-Copier/*.o
 rm -f ./mode/*.o
 rm -f ./md5/*.o
+rm -f ./states/*.o
 rm -f ./jo_engine/jo_engine/*.o
 rm -f ./*.bin
 rm -f ./*.coff

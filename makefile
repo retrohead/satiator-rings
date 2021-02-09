@@ -12,6 +12,7 @@ JO_DEBUG = 0
 JO_NTSC = 1
 JO_COMPILE_USING_SGL = 1
 SRCS=$(wildcard *.c)
+SRCS+=$(wildcard states/*.c)
 SRCS+=$(wildcard Save-Game-Copier/md5/*.c)
 SRCS+=$(wildcard Save-Game-Copier/mode/*.c)
 SRCS+=$(wildcard Save-Game-Copier/*.c)

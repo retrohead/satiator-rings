@@ -33,34 +33,12 @@
 #define VERSION "1.0.0"
 
 // program states
-#define STATE_UNINITIALIZED      0
-#define STATE_MAIN               1
-#define STATE_LIST_SAVES         2
-#define STATE_DISPLAY_SAVE       3
-#define STATE_DISPLAY_MEMORY     4
-#define STATE_DUMP_MEMORY        5
-#define STATE_WRITE_MEMORY       6
-#define STATE_FORMAT             7
-#define STATE_FORMAT_VERIFY      8
-#define STATE_COLLECT            9
-#define STATE_CREDITS            10
-#define STATE_PREVIOUS          -1 // go to the previous state
-
-#define MAX_STATES              16 // how many states to record
-
-
-// records whether or not an input has been pressed that frame
-typedef struct _INPUTCACHE
+enum prog_state_types
 {
-    bool pressedUp;
-    bool pressedDown;
-    bool pressedLeft;
-    bool pressedRight;
-    bool pressedB;
-    bool pressedStartAC;
-    bool pressedLT;
-    bool pressedRT;
-} INPUTCACHE, *PINPUTCACHE;
+    PROG_STATE_INITIALIZE,
+    PROG_STATE_SPLASH,
+    PROG_STATE_MENU
+};
 
 // function prototypes to suppress compiler warnings
 void *memcpy(void *dest, const void *src, unsigned int n);
