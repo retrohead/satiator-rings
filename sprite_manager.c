@@ -8,6 +8,7 @@ spriteTexType spriteTex[MAX_SPRITE_TEXTURES];
 
 void init_sprites()
 {
+    jo_sprite_free_all();
     int i;
     for(i=0;i<MAX_SPRITES;i++)
     {
@@ -15,11 +16,6 @@ void init_sprites()
     }
     for(i=0;i<MAX_SPRITE_TEXTURES;i++)
     {
-        if(spriteTex[i].used)
-        {
-            // free the texture
-
-        }
         spriteTex[i].used = false;
     }
 }
@@ -69,7 +65,7 @@ int get_free_texture()
     return -1;
 }
 
-int load_sprite_texture(char *directory, char *filename)
+int load_sprite_texture(char *directory, char *filename, unsigned short w, unsigned short h)
 {
     int textureId = get_free_texture();
     if(textureId < 0)
@@ -78,6 +74,8 @@ int load_sprite_texture(char *directory, char *filename)
     }
     // load the texture into joengine
     spriteTex[textureId].texture_id = jo_sprite_add_tga(directory, filename, JO_COLOR_Transparent);
+    spriteTex[textureId].w = w;
+    spriteTex[textureId].h = h;
     return textureId;
 }
 
