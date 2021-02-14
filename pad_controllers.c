@@ -1,5 +1,6 @@
 #include <jo/jo.h>
 #include "pad_controllers.h"
+#include "fade.h"
 
 controllerStateType pad_controllers[JO_INPUT_MAX_DEVICE];
 
@@ -40,6 +41,11 @@ void updateControllerButtonStatus(enum controllerButtonStateType *btn, bool is_p
 
 void updateController(int i)
 {
+    if(screenIsFading)
+    {
+        initControllers();
+        return;
+    }
     int newDirection = jo_get_input_direction_pressed(i);
     if((pad_controllers[i].direction_id == newDirection) && ((pad_controllers[i].direction_status == BUTTON_STATE_NEWPRESS) || (pad_controllers[i].direction_status == BUTTON_STATE_HELD)))
     {

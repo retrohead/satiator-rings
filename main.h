@@ -37,10 +37,13 @@ enum prog_state_types
 {
     PROG_STATE_INITIALIZE,
     PROG_STATE_SPLASH,
-    PROG_STATE_MENU
+    PROG_STATE_MENU,
+    PROG_STATE_GAMELIST
 };
 
+extern enum prog_state_types prog_state;
+
 // function prototypes to suppress compiler warnings
-void *memcpy(void *dest, const void *src, unsigned int n);
-char *strncpy(char *dest, const char *src, unsigned int n);
-int snprintf(char *str, unsigned int size, const char *format, ...);
+extern void *memcpy(void *dest, const void *src, unsigned int n);
+extern char *strncpy(char *dest, const char *src, unsigned int n);
+extern int snprintf(char *str, unsigned int size, const char *format, ...);

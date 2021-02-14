@@ -32,11 +32,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
-#include "pad_controllers.h"
+#include "fade.h"
+#include "background.h"
 #include "filelist.h"
+#include "pad_controllers.h"
 #include "sprite_manager.h"
 #include "states/menu.h"
 #include "states/splash.h"
+#include "states/gamelist.h"
 #include "satiator_functions.h"
 
 enum prog_state_types prog_state = PROG_STATE_INITIALIZE;
@@ -44,12 +47,13 @@ enum prog_state_types prog_previous_state = PROG_STATE_INITIALIZE;
 
 void application_logic(void)
 {
+    fadeScreen();
     updateControllers();
-    jo_printf(0, 0, "prog_state=%d", prog_state);
     prog_previous_state = prog_state;
     switch(prog_state)
     {
         case PROG_STATE_INITIALIZE:
+            init_background();
             init_sprites();
             prog_state = PROG_STATE_SPLASH;
             break;
@@ -59,22 +63,30 @@ void application_logic(void)
         case PROG_STATE_MENU:
             logic_menu();
             break;
+        case PROG_STATE_GAMELIST:
+            logic_gamelist();
+            break;
     }
 }
+
 void draw_objects(void)
 {
-    draw_sprites();
     if(prog_previous_state != prog_state)
     {
-        // changing state, clear all the sprites
+        // changing state, clear all the system
+        jo_clear_screen();
         init_sprites();
+        init_background();
+    } else
+    {
+        draw_faded_screen();
+        draw_sprites();
     }
 }
 
 void jo_main(void)
 {
-    jo_core_init(JO_COLOR_White);
-    jo_set_printf_color_index(JO_COLOR_INDEX_Red);
+    jo_core_init(JO_COLOR_Black);
 	jo_core_add_callback(application_logic);
 	jo_core_add_callback(draw_objects);
 	jo_core_run();

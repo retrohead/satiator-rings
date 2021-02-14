@@ -17,6 +17,10 @@
         "random": "c",
         "menu.h": "c",
         "controllers.h": "c",
-        "sprite_manager.h": "c"
+        "sprite_manager.h": "c",
+        "pad_controllers.h": "c",
+        "thread": "c",
+        "fade.h": "c",
+        "splash.h": "c"
     }
 }
