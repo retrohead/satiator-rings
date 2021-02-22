@@ -17,7 +17,6 @@ int selectedEntry = 0;
 int listOffset = 0;
 int depth = 0;
 bool truncatedList = true;
-char loadedEntryName[256];
 dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
 
 static int compareDirEntry(const void *pa, const void *pb) {
@@ -75,7 +74,7 @@ void displayGameList()
     }
 }
 
-void loadGameList(char * directory)
+void loadGameList(char * directory, int (*filter)(dirEntry *entry))
 {
     truncatedList = false;
     dirEntyCount = 0;
@@ -102,8 +101,8 @@ void loadGameList(char * directory)
             dirEntries[dirEntyCount].type = DIR_FILE;
         }
 
-        //if (filter && !filter(&list[nfiles]))
-        //    continue;
+        if (filter && !filter(&dirEntries[dirEntyCount]))
+            continue;
 
         if (!dirEntries[dirEntyCount].name)
         {
@@ -123,7 +122,6 @@ void loadGameList(char * directory)
     }
         
     sortDirEntries();
-    displayGameList();
 }
 
 void launchSelectedGame()
@@ -141,9 +139,10 @@ void logic_gamelist()
     {
         case ROUTINE_STATE_INITIALIZE:
             strcpy(currentDirectory, ".");
+            loadGameList(".", satiatorExecutableFilter);
             jo_nbg2_clear();
             jo_clear_background(JO_COLOR_White);
-            loadGameList(".");
+            displayGameList();
             game_list_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_SPLASH;
             break;
@@ -169,7 +168,8 @@ void logic_gamelist()
                         currentDirectory[pos - currentDirectory] = '\0';
                     else
                         strcpy(currentDirectory, ".");
-                    loadGameList(".");
+                    loadGameList(".", satiatorExecutableFilter);
+                    displayGameList();
                 }
             }
 
@@ -222,7 +222,8 @@ void logic_gamelist()
                         } else
                         {
                             depth = depth + 1;
-                            loadGameList(".");
+                            loadGameList(".", satiatorExecutableFilter);
+                            displayGameList();
                         }
                     } else
                     {

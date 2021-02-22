@@ -32,6 +32,8 @@
 #include "main.h"
 #include "states/splash.h"
 #include "states/gamelist.h"
+#include "satiator_functions.h"
+#include "satiator/iapetus/video/vdp.h"
 
 enum prog_state_types prog_state = PROG_STATE_INITIALIZE;
 enum prog_state_types prog_previous_state = PROG_STATE_INITIALIZE;

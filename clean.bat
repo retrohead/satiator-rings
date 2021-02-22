@@ -9,7 +9,10 @@ rm -f ./satiator/*.o
 rm -f ./satiator/iapetus/disc_format*.o
 rm -f ./satiator/iapetus/*.o
 rm -f ./satiator/iapetus/cd/*.o
+rm -f ./satiator/iapetus/peripherals/*.o
 rm -f ./satiator/iapetus/sh2/*.o
+rm -f ./satiator/iapetus/video/*.o
+rm -f ./states/*.o
 rm -f %JO_ENGINE_SRC_DIR%/*.o
 rm -f ./*.bin
 rm -f ./*.coff

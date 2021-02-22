@@ -13,7 +13,7 @@ enum SATIATOR_ERROR_CODE
     SATIATIOR_CREATE_DESC_ERR,
     SATIATIOR_FILE_STAT_ERR
 };
-
+extern uint16_t vdp1_stash[0x40000];
 extern int satiatorExecutableFilter(dirEntry *entry);
 
 extern enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn);

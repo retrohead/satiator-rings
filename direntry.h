@@ -1,4 +1,4 @@
-#define MAX_LOADED_DIR_ENTRIES 512
+#define MAX_LOADED_DIR_ENTRIES 64
 
 enum dirEntryType
 {

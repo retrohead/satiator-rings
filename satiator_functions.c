@@ -81,7 +81,8 @@ enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
     return SATIATIOR_SUCCESS;
 }
 
-enum SATIATOR_ERROR_CODE file2desc(const char *infile, const char *outfile) {    
+enum SATIATOR_ERROR_CODE file2desc(const char *infile, const char *outfile) {  
+      
     return iso2desc(infile, outfile);
 }
 
@@ -99,8 +100,7 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     while (is_cd_present());
     while (!is_cd_present());
     s_mode(s_cdrom);
-    int ret = boot_disc();
-    // jo_core_exit_to_multiplayer();
+    boot_disc();
     //s_mode(s_api);   // failed, restore order
     //s_emulate("");  // close the old file
     //fadein(0x20);
@@ -109,9 +109,11 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
 
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
+    if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
+        return satiatorEmulateDesc(fn);
     int ret = file2desc(fn, "emu.desc");
-    if (ret < 0) {
-        return false;
+    if (ret != SATIATIOR_SUCCESS) {
+        return SATIATIOR_CREATE_DESC_ERR;
     }
     return satiatorEmulateDesc("emu.desc");
 }
@@ -121,11 +123,11 @@ int satiatorExecutableFilter(dirEntry *entry) {
         return 1;
 
     int len = strlen(entry->name);
-    if (!strncmp(&entry->name[len-4], ".cue", 4))
-        return 1;
+    //if (!strncmp(&entry->name[len-4], ".cue", 4))
+    //    return 1;
     if (!strncmp(&entry->name[len-4], ".iso", 4))
         return 1;
-    if (!strncmp(&entry->name[len-4], ".dec", 4))
+    if (!strncmp(&entry->name[len-5], ".desc", 5))
         return 1;
     return 0;
 }

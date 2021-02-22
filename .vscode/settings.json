@@ -21,6 +21,7 @@
         "random": "c",
         "sh2int.h": "c",
         "satiator_functions.h": "c",
-        "endian.h": "c"
+        "endian.h": "c",
+        "vdp.h": "c"
     }
 }
