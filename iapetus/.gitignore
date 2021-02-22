@@ -1,0 +1,15 @@
+/build
+/Debug
+/*.ncb
+/*.user
+/*.suo
+Release/iapetus.log
+iapetus.opensdf
+iapetus.sdf
+CMakeCache.txt
+CMakeFiles/
+Doxyfile
+Makefile
+*.cmake
+/src/examples/*.bin
+/src/libiapetus.a

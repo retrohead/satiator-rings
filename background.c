@@ -12,7 +12,6 @@ void load_background(const char *sub_dir, const char *fn)
 
 void init_background()
 {
-    jo_core_set_screens_order(JO_SPRITE_SCREEN | JO_NBG0_SCREEN | JO_NBG1_SCREEN | JO_NBG2_SCREEN | JO_NBG3_SCREEN | JO_RBG0_SCREEN);
-    jo_disable_background_3d_plane(JO_COLOR_Black);
-    jo_set_printf_color_index(JO_COLOR_INDEX_Red);
+    jo_core_set_screens_order(JO_NBG2_SCREEN, JO_SPRITE_SCREEN, JO_NBG0_SCREEN, JO_RBG0_SCREEN, JO_NBG1_SCREEN);
+    jo_clear_background(JO_COLOR_White);
 }

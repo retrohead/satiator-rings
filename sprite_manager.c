@@ -2,7 +2,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
-#include "sprite_manager.h"
 
 spriteType sprites[MAX_SPRITES];
 spriteTexType spriteTex[MAX_SPRITE_TEXTURES];

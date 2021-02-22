@@ -32,12 +32,16 @@
 // program version, keep this length to avoid having to resize strings
 #define VERSION "1.0.0"
 
+#include "sprite_manager.h"
+#include "pad_controllers.h"
+#include "background.h"
+#include "font.h"
+
 // program states
 enum prog_state_types
 {
     PROG_STATE_INITIALIZE,
     PROG_STATE_SPLASH,
-    PROG_STATE_MENU,
     PROG_STATE_GAMELIST
 };
 

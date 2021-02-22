@@ -1,14 +1,15 @@
 @ECHO Off
 SET COMPILER_DIR=..\..\Compiler
-SET JO_ENGINE_SRC_DIR=..\..\jo_engine
+SET JO_ENGINE_SRC_DIR=../../jo_engine
 SET PATH=%COMPILER_DIR%\WINDOWS\Other Utilities;%PATH%
 
 rm -f ./cd/0.bin
 rm -f *.o
-rm -f ./states/*.o
-rm -f ./mode/*.o
-rm -f ./md5/*.o
-rm -f ./*.o
+rm -f ./satiator/*.o
+rm -f ./satiator/iapetus/disc_format*.o
+rm -f ./satiator/iapetus/*.o
+rm -f ./satiator/iapetus/cd/*.o
+rm -f ./satiator/iapetus/sh2/*.o
 rm -f %JO_ENGINE_SRC_DIR%/*.o
 rm -f ./*.bin
 rm -f ./*.coff

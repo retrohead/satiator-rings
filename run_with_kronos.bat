@@ -1,5 +1,5 @@
 @ECHO Off
-SET EMULATOR_DIR=..\..\\Emulators
+SET EMULATOR_DIR=..\..\Emulators
 
 if exist game.iso (
 echo Press F1 inside Kronos to run the game

@@ -1,0 +1,4 @@
+*.o
+dumpdesc
+image2desc
+out.desc

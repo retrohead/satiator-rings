@@ -1,8 +1,6 @@
-// Satiator Rings Menu
-
 /*
 ** Jo Sega Saturn Engine
-** Copyright (c) 2012-2017, Johannes Fetz (johannesfetz@gmail.com)
+** Copyright (c) 2012-2020, Johannes Fetz (johannesfetz@gmail.com)
 ** All rights reserved.
 **
 ** Redistribution and use in source and binary forms, with or without
@@ -32,22 +30,14 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
-#include "fade.h"
-#include "background.h"
-#include "filelist.h"
-#include "pad_controllers.h"
-#include "sprite_manager.h"
-#include "states/menu.h"
 #include "states/splash.h"
 #include "states/gamelist.h"
-#include "satiator_functions.h"
 
 enum prog_state_types prog_state = PROG_STATE_INITIALIZE;
 enum prog_state_types prog_previous_state = PROG_STATE_INITIALIZE;
 
 void application_logic(void)
 {
-    fadeScreen();
     updateControllers();
     prog_previous_state = prog_state;
     switch(prog_state)
@@ -60,33 +50,33 @@ void application_logic(void)
         case PROG_STATE_SPLASH:
             logic_splash();
             break;
-        case PROG_STATE_MENU:
-            logic_menu();
-            break;
         case PROG_STATE_GAMELIST:
             logic_gamelist();
             break;
     }
 }
 
+
+
 void draw_objects(void)
 {
     if(prog_previous_state != prog_state)
     {
         // changing state, clear all the system
-        jo_clear_screen();
+        //jo_clear_screen();
         init_sprites();
         init_background();
     } else
     {
-        draw_faded_screen();
         draw_sprites();
     }
 }
 
-void jo_main(void)
+void			jo_main(void)
 {
-    jo_core_init(JO_COLOR_Black);
+	jo_core_init(JO_COLOR_White);
+    load_nbg2_font();
+    initControllers();
 	jo_core_add_callback(application_logic);
 	jo_core_add_callback(draw_objects);
 	jo_core_run();
