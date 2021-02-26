@@ -82,7 +82,6 @@ void loadGameList(char * directory, int (*filter)(dirEntry *entry))
     listOffset = 0;
     if (s_opendir(directory))
             return;
-    char statbuf[280];
     s_stat_t *st = (s_stat_t*)statbuf;
     int len;
     while ((len = s_stat(NULL, st, sizeof(statbuf)-1)) > 0) {
@@ -128,7 +127,7 @@ void launchSelectedGame()
 {
     enum SATIATOR_ERROR_CODE ret = satiatorTryLaunchFile(dirEntries[selectedEntry].name);
     if(ret != SATIATIOR_SUCCESS)
-        jo_nbg2_printf(0, 3, "iso2desc failed -%d", (int)ret);
+        jo_nbg2_printf(0, 3, "-%d %s", ret, cdparse_error_string);
 }
 
 void logic_gamelist()
@@ -140,7 +139,7 @@ void logic_gamelist()
         case ROUTINE_STATE_INITIALIZE:
             strcpy(currentDirectory, ".");
             loadGameList(".", satiatorExecutableFilter);
-            jo_nbg2_clear();
+            //jo_nbg2_clear();
             jo_clear_background(JO_COLOR_White);
             displayGameList();
             game_list_state = ROUTINE_STATE_RUN;
@@ -185,7 +184,7 @@ void logic_gamelist()
                         if(selectedEntry > 0)
                         {
                             selectedEntry--;
-                            if(listOffset > 0)
+                            if(selectedEntry - listOffset  < 0)
                                 listOffset--;
                         }
                         break;
@@ -193,7 +192,7 @@ void logic_gamelist()
                         if(selectedEntry < dirEntyCount - 1)
                         {
                             selectedEntry ++;
-                            if(selectedEntry >= GAME_LIST_MAX_ITEMS)
+                            if(selectedEntry - listOffset >= GAME_LIST_MAX_ITEMS)
                                 listOffset++;
                         }
                         break;

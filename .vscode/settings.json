@@ -22,6 +22,18 @@
         "sh2int.h": "c",
         "satiator_functions.h": "c",
         "endian.h": "c",
-        "vdp.h": "c"
+        "vdp.h": "c",
+        "iapetus.h": "c",
+        "*.tcc": "c",
+        "cstdlib": "c",
+        "memory": "c",
+        "string": "c",
+        "font.h": "c",
+        "debug.h": "c",
+        "cstring": "c",
+        "array": "c",
+        "string_view": "c",
+        "ostream": "c",
+        "sstream": "c"
     }
 }

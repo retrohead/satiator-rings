@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "satiator/iapetus/iapetus.h"
-#include "satiator/endian.h"
+#include "satiator/disc_format/cdparse.h"
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
 
@@ -51,41 +51,6 @@ enum SATIATOR_ERROR_CODE satiatorWriteU32(int fd, uint32_t val)
     return satiatorWriteData(fd, &data, sizeof(int));
 }
 
-enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
-    char statbuf[280] = {0};
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int ret = s_stat(infile, st, sizeof(statbuf)-1);
-    if (ret < 0) {
-        return SATIATIOR_FILE_STAT_ERR;
-    }
-    int fd = s_open(outfile, FA_WRITE|FA_CREATE_ALWAYS);
-    if (fd < 0) {
-        return SATIATIOR_OPEN_FILE_ERR;
-    }
-    satiatorWriteU16(fd, htole16(1));                       // [u32] h_nseg;
-    satiatorWriteU32(fd, htole32(150));                     // [u32] desc.start;
-    satiatorWriteU32(fd, htole32(st->size / 2048));         // [u32] desc.length;
-    satiatorWriteU32(fd, htole32(0));                       // [u32] desc.file_offset;
-    satiatorWriteU32(fd, htole32(2 + sizeof(seg_desc_t)));  // [u32] desc.filename_offset;
-    satiatorWriteU16(fd, htole16(0));                       // [u16] flags // nothing
-    satiatorWriteU16(fd, htole16(2048));                    // [u16] desc.secsize;
-    satiatorWriteU8(fd, 1);                                 // [u8] desc.track;
-    satiatorWriteU8(fd, 1);                                 // [u8] desc.index;
-    satiatorWriteU8(fd, 0x41);                              // [u8] desc.q_mode;
-
-    uint8_t filename_len = strlen(infile);
-    satiatorWriteU8(fd, filename_len);
-    satiatorWriteData(fd, infile, filename_len);
-
-    s_close(fd);
-    return SATIATIOR_SUCCESS;
-}
-
-enum SATIATOR_ERROR_CODE file2desc(const char *infile, const char *outfile) {  
-      
-    return iso2desc(infile, outfile);
-}
-
 enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
 {
     //fadeout(0x20);
@@ -111,7 +76,7 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
     if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
         return satiatorEmulateDesc(fn);
-    int ret = file2desc(fn, "emu.desc");
+    int ret = image2desc(fn, "emu.desc");
     if (ret != SATIATIOR_SUCCESS) {
         return SATIATIOR_CREATE_DESC_ERR;
     }
@@ -123,11 +88,36 @@ int satiatorExecutableFilter(dirEntry *entry) {
         return 1;
 
     int len = strlen(entry->name);
-    //if (!strncmp(&entry->name[len-4], ".cue", 4))
+    if (!strncmp(&entry->name[len-4], ".cue", 4))
+        return 1;
+    //if (!strncmp(&entry->name[len-4], ".bin", 4))
     //    return 1;
     if (!strncmp(&entry->name[len-4], ".iso", 4))
         return 1;
     if (!strncmp(&entry->name[len-5], ".desc", 5))
         return 1;
     return 0;
+}
+
+// Read one line of data with a maximum buffer size
+char * s_gets(char *buf, int maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes)
+{
+    char c[2];
+    strcpy(buf, "");
+    for(int i = 0;i< maxsize;i++)
+    {
+        int j = s_read(fd, &c, 1);
+        *bytesRead = *bytesRead + 1;
+        if(j < 0)
+            break;
+        c[1] = '\0';
+        if(c[0] == '\n')
+            break;
+        if(c[0] == '\r')
+            continue;
+        strcat(buf, c);
+        if(*bytesRead == totalBytes)
+            break;
+    }
+    return buf;
 }

@@ -7,12 +7,16 @@
 #include <jo/jo.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
+// #include <sys/types.h>
+// #include <sys/stat.h>
 #include "../endian.h"
 #include <stdlib.h>
 #include <stdarg.h>
 #include "cdparse.h"
+
+#include "../iapetus/iapetus.h"
+#include "../jhloader.h"
+#include "../../satiator_functions.h"
 
 #ifdef TEST
     #define dbgprintf printf
@@ -21,58 +25,75 @@
     #include "../satiator.h"
 #endif
 
-int iso2desc(const char *infile, const char *outfile) {
-    FILE *out = fopen(outfile, "wb");
-    if (!out) {
-        return -1;
-    }
+char *cdparse_error_string = NULL;
 
-    struct stat st;
-    int ret = stat(infile, &st);
-    if (ret < 0) {
-        return -2;
-    }
+void cdparse_set_error(const char *fmt, ...) {
+   va_list ap;
+   if (cdparse_error_string)
+       jo_free(cdparse_error_string);
 
-    uint16_t h_nseg = htole16(1);
-    fwrite(&h_nseg, 2, 1, out);
+   char buf[1];
+   va_start(ap, fmt);
+   int len = vsnprintf(buf, sizeof(buf), fmt, ap);
+   va_end(ap);
 
-    seg_desc_t desc;
-    memset(&desc, 0, sizeof(desc));
-
-    desc.track = 1;
-    desc.index = 1;
-    desc.q_mode = 0x41;
-    desc.start = htole32(150);
-    desc.length = htole32(st.st_size / 2048);
-    desc.secsize = htole16(2048);
-    desc.filename_offset = htole32(2 + sizeof(desc));
-    desc.file_offset = htole32(0);
-
-    fwrite(&desc, sizeof(desc), 1, out);
-
-    uint8_t filename_len = strlen(infile);
-    fwrite(&filename_len, 1, 1, out);
-    fwrite(infile, filename_len, 1, out);
-
-    fclose(out);
-    return 0;
+   cdparse_error_string = jo_malloc(len+1);
+   va_start(ap, fmt);
+   vsnprintf(cdparse_error_string, len+1, fmt, ap);
+   va_end(ap);
 }
 
-int image2desc(const char *infile, const char *outfile) {
+enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int ret = s_stat(infile, st, sizeof(statbuf)-1);
+    if (ret < 0) {
+        cdparse_set_error("Could not stat ISO file");
+        return SATIATIOR_FILE_STAT_ERR;
+    }
+    int fd = s_open(outfile, FA_WRITE|FA_CREATE_ALWAYS);
+    if (fd < 0) {
+        cdparse_set_error("Can't open output file");
+        return SATIATIOR_OPEN_FILE_ERR;
+    }
+    satiatorWriteU16(fd, htole16(1));                       // [u16] h_nseg;
+    satiatorWriteU32(fd, htole32(150));                     // [u32] desc.start;
+    satiatorWriteU32(fd, htole32(st->size / 2048));         // [u32] desc.length;
+    satiatorWriteU32(fd, htole32(0));                       // [u32] desc.file_offset;
+    satiatorWriteU32(fd, htole32(2 + sizeof(seg_desc_t)));  // [u32] desc.filename_offset;
+    satiatorWriteU16(fd, htole16(0));                       // [u16] flags // nothing
+    satiatorWriteU16(fd, htole16(2048));                    // [u16] desc.secsize;
+    satiatorWriteU8(fd, 1);                                 // [u8] desc.track;
+    satiatorWriteU8(fd, 1);                                 // [u8] desc.index;
+    satiatorWriteU8(fd, 0x41);                              // [u8] desc.q_mode;
+
+    uint8_t filename_len = strlen(infile);
+    satiatorWriteU8(fd, filename_len);
+    satiatorWriteData(fd, infile, filename_len);
+
+    s_close(fd);
+    return SATIATIOR_SUCCESS;
+}
+
+enum SATIATOR_ERROR_CODE image2desc(const char *infile, const char *outfile) {
+
+   if (cdparse_error_string)
+      jo_free(cdparse_error_string);
+   cdparse_error_string = NULL;
+
    const char *dot = strrchr(infile, '.');
    if (!dot) {
-      //cdparse_set_error("Unrecognised file extension - no dot in filename");
-      return 1;
+      cdparse_set_error("Unrecognised file extension - no dot in filename");
+      return SATIATIOR_FILE_EXT_ERR;
    }
 
    const char *extension = dot + 1;
 
-   if (!strcasecmp(extension, "cue"))
+   if (!strncmp(extension, "cue", 3))
       return cue2desc(infile, outfile);
 
-   if (!strcasecmp(extension, "iso"))
+   if (!strncmp(extension, "iso", 3))
       return iso2desc(infile, outfile);
 
-   //cdparse_set_error("Unrecognised file extension '%s'", dot);
-   return 1;
+   cdparse_set_error("Unrecognised file extension '%s'", dot);
+   return SATIATIOR_FILE_EXT_ERR;
 }

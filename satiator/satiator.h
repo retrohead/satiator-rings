@@ -65,6 +65,7 @@ typedef struct {
     uint8_t attrib;
     char name[];
 } __attribute__((packed)) s_stat_t;
+extern char statbuf[280];
 
 enum satiator_mode {
     s_cdrom = 0,

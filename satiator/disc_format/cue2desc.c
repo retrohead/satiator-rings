@@ -4,18 +4,64 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include <jo/jo.h>
-#include <stdio.h>
 #include <string.h>
+#include <strings.h>
+#include <stdio.h>
+#include <jo/jo.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
-//#include <alloca.h>
+#include <malloc.h>
 #include "../endian.h"
 #include "cdparse.h"
+//#include "../../debug.h"
+#include "../../satiator_functions.h"
+
+char *my_strtok( char **stringp, const char *delim )
+{
+    assert( delim );
+    if( *stringp == NULL ) return NULL;
+    char *next = strstr( *stringp, delim );
+    char *orig = *stringp;
+    if( next == NULL )
+    *stringp = NULL;
+    else
+    {
+    *next = '\0';
+    *stringp = next + strlen( delim );
+    }
+    return orig;
+}
+char *my_strtok_r(char *str, const char *delim, char **save)
+{
+    char *res, *last;
+
+    if( !save )
+        return my_strtok(&str, delim);
+    if( !str && !(str = *save) )
+        return NULL;
+    last = str + strlen(str);
+    if( (*save = res = my_strtok(&str, delim)) )
+    {
+        *save += strlen(res);
+        if( *save < last )
+            (*save)++;
+        else
+            *save = NULL;
+    }
+    return res;
+}
+
+char *my_strdup(const char *str) {
+    size_t len = strlen(str);
+    char *x = (char *)malloc(len+1); /* 1 for the null terminator */
+    if(!x) return NULL; /* malloc could not allocate memory */
+    memcpy(x,str,len+1); /* copy the string into the new buffer */
+    return x;
+}
 
 
 #ifdef TEST
@@ -81,65 +127,82 @@ uint32_t cur_filesize;
 uint8_t cur_track, cur_q_mode;
 uint16_t cur_secsize;
 data_format_t cur_data_format;
-segment_t *segments;
-char **filenames;
+
+#define MAX_SEGMENTS 100
+#define MAX_FILENAMES 100
+segment_t segments[MAX_SEGMENTS];
+char filenames[MAX_FILENAMES][256];
 int n_filenames;
 int nseg, open_seg;
 
 static segment_t *alloc_seg(void) {
     nseg++;
-    segments = jo_add_memory_zone(segments, nseg * sizeof(segment_t));
     segment_t *seg = &segments[nseg-1];
-    memset(seg, 0, sizeof(segment_t));
     seg->filename_index = -1;
     return seg;
 }
 
-static cue2desc_error_t write_desc_file(const char *filename, segment_t *segments, int nseg) {
-    FILE *out = fopen(filename, "wb");
-    if (!out) {
+static cue2desc_error_t write_desc_file(const char *filename) {
+    for (int i=0; i<nseg; i++) {
+        segment_t * seg = &segments[i];
+        debugLog("writing seg %d index = %d len = %lu q_mode = %u", i, seg->filename_index, seg->length, seg->q_mode);
+    }
+    int out = s_open(filename, FA_WRITE|FA_CREATE_ALWAYS);
+    if (out < 0) {
         cdparse_set_error("Can't open output file");
         return e_bad_out_file;
     }
-
     uint32_t filename_offsets[n_filenames];
 
-    fseek(out, 2 + nseg * sizeof(seg_desc_t), SEEK_SET);
+    int offset = s_seek(out, 2 + nseg * sizeof(seg_desc_t), SEEK_SET);
     for (int i=0; i<n_filenames; i++) {
-        filename_offsets[i] = ftell(out);
+        filename_offsets[i] = offset;
 
         uint8_t namelen = strlen(filenames[i]);
-        fwrite(&namelen, 1, 1, out);
-        fwrite(filenames[i], namelen, 1, out);
+        satiatorWriteU8(out, namelen);
+        satiatorWriteData(out, filenames[i], namelen);
+        offset += namelen + 1;
     }
 
     // careful here: Saturn is big-endian but we have to write everything little-endian
 
-    fseek(out, 0, SEEK_SET);
-    uint16_t h_nseg = htole16(nseg);
-    fwrite(&h_nseg, 2, 1, out);
+    s_seek(out, 0, SEEK_SET);
+    satiatorWriteU16(out, htole16(nseg));                                           // [u16] h_nseg;
 
     for (int i=0; i<nseg; i++) {
-        segment_t seg = segments[i];
+        segment_t *seg = &segments[i];
         seg_desc_t desc;
-        memset(&desc, 0, sizeof(desc));
+        desc.track = seg->track;
+        desc.index = seg->index;
+        desc.q_mode = seg->q_mode;
+        desc.start = htole32(seg->start);
+        desc.length = htole32(seg->length);
 
-        desc.track = seg.track;
-        desc.index = seg.index;
-        desc.q_mode = seg.q_mode;
-        desc.start = htole32(seg.start);
-        desc.length = htole32(seg.length);
-
-        if (seg.filename_index >= 0) {
-            desc.secsize = htole16(seg.secsize);
-            desc.filename_offset = htole32(filename_offsets[seg.filename_index]);
-            desc.file_offset = htole32(seg.file_offset);
+        if (seg->filename_index >= 0) {
+            desc.secsize = htole16(seg->secsize);
+            desc.filename_offset = htole32(filename_offsets[seg->filename_index]);
+            desc.file_offset = htole32(seg->file_offset);
+        } else
+        {
+            desc.secsize = htole16(0);
+            desc.filename_offset = htole32(0);
+            desc.file_offset = htole32(0);
         }
+        desc.flags = htole16(0);
 
-        fwrite(&desc, sizeof(desc), 1, out);
+        satiatorWriteU32(out, desc.start);                                      // [u32] desc.start;
+        satiatorWriteU32(out, desc.length);                                  // [u32] desc.length;
+        satiatorWriteU32(out, desc.file_offset);                         // [u32] desc.file_offset;
+        satiatorWriteU32(out, desc.filename_offset);    // [u32] desc.filename_offset;
+        satiatorWriteU16(out, desc.flags);                                       // [u16] flags // nothing
+        satiatorWriteU16(out, desc.secsize);                             // [u16] desc.secsize;
+
+        satiatorWriteU8(out, desc.track);                                             // [u8] desc.track;
+        satiatorWriteU8(out, desc.index);                                             // [u8] desc.index;
+        satiatorWriteU8(out, desc.q_mode);                                            // [u8] desc.q_mode;
     }
 
-    fclose(out);
+    s_close(out);
     return e_ok;
 }
 
@@ -189,24 +252,23 @@ static cue2desc_error_t handle_file(char *params) {
     if ((slash = strrchr(filename_start, '/')))
         filename_start = slash+1;
 
-    char *filename = strdup(filename_start);
+    char *filename = my_strdup(filename_start);
 
     while (*mode && whitespace(*mode))
         mode++;
 
     n_filenames++;
-    filenames = realloc(filenames, sizeof(char*) * n_filenames);
     cur_fileindex = n_filenames - 1;
-    filenames[cur_fileindex] = filename;
+    strcpy(filenames[cur_fileindex], filename);
 
-    struct stat st;
-    int ret = stat(filename, &st);
+    s_stat_t st[280];
+    int ret = s_stat(filename, &st, sizeof(st)-1);
     if (ret < 0) {
         cdparse_set_error("Could not stat track file '%s'", filename);
-        return e_bad_track_file;
+        return e_bad_cue_file;
     }
 
-    cur_filesize = st.st_size;
+    cur_filesize = st->size;
 
     if (!strcmp(mode, "BINARY")) {
         cur_data_format = df_binary;
@@ -222,33 +284,35 @@ static cue2desc_error_t handle_file(char *params) {
 
 static cue2desc_error_t handle_track(char *params) {
     char *saveptr = NULL;
-    char *s_tno = strtok_r(params, " ", &saveptr);
+    char *s_tno = my_strtok_r(params, " ", &saveptr);
     if (!s_tno) {
-        //cdparse_set_error("Did not find track number");
+        cdparse_set_error("Did not find track number in params %s", params);
         return e_bad_cue_file;
     }
-    cur_track = strtoul(s_tno, NULL, 10);
+    int track;
+    sscanf(s_tno, "%d", &track);
+    cur_track = (uint8_t)track;
     if (!cur_track || cur_track > 99) {
-        //cdparse_set_error("Found invalid track number %d", cur_track);
+        cdparse_set_error("Found ""invalid track number %d", cur_track);
         return e_bad_cue_file;
     }
 
-    char *s_mode = strtok_r(NULL, " ", &saveptr);
+    char *s_mode = my_strtok_r(NULL, " ", &saveptr);
     if (!s_mode) {
-        //cdparse_set_error("Did not find track mode");
+        cdparse_set_error("Did not find track mode");
         return e_bad_cue_file;
     }
 
     if (!strcmp(s_mode, "MODE1/2048")) {
         if (cur_data_format == df_wave) {
-            //cdparse_set_error("Encountered track mode '%s' for WAVE data format", s_mode);
+            cdparse_set_error("Encountered track mode '%s' for WAVE data format", s_mode);
             return e_bad_cue_file;
         }
         cur_q_mode = 0x41;
         cur_secsize = 2048;
     } else if (!strcmp(s_mode, "MODE1/2352") || !strcmp(s_mode, "MODE2/2352")) {
         if (cur_data_format == df_wave) {
-            //cdparse_set_error("Encountered track mode '%s' for WAVE data format", s_mode);
+            cdparse_set_error("Encountered track mode '%s' for WAVE data format", s_mode);
             return e_bad_cue_file;
         }
         cur_q_mode = 0x41;
@@ -257,22 +321,25 @@ static cue2desc_error_t handle_track(char *params) {
         cur_q_mode = 0x01;
         cur_secsize = 2352;
     } else {
-        //cdparse_set_error("Unknown track mode '%s'", s_mode);
+        cdparse_set_error("Unknown track mode '%s'", s_mode);
         return e_bad_cue_file;
     }
-
     return e_ok;
 }
 
 static cue2desc_error_t handle_wave_track(segment_t *seg) {
     const char* fname = filenames[seg->filename_index];
-    FILE* f = fopen(fname, "rb");
-    if (!f) {
-        //cdparse_set_error("Could not open WAVE file '%s'", fname);
+    int f = s_open(fname, FA_READ | FA_OPEN_EXISTING);
+    if (f < 0) {
+        cdparse_set_error("Could not open WAVE file '%s'", fname);
         return e_bad_track_file;
     }
     wave_header_t hdr;
-    fread(&hdr, sizeof(hdr), 1, f);
+    int size = s_seek(f, 0, SEEK_END);
+    s_seek(f, 0, SEEK_SET);
+    int offset = 0;
+    s_read(f, &hdr, sizeof(hdr));
+    offset += sizeof(hdr);
     hdr.riff_size = htole32(hdr.riff_size);
     hdr.fmt_size = htole32(hdr.fmt_size);
     hdr.codec = htole16(hdr.codec);
@@ -323,19 +390,23 @@ static cue2desc_error_t handle_wave_track(segment_t *seg) {
     }
     // { chunk name, chunk length }
     uint32_t buf[2];
-    fread(&buf, sizeof(buf), 1, f);
+    s_read(f, &buf, sizeof(buf));
+    offset += sizeof(buf);
     // skip other chunks until we find "data"
     while (memcmp(&buf[0], "data", 4)) {
-        fseek(f, htole32(buf[1]), SEEK_CUR);
-        fread(&buf, sizeof(buf), 1, f);
-        if (feof(f)) {
+        s_seek(f, htole32(buf[1]), SEEK_CUR);
+        offset += htole32(buf[1]);
+        s_read(f, &buf, sizeof(buf));
+        offset += sizeof(buf);
+        if (offset >= size) {
+            s_close(f);
             cdparse_set_error("Reached end of '%s' while looking for data chunk", fname);
             return e_bad_track_file;
         }
     }
     // here's where the actual audio data starts in the file
-    seg->file_offset += ftell(f);
-    fclose(f);
+    seg->file_offset += offset;
+    s_close(f);
     return e_ok;
 }
 
@@ -396,40 +467,43 @@ static cue2desc_error_t handle_pregap(char *params) {
 int cue2desc(const char *cue_file, const char *desc_file) {
     cue2desc_error_t ret = e_ok;
 
-    FILE *fp = fopen(cue_file, "r");
-    if (!fp) {
-        cdparse_set_error("Could not open specified cue file");
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int stret = s_stat(cue_file, st, sizeof(statbuf)-1);
+    if (stret < 0) {
+        cdparse_set_error("Could not stat cue file");
         return e_no_cue_file;
     }
 
+    int fp = s_open(cue_file, FA_READ);
+    if (fp < 0) {
+        cdparse_set_error("Could not open specified cue file");
+        return e_no_cue_file;
+    }
     cur_filesize = cur_track = cur_secsize = 0;
     cur_fileindex = open_seg = -1;
     nseg = 0;
-    segments = calloc(1, sizeof(segment_t));
     n_filenames = 0;
-    filenames = calloc(1, sizeof(char*));
 
     char buf[512];
     char *line;
-
-    while ((line = fgets(buf, sizeof(buf), fp))) {
+    uint32_t bytesRead = 0;
+    while (bytesRead < st->size) {
+        line = s_gets(buf, sizeof(buf), fp, &bytesRead, st->size);
         // Trim whitespace at front
         while (*line && whitespace(*line))
             line++;
         if (!*line)
             continue;
-
         // Trim whitespace at end
-        char *eol = line + strlen(line) - 1;
-        while (eol > line && whitespace(*eol))
-            *eol-- = '\0';
+        while(whitespace(line[strlen(line) - 1]))
+            line[strlen(line) - 1] = '\0';
 
         // Find command word
         char *space = strchr(line, ' ');
         if (!space) {
             cdparse_set_error("No space in line");
             ret = e_bad_cue_file;
-            goto out;
+            continue;
         }
         *space = '\0';
         char *params = space + 1;
@@ -456,8 +530,9 @@ int cue2desc(const char *cue_file, const char *desc_file) {
         else
             ret = e_bad_cue_file;
 
-        if (ret != e_ok)
+        if (ret != e_ok){
             goto out;
+        }
     }
 
     handle_end_of_track_file();
@@ -467,15 +542,17 @@ int cue2desc(const char *cue_file, const char *desc_file) {
         segments[i].start = disc_fad;
         disc_fad += segments[i].length;
     }
-
-    ret = write_desc_file(desc_file, segments, nseg);
+    ret = write_desc_file(desc_file);
 
 out:
     for (int i=0; i<n_filenames; i++)
-        free(filenames[i]);
-    free(filenames);
+    {
+        if(filenames[i] != NULL)
+            free(filenames[i]);
+    }
+    if(filenames != NULL)
+        free(filenames);
 
-    free(segments);
-    fclose(fp);
+    s_close(fp);
     return ret;
 }

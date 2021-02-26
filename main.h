@@ -31,7 +31,13 @@
 
 // program version, keep this length to avoid having to resize strings
 #define VERSION "1.0.0"
+#define _GNU_SOURCE
+#define DEBUG
 
+#include <jo/jo.h>
+#ifdef DEBUG
+#include "debug.h"
+#endif
 #include "sprite_manager.h"
 #include "pad_controllers.h"
 #include "background.h"

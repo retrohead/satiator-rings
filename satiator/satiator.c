@@ -6,8 +6,12 @@
 
 //#include <iapetus.h>
 
+#include "../debug.h"
 #include "satiator.h"
 #include "iapetus/iapetus.h"
+
+char statbuf[280] = {0};
+
 //#include <string.h>
 //#include <stdio.h>
 
