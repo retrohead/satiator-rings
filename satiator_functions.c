@@ -94,8 +94,8 @@ int satiatorExecutableFilter(dirEntry *entry) {
     //    return 1;
     if (!strncmp(&entry->name[len-4], ".iso", 4))
         return 1;
-    if (!strncmp(&entry->name[len-5], ".desc", 5))
-        return 1;
+    //if (!strncmp(&entry->name[len-5], ".desc", 5))
+    //    return 1;
     return 0;
 }
 

@@ -143,10 +143,6 @@ static segment_t *alloc_seg(void) {
 }
 
 static cue2desc_error_t write_desc_file(const char *filename) {
-    for (int i=0; i<nseg; i++) {
-        segment_t * seg = &segments[i];
-        debugLog("writing seg %d index = %d len = %lu q_mode = %u", i, seg->filename_index, seg->length, seg->q_mode);
-    }
     int out = s_open(filename, FA_WRITE|FA_CREATE_ALWAYS);
     if (out < 0) {
         cdparse_set_error("Can't open output file");
@@ -262,7 +258,7 @@ static cue2desc_error_t handle_file(char *params) {
     strcpy(filenames[cur_fileindex], filename);
 
     s_stat_t st[280];
-    int ret = s_stat(filename, &st, sizeof(st)-1);
+    int ret = s_stat(filename, st, sizeof(st)-1);
     if (ret < 0) {
         cdparse_set_error("Could not stat track file '%s'", filename);
         return e_bad_cue_file;
