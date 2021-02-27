@@ -14,7 +14,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
-#include <malloc.h>
 #include "../endian.h"
 #include "cdparse.h"
 //#include "../../debug.h"
@@ -57,7 +56,7 @@ char *my_strtok_r(char *str, const char *delim, char **save)
 
 char *my_strdup(const char *str) {
     size_t len = strlen(str);
-    char *x = (char *)malloc(len+1); /* 1 for the null terminator */
+    char *x = (char *)jo_malloc(len+1); /* 1 for the null terminator */
     if(!x) return NULL; /* malloc could not allocate memory */
     memcpy(x,str,len+1); /* copy the string into the new buffer */
     return x;
@@ -256,16 +255,17 @@ static cue2desc_error_t handle_file(char *params) {
     n_filenames++;
     cur_fileindex = n_filenames - 1;
     strcpy(filenames[cur_fileindex], filename);
-
     s_stat_t st[280];
     int ret = s_stat(filename, st, sizeof(st)-1);
     if (ret < 0) {
         cdparse_set_error("Could not stat track file '%s'", filename);
+        jo_free(filename);
         return e_bad_cue_file;
     }
 
     cur_filesize = st->size;
 
+    jo_free(filename);
     if (!strcmp(mode, "BINARY")) {
         cur_data_format = df_binary;
     } else if (!strcmp(mode, "WAVE")) {
@@ -274,7 +274,6 @@ static cue2desc_error_t handle_file(char *params) {
         cdparse_set_error("Bad file mode '%s' (need BINARY or WAVE)", mode);
         return e_bad_cue_file;
     }
-
     return e_ok;
 }
 
@@ -541,14 +540,6 @@ int cue2desc(const char *cue_file, const char *desc_file) {
     ret = write_desc_file(desc_file);
 
 out:
-    for (int i=0; i<n_filenames; i++)
-    {
-        if(filenames[i] != NULL)
-            free(filenames[i]);
-    }
-    if(filenames != NULL)
-        free(filenames);
-
     s_close(fp);
     return ret;
 }

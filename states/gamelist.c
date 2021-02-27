@@ -39,12 +39,12 @@ void sortDirEntries() {
 void displayGameListItem(char * name, int ypos, bool selected, enum dirEntryType type)
 {
     if(selected)
-        jo_nbg2_printf(0, ypos, "> ");
+        jo_nbg2_printf(1, ypos, "> ");
     else
-        jo_nbg2_printf(0, ypos, "  ");
+        jo_nbg2_printf(1, ypos, "  ");
     char nam[256];
     strcpy(nam,name);
-    if(nam[1] == '0')
+    if(nam[1] == '\0')
         strcpy(nam, "/");
     nam[GAME_LIST_MAX_ITEM_LEN] = '\0'; // truncate to the max length
     if(type == DIR_DIRECTORY)
@@ -55,22 +55,22 @@ void displayGameListItem(char * name, int ypos, bool selected, enum dirEntryType
     }
     while(strlen(nam) < GAME_LIST_MAX_ITEM_LEN)
         strcat(nam, " ");
-    jo_nbg2_printf(2, ypos, nam);
+    jo_nbg2_printf(3, ypos, nam);
 }
 
 void displayGameList()
 {
-    jo_nbg2_printf(0, 0, "GAMELIST                                   ");
-    jo_nbg2_printf(0, 2, "%s                                         ", currentDirectory);
+    jo_nbg2_printf(12, 5, "GAMELIST                                   ");
+    jo_nbg2_printf(1, 6, "%s                                         ", currentDirectory);
 
     for(int i=listOffset;i < listOffset + GAME_LIST_MAX_ITEMS;i++)
     {
         if(i >= dirEntyCount)
         {
-            displayGameListItem("", (i - listOffset) + 4, false, dirEntries[i].type);
+            displayGameListItem("", (i - listOffset) + 8, false, dirEntries[i].type);
             continue;
         }
-        displayGameListItem(dirEntries[i].name, (i - listOffset) + 4, i==selectedEntry, dirEntries[i].type);
+        displayGameListItem(dirEntries[i].name, (i - listOffset) + 8, i==selectedEntry, dirEntries[i].type);
     }
 }
 
@@ -81,7 +81,10 @@ void loadGameList(char * directory, int (*filter)(dirEntry *entry))
     selectedEntry = 0;
     listOffset = 0;
     if (s_opendir(directory))
+    {
+            jo_nbg2_printf(0, 29, "could not open dir %s", directory);
             return;
+    }
     s_stat_t *st = (s_stat_t*)statbuf;
     int len;
     while ((len = s_stat(NULL, st, sizeof(statbuf)-1)) > 0) {
@@ -117,7 +120,7 @@ void loadGameList(char * directory, int (*filter)(dirEntry *entry))
     }
     for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
-        dirEntries[dirEntyCount].type = DIR_NULL;
+        dirEntries[i].type = DIR_NULL;
     }
         
     sortDirEntries();
@@ -127,7 +130,7 @@ void launchSelectedGame()
 {
     enum SATIATOR_ERROR_CODE ret = satiatorTryLaunchFile(dirEntries[selectedEntry].name);
     if(ret != SATIATIOR_SUCCESS)
-        jo_nbg2_printf(0, 3, "-%d %s", ret, cdparse_error_string);
+        jo_nbg2_printf(1, 29, "-%d %s", ret, cdparse_error_string);
 }
 
 void logic_gamelist()
@@ -137,10 +140,11 @@ void logic_gamelist()
     switch(game_list_state)
     {
         case ROUTINE_STATE_INITIALIZE:
-            strcpy(currentDirectory, ".");
+            strcpy(currentDirectory, "/");
             loadGameList(".", satiatorExecutableFilter);
             //jo_nbg2_clear();
-            jo_clear_background(JO_COLOR_White);
+            //jo_clear_background(JO_COLOR_White);
+            create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayGameList();
             game_list_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_SPLASH;
@@ -155,18 +159,17 @@ void logic_gamelist()
                     exit_state = PROG_STATE_SPLASH;
                     return;
                 }
-                depth--;
-                int ret = s_chdir("..");
+                char * pos = strrchr(currentDirectory, '/');
+                if(pos != JO_NULL)
+                    currentDirectory[pos - currentDirectory] = '\0';
+                if(currentDirectory[0] == '\0')
+                    strcpy(currentDirectory, "/");
+                int ret = s_chdir(currentDirectory);
                 if (ret != FR_OK) {
-                    jo_nbg2_printf(0, 3, "Could not change dir to %s", dirEntries[selectedEntry].name);
+                    jo_nbg2_printf(0, 29, "Could not change dir to parent");
                 } else
                 {
-                    currentDirectory[(int)strlen(currentDirectory)-1] = '\0';
-                    char * pos = strrchr(currentDirectory, '/');
-                    if(pos != JO_NULL)
-                        currentDirectory[pos - currentDirectory] = '\0';
-                    else
-                        strcpy(currentDirectory, ".");
+                    depth--;
                     loadGameList(".", satiatorExecutableFilter);
                     displayGameList();
                 }
@@ -206,18 +209,13 @@ void logic_gamelist()
                 {
                     if(dirEntries[selectedEntry].type == DIR_DIRECTORY)
                     {
-                        if(currentDirectory[1] != '\0')
-                        {
+                        if(strlen(currentDirectory) > 1)
                             strcat(currentDirectory, "/");
-                            strcat(currentDirectory, dirEntries[selectedEntry].name);
-                        }
-                        else
-                            strcpy(currentDirectory, dirEntries[selectedEntry].name);
-                        int ret = s_chdir(dirEntries[selectedEntry].name);
+                        strcat(currentDirectory, dirEntries[selectedEntry].name);
+                        int ret = s_chdir(currentDirectory);
                         if (ret != FR_OK) {
-                            currentDirectory[(int)strlen(currentDirectory)-1] = '\0';
+                            jo_nbg2_printf(0, 29, "failed open %s", currentDirectory);
                             currentDirectory[strstr("/" , currentDirectory) - currentDirectory] = '\0';
-                            jo_nbg2_printf(0, 3, "Could not change dir to %s", dirEntries[selectedEntry].name);
                         } else
                         {
                             depth = depth + 1;

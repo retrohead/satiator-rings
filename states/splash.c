@@ -13,7 +13,7 @@ void logic_splash()
     {
         case ROUTINE_STATE_INITIALIZE:
             //jo_nbg2_clear();
-            jo_clear_background(JO_COLOR_White);
+            //jo_clear_background(JO_COLOR_White);
             create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 1, 1.0, 1.0, 0);
             create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[0].x, sprites[0].y + getSpriteHeight(0) + 15, 0, 1.0, 1.0, 0);
             create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[0].x, sprites[1].y + getSpriteHeight(1) + 5, 0, 1.0, 1.0, 0);
