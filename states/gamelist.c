@@ -7,17 +7,22 @@
 #include "../satiator_functions.h"
 
 #define GAME_LIST_MAX_ITEMS 20
-#define GAME_LIST_MAX_ITEM_LEN 33
+#define GAME_LIST_MAX_ITEM_LEN 25
+#define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
 
 enum routine_state_types game_list_state = ROUTINE_STATE_INITIALIZE;
 
-char currentDirectory[1024];
-int dirEntyCount = 0;
-int selectedEntry = 0;
 int listOffset = 0;
 int depth = 0;
+bool textLeft = false;
 bool truncatedList = true;
-dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
+
+char gameIdStr[50];
+int gameBoxTex;
+int gameBoxSprite;
+uint8_t textScrollDelay = 0;
+
+int textScrollX = 0;
 
 static int compareDirEntry(const void *pa, const void *pb) {
     const dirEntry *a = pa, *b = pb;
@@ -36,33 +41,91 @@ void sortDirEntries() {
     qsort(dirEntries, dirEntyCount, sizeof(dirEntry), compareDirEntry);
 }
 
-void displayGameListItem(char * name, int ypos, bool selected, enum dirEntryType type)
+void displayGameListItem(const char * name, int ypos, bool selected, enum dirEntryType type)
 {
-    if(selected)
-        jo_nbg2_printf(1, ypos, "> ");
-    else
-        jo_nbg2_printf(1, ypos, "  ");
     char nam[256];
     strcpy(nam,name);
+    if(type == DIR_DIRECTORY)
+    {
+        // trim the ID from the folder name
+        char * pos = strrchr(nam, '[');
+        if(pos != JO_NULL)
+            nam[pos - nam - 1] = '\0';
+    }
+    if(selected)
+    {
+        jo_nbg2_printf(1, ypos, "> ");
+        int len = strlen(name);
+        if(type == DIR_DIRECTORY)
+            len++;
+        if(len >= GAME_LIST_MAX_ITEM_LEN)
+        {
+            textScrollDelay--;
+            if(textScrollDelay == 0)
+            {
+                if(textLeft)
+                    textScrollX--;
+                else
+                    textScrollX++;
+                textScrollDelay = TEXT_SCROLL_DELAY;
+                if(textLeft)
+                {
+                    if(textScrollX == 0)
+                        textLeft = false;
+                } else
+                {
+                    if(GAME_LIST_MAX_ITEM_LEN + textScrollX >= len)
+                        textLeft = true;
+                }
+            }
+            char * scrollPos = &nam[textScrollX];
+            strcpy(nam, scrollPos);
+        }
+    }
+    else
+        jo_nbg2_printf(1, ypos, "  ");
     if(nam[1] == '\0')
         strcpy(nam, "/");
     nam[GAME_LIST_MAX_ITEM_LEN] = '\0'; // truncate to the max length
     if(type == DIR_DIRECTORY)
     {
+        strcat(nam, "/");
         if(strlen(nam) >= GAME_LIST_MAX_ITEM_LEN)
             nam[GAME_LIST_MAX_ITEM_LEN - 1] = '\0';
-        strcat(nam, "/");
     }
     while(strlen(nam) < GAME_LIST_MAX_ITEM_LEN)
         strcat(nam, " ");
     jo_nbg2_printf(3, ypos, nam);
 }
 
+void displayGameBox(char * fn)
+{
+    if(strlen(fn) > 1)
+    {
+        if(gameBoxTex != -1)
+        {
+            jo_sprite_free_from(spriteTex[gameBoxTex].texture_id);
+            spriteTex[gameBoxTex].used = false;
+            sprites[gameBoxSprite].used = false;
+        }
+        gameBoxTex = load_sprite_texture("BOX", fn);
+        if(gameBoxTex > 0)
+        {
+            gameBoxSprite = create_sprite(gameBoxTex, 315 - getTextureWidth(gameBoxTex), 235 - getTextureHeight(gameBoxTex), 0, 1.0, 1.0, 0);
+        }
+    } else if(gameBoxTex != -1)
+    {
+        jo_sprite_free_from(spriteTex[gameBoxTex].texture_id);
+        spriteTex[gameBoxTex].used = false;
+        sprites[gameBoxSprite].used = false;
+    }
+}
+
 void displayGameList()
 {
-    jo_nbg2_printf(12, 5, "GAMELIST                                   ");
-    jo_nbg2_printf(1, 6, "%s                                         ", currentDirectory);
-
+    textScrollX = 0;
+    textScrollDelay = TEXT_SCROLL_DELAY;
+    textLeft = false;
     for(int i=listOffset;i < listOffset + GAME_LIST_MAX_ITEMS;i++)
     {
         if(i >= dirEntyCount)
@@ -70,15 +133,43 @@ void displayGameList()
             displayGameListItem("", (i - listOffset) + 8, false, dirEntries[i].type);
             continue;
         }
-        displayGameListItem(dirEntries[i].name, (i - listOffset) + 8, i==selectedEntry, dirEntries[i].type);
+        displayGameListItem(dirEntries[i].name, (i - listOffset) + 8, i==selectedDirEntry, dirEntries[i].type);
     }
+    if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
+    {
+        const char *brckt = strrchr(dirEntries[selectedDirEntry].name, '[');
+        if (brckt) {
+            const char *gameidpos = brckt + 1;
+            char gameId[50];
+            strcpy(gameId, gameidpos);
+            gameId[strlen(gameId) - 1] = '\0'; // strip ending bracket
+
+            if(strcmp(gameId, gameIdStr))
+            {
+                strcpy(gameIdStr, gameId);
+                strcat(gameId, "S.TGA");
+                displayGameBox(gameId);
+            }
+        } else
+        {
+            strcpy(gameIdStr, "");
+            displayGameBox("");
+        }
+
+    } else
+    {
+        strcpy(gameIdStr, "");
+        displayGameBox("");
+    }
+    jo_nbg2_printf(15, 4, "GAMELIST");
+    jo_nbg2_printf(1, 6, "%s                                         ", currentDirectory);
 }
 
-void loadGameList(char * directory, int (*filter)(dirEntry *entry))
+void loadFileList(char * directory, int (*filter)(dirEntry *entry))
 {
     truncatedList = false;
     dirEntyCount = 0;
-    selectedEntry = 0;
+    selectedDirEntry = 0;
     listOffset = 0;
     if (s_opendir(directory))
     {
@@ -100,7 +191,12 @@ void loadGameList(char * directory, int (*filter)(dirEntry *entry))
             dirEntries[dirEntyCount].type = DIR_DIRECTORY;
         } else {
             strcpy(dirEntries[dirEntyCount].name, st->name);
-            dirEntries[dirEntyCount].type = DIR_FILE;
+            const char *dot = strrchr(dirEntries[dirEntyCount].name, '.');
+            const char *extension = dot + 1;
+            if (strncmp(extension, "cue", 3) && strncmp(extension, "iso", 3))
+                dirEntries[dirEntyCount].type = DIR_FILE;
+            else
+                dirEntries[dirEntyCount].type = DIR_GAME;
         }
 
         if (filter && !filter(&dirEntries[dirEntyCount]))
@@ -128,9 +224,12 @@ void loadGameList(char * directory, int (*filter)(dirEntry *entry))
 
 void launchSelectedGame()
 {
-    enum SATIATOR_ERROR_CODE ret = satiatorTryLaunchFile(dirEntries[selectedEntry].name);
+    jo_nbg2_clear();
+    enum SATIATOR_ERROR_CODE ret = satiatorTryLaunchFile(dirEntries[selectedDirEntry].name);
     if(ret != SATIATIOR_SUCCESS)
+    {
         jo_nbg2_printf(1, 29, "-%d %s", ret, cdparse_error_string);
+    }
 }
 
 void logic_gamelist()
@@ -140,8 +239,12 @@ void logic_gamelist()
     switch(game_list_state)
     {
         case ROUTINE_STATE_INITIALIZE:
+            routine_scene = 0;
+            gameBoxTex = -1;
+            gameBoxSprite = -1;
+            strcpy(gameIdStr, "");
             strcpy(currentDirectory, "/");
-            loadGameList(".", satiatorExecutableFilter);
+            loadFileList(".", satiatorExecutableFilter);
             //jo_nbg2_clear();
             //jo_clear_background(JO_COLOR_White);
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
@@ -150,7 +253,10 @@ void logic_gamelist()
             exit_state = PROG_STATE_SPLASH;
             break;
         case ROUTINE_STATE_RUN:
-
+            if(dirEntyCount > 0)
+            {
+                displayGameListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 8, true, dirEntries[selectedDirEntry].type);
+            }
             if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
             {
                 if(depth == 0)
@@ -170,7 +276,7 @@ void logic_gamelist()
                 } else
                 {
                     depth--;
-                    loadGameList(".", satiatorExecutableFilter);
+                    loadFileList(".", satiatorExecutableFilter);
                     displayGameList();
                 }
             }
@@ -184,21 +290,41 @@ void logic_gamelist()
                     case RIGHT:
                         break;
                     case UP:
-                        if(selectedEntry > 0)
+                        if(selectedDirEntry > 0)
                         {
-                            selectedEntry--;
-                            if(selectedEntry - listOffset  < 0)
+                            selectedDirEntry--;
+                            if(selectedDirEntry - listOffset  < 0)
                                 listOffset--;
                         }
                         break;
                     case DOWN:
-                        if(selectedEntry < dirEntyCount - 1)
+                        if(selectedDirEntry < dirEntyCount - 1)
                         {
-                            selectedEntry ++;
-                            if(selectedEntry - listOffset >= GAME_LIST_MAX_ITEMS)
+                            selectedDirEntry ++;
+                            if(selectedDirEntry - listOffset >= GAME_LIST_MAX_ITEMS)
                                 listOffset++;
                         }
                         break;
+                }
+                displayGameList();
+            }
+            if(pad_controllers[0].btn_l == BUTTON_STATE_HELD)
+            {
+                if(selectedDirEntry > 0)
+                {
+                    selectedDirEntry--;
+                    if(selectedDirEntry - listOffset  < 0)
+                        listOffset--;
+                }
+                displayGameList();
+            }
+            if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
+            {
+                if(selectedDirEntry < dirEntyCount - 1)
+                {
+                    selectedDirEntry ++;
+                    if(selectedDirEntry - listOffset >= GAME_LIST_MAX_ITEMS)
+                        listOffset++;
                 }
                 displayGameList();
             }
@@ -207,11 +333,11 @@ void logic_gamelist()
             {
                 if(dirEntyCount > 0)
                 {
-                    if(dirEntries[selectedEntry].type == DIR_DIRECTORY)
+                    if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
                     {
                         if(strlen(currentDirectory) > 1)
                             strcat(currentDirectory, "/");
-                        strcat(currentDirectory, dirEntries[selectedEntry].name);
+                        strcat(currentDirectory, dirEntries[selectedDirEntry].name);
                         int ret = s_chdir(currentDirectory);
                         if (ret != FR_OK) {
                             jo_nbg2_printf(0, 29, "failed open %s", currentDirectory);
@@ -219,17 +345,26 @@ void logic_gamelist()
                         } else
                         {
                             depth = depth + 1;
-                            loadGameList(".", satiatorExecutableFilter);
+                            loadFileList(".", satiatorExecutableFilter);
                             displayGameList();
+                            if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+                            {
+                                //launchSelectedGame();
+                                game_list_state = ROUTINE_STATE_END;
+                                exit_state = PROG_STATE_BOOT;
+                            }
                         }
-                    } else
+                    } else if(dirEntries[selectedDirEntry].type == DIR_GAME)
                     {
-                        launchSelectedGame();
+                        //launchSelectedGame();
+                        game_list_state = ROUTINE_STATE_END;
+                        exit_state = PROG_STATE_BOOT;
                     }
                 }
             }
             break;
         case ROUTINE_STATE_END:
+            routine_scene = 0;
             game_list_state = ROUTINE_STATE_INITIALIZE;
             prog_state = exit_state;
             break;

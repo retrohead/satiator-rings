@@ -34,6 +34,8 @@
         "array": "c",
         "string_view": "c",
         "ostream": "c",
-        "sstream": "c"
+        "sstream": "c",
+        "typeinfo": "c",
+        "bootscreen.h": "c"
     }
 }

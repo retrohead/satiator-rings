@@ -4,3 +4,5 @@ enum routine_state_types
     ROUTINE_STATE_RUN,
     ROUTINE_STATE_END
 };
+
+extern int routine_scene;

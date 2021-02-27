@@ -1,0 +1,1 @@
+void logic_bootscreen();

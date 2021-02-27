@@ -32,11 +32,13 @@
 #include "main.h"
 #include "states/splash.h"
 #include "states/gamelist.h"
+#include "states/bootscreen.h"
 #include "satiator_functions.h"
 #include "satiator/iapetus/video/vdp.h"
 
 enum prog_state_types prog_state = PROG_STATE_INITIALIZE;
 enum prog_state_types prog_previous_state = PROG_STATE_INITIALIZE;
+int routine_scene = 0;
 
 void application_logic(void)
 {
@@ -54,6 +56,9 @@ void application_logic(void)
             break;
         case PROG_STATE_GAMELIST:
             logic_gamelist();
+            break;
+        case PROG_STATE_BOOT:
+            logic_bootscreen();
             break;
     }
 }

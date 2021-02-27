@@ -80,7 +80,13 @@ int load_sprite_texture(char *directory, char *filename)
         return -1;
     }
     // load the texture into joengine
-    spriteTex[textureId].texture_id = jo_sprite_add_tga(directory, filename, JO_COLOR_Transparent);
+    int tex = jo_sprite_add_tga(directory, filename, JO_COLOR_Transparent);
+    if(tex < 0)
+    {
+        spriteTex[textureId].used = false;
+        return -1;
+    }
+    spriteTex[textureId].texture_id = tex;
     return textureId;
 }
 

@@ -48,7 +48,8 @@ enum prog_state_types
 {
     PROG_STATE_INITIALIZE,
     PROG_STATE_SPLASH,
-    PROG_STATE_GAMELIST
+    PROG_STATE_GAMELIST,
+    PROG_STATE_BOOT
 };
 
 extern enum prog_state_types prog_state;

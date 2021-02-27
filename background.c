@@ -14,5 +14,5 @@ void init_background()
 {
     jo_core_set_screens_order(JO_NBG2_SCREEN, JO_SPRITE_SCREEN, JO_NBG0_SCREEN, JO_RBG0_SCREEN, JO_NBG1_SCREEN);
     jo_nbg2_clear();
-    jo_clear_background(JO_COLOR_White);
+    //jo_clear_background(JO_COLOR_White);
 }

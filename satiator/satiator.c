@@ -6,18 +6,15 @@
 
 //#include <iapetus.h>
 
-#include "../debug.h"
 #include "satiator.h"
 #include "iapetus/iapetus.h"
-
-char statbuf[280] = {0};
-
 //#include <string.h>
 //#include <stdio.h>
 
 // I/O primitives   {{{
 
 typedef uint16_t cmd_t[4];
+char statbuf[280];
 
 void exec_cmd(cmd_t cr, uint16_t wait) {
 
@@ -126,7 +123,7 @@ int s_seek(int fd, int offset, int whence) {
 // Read some data. Returns bytes read
 int s_read(int fd, void *buf, int len) {
     if (len > S_MAXBUF || len < 0)
-        return FR_INVALID_PARAMETER;
+        return -FR_INVALID_PARAMETER;
     simplecall(c_read, fd, 0, len);
     len = get_length();
     buffer_read(buf, len);
@@ -136,7 +133,7 @@ int s_read(int fd, void *buf, int len) {
 // Write some data. Returns bytes written
 int s_write(int fd, const void *buf, int len) {
     if (len > S_MAXBUF || len < 0)
-        return FR_INVALID_PARAMETER;
+        return -FR_INVALID_PARAMETER;
     buffer_write(buf, len);
     simplecall(c_write, fd, 0, len);
     return get_length();
@@ -161,7 +158,7 @@ int s_truncate(int fd) {
 int s_stat(const char *filename, s_stat_t *stat, int statsize) {
     int len;
     if (statsize < 9)
-        return FR_INVALID_PARAMETER;
+        return -FR_INVALID_PARAMETER;
     if (filename) {
         len = strlen(filename);
         buffer_write(filename, len);
@@ -323,4 +320,3 @@ satiator_cart_header_t *s_find_cartridge(void) {
     return NULL;
 }
 // }}}
-
