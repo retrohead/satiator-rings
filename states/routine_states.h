@@ -6,3 +6,10 @@ enum routine_state_types
 };
 
 extern int routine_scene;
+
+extern void logic_gamelist();
+extern void logic_bootscreen();
+extern void logic_splash();
+extern void logic_menu();
+extern void logic_console_info();
+extern void logic_satiator_info();

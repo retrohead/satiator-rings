@@ -933,7 +933,6 @@ int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes)
 
    if ((ret = cd_set_sector_size(sector_size)) != 0)
       return ret;
-
    // Set Filter
 /*
 //   if ((ret = CDSetFilter(0, 1, 0, 0xFF)) != 0)
@@ -953,13 +952,13 @@ int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes)
    if ((ret = cd_play_fad(0, FAD, num_sectors)) != 0)
       return ret;
 
-   while (!done)
+   while (done != 1)
    {
       u32 sectorstoread=0;
       u32 bytes_to_read;
 
       // Wait until there's data ready
-      while ((sectorstoread = cd_is_data_ready(0)) == 0) {}
+      while ((sectorstoread = cd_is_data_ready(0)) == IAPETUS_ERR_OK) {}
 
       if ((sectorstoread * sector_size_tbl[cd_sector_size]) > num_bytes)
          bytes_to_read = num_bytes;
@@ -974,10 +973,9 @@ int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes)
       num_bytes -= bytes_to_read;
       buffer += bytes_to_read;
 
-      if (num_bytes == 0)
+      if (num_bytes <= 0)
          done = 1;
    }
-
    return IAPETUS_ERR_OK;
 }
 

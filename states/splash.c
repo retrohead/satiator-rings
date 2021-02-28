@@ -4,6 +4,7 @@
 #include "../main.h"
 #include "routine_states.h"
 #include "../satiator/satiator.h"
+#include "../satiator_functions.h"
 
 enum routine_state_types splash_state = ROUTINE_STATE_INITIALIZE;
 
@@ -106,13 +107,13 @@ void animateLogo(int *frame)
             sprites[logosprites[0]].y = 20;
             sprites[logosprites[0]].rot_speed = 0;
 
-            for(int i=0;i<2;i++)
+            for(int i=0;i<3;i++)
             {
                 sprites[logosprites[i]].x = 80;
                 sprites[logosprites[i]].scale_x = 1;
                 sprites[logosprites[i]].scale_y = 1;
                 sprites[logosprites[i]].rot_angle = 0;
-                sprites[logosprites[1]].speed_x = 0.02;
+                sprites[logosprites[i]].speed_x = 0;
             }
             if(*frame < MAX_SPLASH_FRAME)
                 *frame = *frame + 1;
@@ -121,12 +122,11 @@ void animateLogo(int *frame)
 }
 void logic_splash()
 {
+    static enum prog_state_types exit_state = PROG_STATE_GAMELIST;
     switch(splash_state)
     {
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
-            //jo_nbg2_clear();
-            //jo_clear_background(JO_COLOR_White);
             logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 1, 1.0, 1.0, 0);
             logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 0, 1.0, 1.0, 0);
             logosprites[2] = create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[logosprites[0]].x, sprites[logosprites[1]].y + getSpriteHeight(logosprites[1]) + 5, 0, 1.0, 1.0, 0);
@@ -147,27 +147,44 @@ void logic_splash()
             sprites[logosprites[0]].speed_y = 0.02;
 
             splash_state = ROUTINE_STATE_RUN;
+            exit_state = PROG_STATE_GAMELIST;
             break;
         case ROUTINE_STATE_RUN:
             animateLogo(&routine_scene);
             if(routine_scene > 4)
             {
-                if(s_mode(s_api) == 0)
+                initSatiator();
+                switch(satiatorState)
                 {
-                    jo_nbg2_printf(11, 20,   "Satiator Detected");
-                    int result = 0;
-                    result = s_opendir(".");
-                    if(result != 0)
-                    {
+                    case SATIATOR_STATE_NOT_FOUND:
+                        jo_nbg2_printf(9, 20, "Satiator Not Detected");
+                        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+                        {
+                            if(routine_scene < MAX_SPLASH_FRAME - 1)
+                                routine_scene = MAX_SPLASH_FRAME - 1;
+                        }
+                        if(routine_scene >= MAX_SPLASH_FRAME)
+                        {
+                            splash_state = ROUTINE_STATE_END;
+                            exit_state = PROG_STATE_GAMELIST;
+                        }
+                        break;
+                    case SATIATOR_STATE_NOT_WORKING:
+                        jo_nbg2_printf(11, 20,   "Satiator Detected");
                         jo_nbg2_printf(8,  22,"Satiator Is Not Working");
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
-                            s_mode(s_cdrom);
-                            jo_core_exit_to_multiplayer();
+                            if(routine_scene < MAX_SPLASH_FRAME - 1)
+                                routine_scene = MAX_SPLASH_FRAME - 1;
                         }
-                    }
-                    else 
-                    {
+                        if(routine_scene >= MAX_SPLASH_FRAME)
+                        {
+                            splash_state = ROUTINE_STATE_END;
+                            exit_state = PROG_STATE_EXIT;
+                        }
+                        break;
+                    case SATIATOR_STATE_WORKING:
+                        jo_nbg2_printf(11, 20,   "Satiator Detected");
                         jo_nbg2_printf(10, 22,  "Satiator Is Working");
 
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
@@ -175,31 +192,24 @@ void logic_splash()
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
                                 routine_scene = MAX_SPLASH_FRAME - 1;
                         }
-                    }
-                    if(routine_scene >= MAX_SPLASH_FRAME)
-                    {
-                        splash_state = ROUTINE_STATE_END;
-                    }
-                } else
-                {
-                    jo_nbg2_printf(9, 20, "Satiator Not Detected");
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
-                    {
-                        s_mode(s_cdrom);
-                        jo_core_exit_to_multiplayer();
-                    }
+                        if(routine_scene >= MAX_SPLASH_FRAME)
+                        {
+                            splash_state = ROUTINE_STATE_END;
+                            exit_state = PROG_STATE_GAMELIST;
+                        }
+                        break;
                 }
             }
             if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
             {
-                if(routine_scene < 3)
-                    routine_scene = 3;
+                if(routine_scene < 4)
+                    routine_scene = 4;
             }
             break;
         case ROUTINE_STATE_END:
             routine_scene = 0;
             splash_state = ROUTINE_STATE_INITIALIZE;
-            prog_state = PROG_STATE_GAMELIST;
+            prog_state = exit_state;
             break;
     }
 }

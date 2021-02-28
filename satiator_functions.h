@@ -7,16 +7,26 @@
 
 enum SATIATOR_ERROR_CODE
 {
-    SATIATIOR_SUCCESS,
-    SATIATIOR_OPEN_FILE_ERR,
-    SATIATIOR_READ_ERR,
-    SATIATIOR_WRITE_ERR,
-    SATIATIOR_CREATE_DESC_ERR,
-    SATIATIOR_FILE_STAT_ERR,
-    SATIATIOR_FILE_EXT_ERR
+    SATIATOR_SUCCESS,
+    SATIATOR_OPEN_FILE_ERR,
+    SATIATOR_READ_ERR,
+    SATIATOR_WRITE_ERR,
+    SATIATOR_CREATE_DESC_ERR,
+    SATIATOR_FILE_STAT_ERR,
+    SATIATOR_FILE_EXT_ERR,
+    SATIATOR_LAUNCH_ERR
 };
+enum SATIATOR_STATE
+{
+    SATIATOR_STATE_WORKING,
+    SATIATOR_STATE_NOT_FOUND,
+    SATIATOR_STATE_NOT_WORKING
+};
+
+extern enum SATIATOR_STATE satiatorState;
 extern int satiatorExecutableFilter(dirEntry *entry);
 
+extern void initSatiator();
 extern enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn);
 extern enum SATIATOR_ERROR_CODE satiatorWriteData(int fd, const void * buff, unsigned int size);
 extern enum SATIATOR_ERROR_CODE satiatorWriteU8(int fd, uint8_t val);

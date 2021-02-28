@@ -30,9 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
-#include "states/splash.h"
-#include "states/gamelist.h"
-#include "states/bootscreen.h"
+#include "states/routine_states.h"
 #include "satiator_functions.h"
 #include "satiator/iapetus/video/vdp.h"
 
@@ -60,10 +58,21 @@ void application_logic(void)
         case PROG_STATE_BOOT:
             logic_bootscreen();
             break;
+        case PROG_STATE_MENU:
+            logic_menu();
+            break;
+        case PROG_STATE_CONSOLE_INFO:
+            logic_console_info();
+            break;
+        case PROG_STATE_SATIATOR_INFO:
+            logic_satiator_info();
+            break;
+        case PROG_STATE_EXIT:
+            s_mode(s_cdrom);
+            jo_core_exit_to_multiplayer();
+            break;
     }
 }
-
-
 
 void draw_objects(void)
 {

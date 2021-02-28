@@ -36,6 +36,8 @@
         "ostream": "c",
         "sstream": "c",
         "typeinfo": "c",
-        "bootscreen.h": "c"
+        "bootscreen.h": "c",
+        "menu_options.h": "c",
+        "bios.h": "c"
     }
 }

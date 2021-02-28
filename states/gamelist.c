@@ -3,7 +3,6 @@
 #include <string.h>
 #include "../main.h"
 #include "routine_states.h"
-#include "gamelist.h"
 #include "../satiator_functions.h"
 
 #define GAME_LIST_MAX_ITEMS 20
@@ -55,7 +54,7 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
     if(selected)
     {
         jo_nbg2_printf(1, ypos, "> ");
-        int len = strlen(name);
+        int len = strlen(nam);
         if(type == DIR_DIRECTORY)
             len++;
         if(len >= GAME_LIST_MAX_ITEM_LEN)
@@ -84,7 +83,7 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
     }
     else
         jo_nbg2_printf(1, ypos, "  ");
-    if(nam[1] == '\0')
+    if((nam[0] != '\0') && (nam[1] == '\0'))
         strcpy(nam, "/");
     nam[GAME_LIST_MAX_ITEM_LEN] = '\0'; // truncate to the max length
     if(type == DIR_DIRECTORY)
@@ -226,7 +225,7 @@ void launchSelectedGame()
 {
     jo_nbg2_clear();
     enum SATIATOR_ERROR_CODE ret = satiatorTryLaunchFile(dirEntries[selectedDirEntry].name);
-    if(ret != SATIATIOR_SUCCESS)
+    if(ret != SATIATOR_SUCCESS)
     {
         jo_nbg2_printf(1, 29, "-%d %s", ret, cdparse_error_string);
     }
@@ -234,7 +233,7 @@ void launchSelectedGame()
 
 void logic_gamelist()
 {
-    static enum prog_state_types exit_state = PROG_STATE_GAMELIST;
+    static enum prog_state_types exit_state = PROG_STATE_SPLASH;
 
     switch(game_list_state)
     {
@@ -245,8 +244,6 @@ void logic_gamelist()
             strcpy(gameIdStr, "");
             strcpy(currentDirectory, "/");
             loadFileList(".", satiatorExecutableFilter);
-            //jo_nbg2_clear();
-            //jo_clear_background(JO_COLOR_White);
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayGameList();
             game_list_state = ROUTINE_STATE_RUN;
@@ -279,6 +276,11 @@ void logic_gamelist()
                     loadFileList(".", satiatorExecutableFilter);
                     displayGameList();
                 }
+            }
+            if(pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS)
+            {
+                game_list_state = ROUTINE_STATE_END;
+                exit_state = PROG_STATE_MENU;
             }
 
             if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)

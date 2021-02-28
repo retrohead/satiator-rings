@@ -6,6 +6,30 @@
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
 
+enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
+
+void initSatiator()
+{
+    if(satiatorState == SATIATOR_STATE_WORKING)
+        return;
+    if(s_mode(s_api) == 0)
+    {
+        int result = 0;
+        result = s_opendir(".");
+        if(result != 0)
+        {
+            satiatorState = SATIATOR_STATE_NOT_WORKING;
+        }
+        else 
+        {
+            satiatorState = SATIATOR_STATE_WORKING;
+        }
+    } else
+    {
+        satiatorState = SATIATOR_STATE_NOT_FOUND;
+    }
+}
+
 enum SATIATOR_ERROR_CODE satiatorWriteData(int fd, const void * buff, unsigned int size)
 {
     int result = 0;
@@ -38,10 +62,10 @@ enum SATIATOR_ERROR_CODE satiatorWriteU16(int fd, uint16_t val)
     char data[1];
     data[0] = (val >> 8);
     if(satiatorWriteData(fd, &data, 1) < 0)
-        return SATIATIOR_WRITE_ERR;
+        return SATIATOR_WRITE_ERR;
     data[0] = (val & 0xFF);
     if(satiatorWriteData(fd, &data, 1) < 0)
-        return SATIATIOR_WRITE_ERR;
+        return SATIATOR_WRITE_ERR;
     return 2;
 }
 
@@ -65,11 +89,16 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     while (is_cd_present());
     while (!is_cd_present());
     s_mode(s_cdrom);
-    boot_disc();
-    //s_mode(s_api);   // failed, restore order
-    //s_emulate("");  // close the old file
-    //fadein(0x20);
-    return SATIATIOR_SUCCESS;
+    if(boot_disc() < 0)
+    {
+        s_mode(s_api);   // failed, restore order
+        s_emulate("");  // close the old file
+        //fadein(0x20);
+        return SATIATOR_LAUNCH_ERR;
+    } else
+    {
+        return SATIATOR_SUCCESS;
+    }
 }
 
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
@@ -77,8 +106,8 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
     if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
         return satiatorEmulateDesc(fn);
     int ret = image2desc(fn, "emu.desc");
-    if (ret != SATIATIOR_SUCCESS) {
-        return SATIATIOR_CREATE_DESC_ERR;
+    if (ret != SATIATOR_SUCCESS) {
+        return SATIATOR_CREATE_DESC_ERR;
     }
     return satiatorEmulateDesc("emu.desc");
 }

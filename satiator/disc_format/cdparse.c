@@ -48,12 +48,12 @@ enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
     int ret = s_stat(infile, st, sizeof(statbuf)-1);
     if (ret < 0) {
         cdparse_set_error("Could not stat ISO file");
-        return SATIATIOR_FILE_STAT_ERR;
+        return SATIATOR_FILE_STAT_ERR;
     }
     int fd = s_open(outfile, FA_WRITE|FA_CREATE_ALWAYS);
     if (fd < 0) {
         cdparse_set_error("Can't open output file");
-        return SATIATIOR_OPEN_FILE_ERR;
+        return SATIATOR_OPEN_FILE_ERR;
     }
     satiatorWriteU16(fd, htole16(1));                       // [u16] h_nseg;
     satiatorWriteU32(fd, htole32(150));                     // [u32] desc.start;
@@ -71,7 +71,7 @@ enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
     satiatorWriteData(fd, infile, filename_len);
 
     s_close(fd);
-    return SATIATIOR_SUCCESS;
+    return SATIATOR_SUCCESS;
 }
 
 enum SATIATOR_ERROR_CODE image2desc(const char *infile, const char *outfile) {
@@ -83,7 +83,7 @@ enum SATIATOR_ERROR_CODE image2desc(const char *infile, const char *outfile) {
    const char *dot = strrchr(infile, '.');
    if (!dot) {
       cdparse_set_error("Unrecognised file extension - no dot in filename");
-      return SATIATIOR_FILE_EXT_ERR;
+      return SATIATOR_FILE_EXT_ERR;
    }
 
    const char *extension = dot + 1;
@@ -95,5 +95,5 @@ enum SATIATOR_ERROR_CODE image2desc(const char *infile, const char *outfile) {
       return iso2desc(infile, outfile);
 
    cdparse_set_error("Unrecognised file extension '%s'", dot);
-   return SATIATIOR_FILE_EXT_ERR;
+   return SATIATOR_FILE_EXT_ERR;
 }
