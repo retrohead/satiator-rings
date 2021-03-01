@@ -1,6 +1,7 @@
 #include <jo/jo.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include "bios.h"
 #include "satiator/iapetus/iapetus.h"
 #include "satiator/disc_format/cdparse.h"
 #include "satiator/jhloader.h"
@@ -12,6 +13,7 @@ void initSatiator()
 {
     if(satiatorState == SATIATOR_STATE_WORKING)
         return;
+    strcpy(currentDirectory, "/");
     if(s_mode(s_api) == 0)
     {
         int result = 0;
@@ -23,6 +25,7 @@ void initSatiator()
         else 
         {
             satiatorState = SATIATOR_STATE_WORKING;
+            s_chdir("/");
         }
     } else
     {
@@ -101,6 +104,135 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     }
 }
 
+// verify the image that is about to be loaded in the desc file needs patching
+int satiatorVerifyPatchDescFileImage()
+{
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int stret = s_stat(filenames[0], st, sizeof(statbuf)-1);
+    if (stret < 0) {
+        cdparse_set_error("Could not stat file #1");
+        return -1;
+    }
+    const char *dot = strrchr(filenames[0], '.');
+    if (!dot) {
+        cdparse_set_error("Unrecognised file #1 extension - no dot in filename");
+        return -1;
+    }
+
+    const char *extension = dot + 1;
+    int verifyLoc1 = 0x00;
+    int verifyLoc2 = 0xdc0;
+    int regionLoc2 = 0xe04;
+    if (strncmp(extension, "iso", 3))
+    {
+        // bin files have a different location for the region flags
+        verifyLoc1 = 0x10;
+        verifyLoc2 = 0xf00;
+        regionLoc2 = 0xf44;
+    }
+    
+    int fp = s_open(filenames[0], FA_READ | FA_WRITE | FA_OPEN_EXISTING);
+    if (fp < 0) {
+        cdparse_set_error("Could not open specified file #1");
+        s_close(fp);
+        return -1;
+    }
+    // VERIFY THE CD FOR PATCHING
+    char checkStr[32];
+    s_seek(fp, verifyLoc1, SEEK_SET);
+
+    s_read(fp, checkStr, 16);
+    if(!strcmp("SEGA SEGASATURN ", checkStr)) {
+        cdparse_set_error("Could not verify image region -1");
+        s_close(fp);
+        return -1;
+    }
+    s_seek(fp, verifyLoc2, SEEK_SET);
+    s_read(fp, checkStr, 16);
+    if(!strcmp("COPYRIGHT(C) SEG", checkStr)) {
+        cdparse_set_error("Could not verify image region -2");
+        s_close(fp);
+        return -1;
+    }
+
+    s_seek(fp, regionLoc2, SEEK_SET);
+    s_read(fp, checkStr, 28);
+
+    char regionStr[32];
+    strcpy(regionStr, "For ");
+    strcat(regionStr, getRegionString());
+    strcat(regionStr, ".");
+    checkStr[strlen(regionStr)] = '\0';
+    while(strlen(regionStr) < 28)
+    {
+        strcat(regionStr, " ");
+        strcat(checkStr, " ");
+    }
+    s_close(fp);
+    if(!strcmp(regionStr, checkStr)) {
+        // no patching needed
+        return 0;
+    }
+    return 1;
+}
+
+// patch the image that is about to be loaded in the desc file, should be ran after image2desc
+// make sure you verify first
+bool satiatorPatchDescFileImage()
+{
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int stret = s_stat(filenames[0], st, sizeof(statbuf)-1);
+    if (stret < 0) {
+        cdparse_set_error("Could not stat file #1");
+        return false;
+    }
+    const char *dot = strrchr(filenames[0], '.');
+    if (!dot) {
+        cdparse_set_error("Unrecognised file #1 extension - no dot in filename");
+        return false;
+    }
+
+    const char *extension = dot + 1;
+    int regionLoc1 = 0x40;
+    int regionLoc2 = 0xe04;
+    if (strncmp(extension, "iso", 3))
+    {
+        // bin files have a different location for the region flags
+        regionLoc1 = 0x50;
+        regionLoc2 = 0xf44;
+    }
+    
+    int fp = s_open(filenames[0], FA_READ | FA_WRITE | FA_OPEN_EXISTING);
+    if (fp < 0) {
+        cdparse_set_error("Could not open specified file #1");
+        s_close(fp);
+        return false;
+    }
+    
+    // PATCH THE CD WITH THE NEW REGION
+    char regionStr[32];
+    strcpy(regionStr, "For ");
+    strcat(regionStr, getRegionString());
+    strcat(regionStr, ".");
+    while(strlen(regionStr) < 28)
+    {
+        strcat(regionStr, " ");
+    }
+    s_seek(fp, regionLoc1, SEEK_SET);
+    char patchStr[17];
+    patchStr[0] = regionStr[4];
+    for(int i =0;i< 15;i++)
+        patchStr[i + 1] = ' '; 
+    patchStr[16] = '\0';
+    s_write(fp, patchStr, 16);
+
+    s_seek(fp, regionLoc2, SEEK_SET);
+    s_write(fp, regionStr, 28);
+
+    s_close(fp);
+    return true;
+}
+
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
     if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
@@ -109,6 +241,17 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
     if (ret != SATIATOR_SUCCESS) {
         return SATIATOR_CREATE_DESC_ERR;
     }
+    #if BIOS_BOOT
+    ret = satiatorVerifyPatchDescFileImage();
+    if(ret < 0)
+    {
+        return SATIATOR_PATCH_FAILURE;
+    }
+    if(ret == 1)
+    {
+        return SATIATOR_PATCH_REQUIRED;
+    }
+    #endif
     return satiatorEmulateDesc("emu.desc");
 }
 
@@ -150,3 +293,4 @@ char * s_gets(char *buf, int maxsize, int fd, uint32_t *bytesRead, uint32_t tota
     }
     return buf;
 }
+

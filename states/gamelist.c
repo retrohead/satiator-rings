@@ -12,7 +12,6 @@
 enum routine_state_types game_list_state = ROUTINE_STATE_INITIALIZE;
 
 int listOffset = 0;
-int depth = 0;
 bool textLeft = false;
 bool truncatedList = true;
 
@@ -160,8 +159,6 @@ void displayGameList()
         strcpy(gameIdStr, "");
         displayGameBox("");
     }
-    jo_nbg2_printf(15, 4, "GAMELIST");
-    jo_nbg2_printf(1, 6, "%s                                         ", currentDirectory);
 }
 
 void loadFileList(char * directory, int (*filter)(dirEntry *entry))
@@ -221,20 +218,10 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
     sortDirEntries();
 }
 
-void launchSelectedGame()
-{
-    jo_nbg2_clear();
-    enum SATIATOR_ERROR_CODE ret = satiatorTryLaunchFile(dirEntries[selectedDirEntry].name);
-    if(ret != SATIATOR_SUCCESS)
-    {
-        jo_nbg2_printf(1, 29, "-%d %s", ret, cdparse_error_string);
-    }
-}
-
 void logic_gamelist()
 {
     static enum prog_state_types exit_state = PROG_STATE_SPLASH;
-
+    static int depth = 0;
     switch(game_list_state)
     {
         case ROUTINE_STATE_INITIALIZE:
@@ -242,7 +229,6 @@ void logic_gamelist()
             gameBoxTex = -1;
             gameBoxSprite = -1;
             strcpy(gameIdStr, "");
-            strcpy(currentDirectory, "/");
             loadFileList(".", satiatorExecutableFilter);
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayGameList();
@@ -250,6 +236,12 @@ void logic_gamelist()
             exit_state = PROG_STATE_SPLASH;
             break;
         case ROUTINE_STATE_RUN:
+            jo_nbg2_printf(15, 4, "GAMELIST");
+            if(dt.second % 2 == 0)
+                jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
+            else
+                jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
+            jo_nbg2_printf(1, 6, "%s                                         ", currentDirectory);
             if(dirEntyCount > 0)
             {
                 displayGameListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 8, true, dirEntries[selectedDirEntry].type);

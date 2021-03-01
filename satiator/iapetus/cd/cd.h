@@ -194,7 +194,7 @@ int stop_cd_audio(void);
 */
 
 int cd_exec_command(u16 hirq_mask, cd_cmd_struct *cd_cmd, cd_cmd_struct *cd_cmd_rs);
-int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes);
+int cd_read_sector(void *buffer, u32 FAD, int sector_size, int num_bytes);
 int cd_auth();
 int is_cd_auth(u16 *disc_type_auth);
 int cd_reset_selector_all();

@@ -27,6 +27,10 @@ void logic_menu()
             break;
         case ROUTINE_STATE_RUN:
             jo_nbg2_printf(17, 4, "MENU");
+            if(dt.second % 2 == 0)
+                jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
+            else
+                jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
             controlMenuOptions(&selectedMenuOption, &menu_state, &exit_state);
             break;
         case ROUTINE_STATE_END:

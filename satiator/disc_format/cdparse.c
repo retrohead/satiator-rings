@@ -17,6 +17,7 @@
 #include "../iapetus/iapetus.h"
 #include "../jhloader.h"
 #include "../../satiator_functions.h"
+#include "../../sprite_manager.h"
 
 #ifdef TEST
     #define dbgprintf printf
@@ -44,17 +45,26 @@ void cdparse_set_error(const char *fmt, ...) {
 }
 
 enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
+    jo_nbg2_printf(21, 20,   ".");
+    slSynch();
+    draw_sprites();
     s_stat_t *st = (s_stat_t*)statbuf;
     int ret = s_stat(infile, st, sizeof(statbuf)-1);
     if (ret < 0) {
         cdparse_set_error("Could not stat ISO file");
         return SATIATOR_FILE_STAT_ERR;
     }
+    jo_nbg2_printf(22, 20,   ".");
+    slSynch();
+    draw_sprites();
     int fd = s_open(outfile, FA_WRITE|FA_CREATE_ALWAYS);
     if (fd < 0) {
         cdparse_set_error("Can't open output file");
         return SATIATOR_OPEN_FILE_ERR;
     }
+    jo_nbg2_printf(23, 20,   ".");
+    slSynch();
+    draw_sprites();
     satiatorWriteU16(fd, htole16(1));                       // [u16] h_nseg;
     satiatorWriteU32(fd, htole32(150));                     // [u32] desc.start;
     satiatorWriteU32(fd, htole32(st->size / 2048));         // [u32] desc.length;
@@ -70,7 +80,13 @@ enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
     satiatorWriteU8(fd, filename_len);
     satiatorWriteData(fd, infile, filename_len);
 
+    jo_nbg2_printf(24, 20,   ".");
+    slSynch();
+    draw_sprites();
     s_close(fd);
+    jo_nbg2_printf(25, 20,   ".");
+    slSynch();
+    draw_sprites();
     return SATIATOR_SUCCESS;
 }
 

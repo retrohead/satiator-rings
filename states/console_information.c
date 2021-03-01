@@ -25,6 +25,12 @@ void logic_console_info()
             break;
         case ROUTINE_STATE_RUN:
             jo_nbg2_printf(13, 4, "CONSOLE INFO");
+            if(dt.second % 2 == 0)
+                jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
+            else
+                jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
+            
+            jo_nbg2_printf(1, 9, "Console Date  : %d-%02d-%02d %02d:%02d:%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
             controlMenuOptions(&selectedMenuOption, &console_info_state, &exit_state);
             break;
         case ROUTINE_STATE_END:

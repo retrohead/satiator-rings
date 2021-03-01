@@ -921,7 +921,7 @@ int is_cd_present()
 
 //////////////////////////////////////////////////////////////////////////////
 
-int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes)
+int cd_read_sector(void *buffer, u32 FAD, int sector_size, int num_bytes)
 {
    int ret;
    int done=0;
@@ -960,7 +960,7 @@ int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes)
       // Wait until there's data ready
       while ((sectorstoread = cd_is_data_ready(0)) == IAPETUS_ERR_OK) {}
 
-      if ((sectorstoread * sector_size_tbl[cd_sector_size]) > num_bytes)
+      if ((int)(sectorstoread * sector_size_tbl[cd_sector_size]) > num_bytes)
          bytes_to_read = num_bytes;
       else
          bytes_to_read = sectorstoread * sector_size_tbl[cd_sector_size];
@@ -968,14 +968,16 @@ int cd_read_sector(void *buffer, u32 FAD, int sector_size, u32 num_bytes)
       // Setup a transfer from cd buffer to wram, then delete data
       // from cd buffer
       if ((ret = cd_transfer_data_bytes(bytes_to_read, buffer)) != IAPETUS_ERR_OK)
+      {
          return ret;
+      }
 
       num_bytes -= bytes_to_read;
       buffer += bytes_to_read;
-
       if (num_bytes <= 0)
          done = 1;
    }
+
    return IAPETUS_ERR_OK;
 }
 

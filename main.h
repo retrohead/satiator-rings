@@ -57,6 +57,7 @@ enum prog_state_types
 };
 
 extern enum prog_state_types prog_state;
+extern jo_datetime dt;
 
 // function prototypes to suppress compiler warnings
 extern void *memcpy(void *dest, const void *src, unsigned int n);

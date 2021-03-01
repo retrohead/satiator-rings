@@ -38,6 +38,10 @@
         "typeinfo": "c",
         "bootscreen.h": "c",
         "menu_options.h": "c",
-        "bios.h": "c"
+        "bios.h": "c",
+        "ratio": "c",
+        "initializer_list": "c",
+        "ranges": "c",
+        "utility": "c"
     }
 }
