@@ -16,7 +16,8 @@ enum SATIATOR_ERROR_CODE
     SATIATOR_FILE_EXT_ERR,
     SATIATOR_LAUNCH_ERR,
     SATIATOR_PATCH_FAILURE,
-    SATIATOR_PATCH_REQUIRED
+    SATIATOR_PATCH_REQUIRED,
+    SATIATOR_ALREADY_EXISTS
 };
 enum SATIATOR_STATE
 {
@@ -35,5 +36,6 @@ extern enum SATIATOR_ERROR_CODE satiatorWriteU8(int fd, uint8_t val);
 extern enum SATIATOR_ERROR_CODE satiatorWriteU16(int fd, uint16_t val);
 extern enum SATIATOR_ERROR_CODE satiatorWriteU32(int fd, uint32_t val);
 extern enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile);
-extern char * s_gets(char *buf, int maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes);
+extern enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir);
+extern char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes);
 extern bool satiatorPatchDescFileImage();

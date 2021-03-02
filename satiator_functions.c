@@ -9,6 +9,20 @@
 
 enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
 
+
+enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir)
+{
+    int ret = s_opendir(dir);
+    if (ret == 0) {
+        return SATIATOR_ALREADY_EXISTS;
+    }
+    ret = s_mkdir(dir);
+    if (ret < 0) {
+        return SATIATOR_WRITE_ERR;
+    }
+    return SATIATOR_SUCCESS;
+}
+
 void initSatiator()
 {
     if(satiatorState == SATIATOR_STATE_WORKING)
@@ -26,6 +40,7 @@ void initSatiator()
         {
             satiatorState = SATIATOR_STATE_WORKING;
             s_chdir("/");
+            satiatorCreateDirectory("/satiator-rings");
         }
     } else
     {
@@ -272,24 +287,38 @@ int satiatorExecutableFilter(dirEntry *entry) {
 }
 
 // Read one line of data with a maximum buffer size
-char * s_gets(char *buf, int maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes)
+char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes)
 {
+    if(*bytesRead == totalBytes)
+        return buf;
     char c[2];
     strcpy(buf, "");
-    for(int i = 0;i< maxsize;i++)
+    for(uint32_t i = 0;i< maxsize;i++)
     {
         int j = s_read(fd, &c, 1);
         *bytesRead = *bytesRead + 1;
         if(j < 0)
+        {
+            if(strlen(buf) < maxsize)
+                buf[strlen(buf)] = '\0';
             break;
+        }
         c[1] = '\0';
         if(c[0] == '\n')
+        {
+            if(strlen(buf) < maxsize)
+                buf[strlen(buf)] = '\0';
             break;
+        }
         if(c[0] == '\r')
             continue;
         strcat(buf, c);
         if(*bytesRead == totalBytes)
+        {
+            if(strlen(buf) < maxsize)
+                buf[strlen(buf)] = '\0';
             break;
+        }
     }
     return buf;
 }

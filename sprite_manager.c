@@ -72,8 +72,24 @@ int get_free_texture()
     return -1;
 }
 
+bool cdFileExists(char *directory, char *filename)
+{
+    // check the file exists
+    if (directory != JO_NULL)
+        jo_fs_cd(directory);
+    int fid = GFS_NameToId((Sint8 *)filename);
+    if (directory != JO_NULL)
+        jo_fs_cd(JO_PARENT_DIR);
+    if (fid < 0)
+    {
+        return false;
+    }
+    return true;
+}
 int load_sprite_texture(char *directory, char *filename)
 {
+    if(!cdFileExists(directory, filename))
+        return -1;
     int textureId = get_free_texture();
     if(textureId < 0)
     {

@@ -25,7 +25,7 @@ void updateControllerButtonStatus(enum controllerButtonStateType *btn, bool is_p
 {
     if (is_pressed)
     {
-        if(*btn == BUTTON_STATE_NEWPRESS)
+        if((*btn == BUTTON_STATE_NEWPRESS) || (*btn == BUTTON_STATE_HELD))
         {
             *btn = BUTTON_STATE_HELD;
         } else if(*btn == BUTTON_STATE_IDLE)

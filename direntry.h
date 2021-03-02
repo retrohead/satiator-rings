@@ -1,16 +1,18 @@
-#define MAX_LOADED_DIR_ENTRIES 512
+#define MAX_LOADED_DIR_ENTRIES 1024
 
 enum dirEntryType
 {
     DIR_NULL,
     DIR_DIRECTORY,
     DIR_FILE,
-    DIR_GAME
+    DIR_GAME,
+    DIR_SHORTCUT_FOLDER,
+    DIR_SHORTCUT_GAME,
 };
 
 typedef struct
 {
-    char name[256];
+    char name[100];
     enum dirEntryType type;
 } dirEntry;
 
