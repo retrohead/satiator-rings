@@ -482,7 +482,7 @@ int cue2desc(const char *cue_file, const char *desc_file) {
     char *line;
     uint32_t bytesRead = 0;
     while (bytesRead < st->size) {
-        jo_nbg2_printf(22, 20, " %d%%   ", (int)(((double)bytesRead / (double)st->size) * 100) );
+        jo_nbg2_printf(22, 20, "Cue %d%%     ", (int)(((double)bytesRead / (double)st->size) * 100) );
         draw_sprites();
         slSynch();
         line = s_gets(buf, sizeof(buf), fp, &bytesRead, st->size);

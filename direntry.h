@@ -20,3 +20,8 @@ extern dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
 extern int selectedDirEntry;
 extern char currentDirectory[1024];
 extern int dirEntyCount;
+extern int listOffset;
+extern bool truncatedList;
+
+extern int compareDirEntry(const void *pa, const void *pb);
+extern void sortDirEntries();
