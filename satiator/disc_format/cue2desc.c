@@ -134,6 +134,10 @@ int nseg, open_seg;
 
 static segment_t *alloc_seg(void) {
     nseg++;
+    if(nseg >= MAX_SEGMENTS)
+    {
+        return NULL;
+    }
     segment_t *seg = &segments[nseg-1];
     seg->filename_index = -1;
     return seg;
@@ -186,6 +190,7 @@ static cue2desc_error_t write_desc_file(const char *filename) {
         }
         desc.flags = htole16(0);
 
+        // 23 bytes for each sector
         satiatorWriteU32(out, desc.start);                                      // [u32] desc.start;
         satiatorWriteU32(out, desc.length);                                  // [u32] desc.length;
         satiatorWriteU32(out, desc.file_offset);                         // [u32] desc.file_offset;
@@ -415,6 +420,11 @@ static cue2desc_error_t handle_index(char *params) {
     }
 
     segment_t *seg = alloc_seg();
+    if(!seg)
+    {
+        cdparse_set_error("Not enough free segments", params);
+        return e_bad_cue_file;
+    }
     seg->track = cur_track;
     seg->index = index;
     seg->q_mode = cur_q_mode;
