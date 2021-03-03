@@ -12,113 +12,165 @@ bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxL
         s_chdir("/");
     s_chdir("satiator-rings");
 
+    char * oldfilename = jo_malloc(strlen(ini) + 4);
+    sprintf(oldfilename, "%s.bak", ini);
+
+    // stat the file
     s_stat_t *st = (s_stat_t*)statbuf;
-    int fp = s_stat(ini, st, sizeof(statbuf));
-    int size = -1;
-    if(fp >= 0)
+    int fr = s_stat(ini, st, sizeof(statbuf));
+    if(fr >= 0)
     {
-        size = st->size;
-        fp = s_open(ini, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
-    } else
-    {
-        fp = s_open(ini, FA_WRITE | FA_CREATE_ALWAYS);
+        // file already exists, open it for reading
+        s_rename(ini, oldfilename);
+
+        // open old ini for reading
+        fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);
+        if (fr < 0)
+        {
+            // failed change back to the current dir
+            jo_free(oldfilename);
+            s_chdir(currentDirectory);
+            return false;
+        }
     }
-    if (fp < 0)
+    // open new favs ini for writing
+    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    if (fw < 0)
     {
         // change back to the current dir
+        jo_free(oldfilename);
         s_chdir(currentDirectory);
         return false;
     }
-    s_write(fp, "[START]\r\n", 9);
-    s_write(fp, textline, strlen(textline));
-    s_write(fp, "\r\n", 2);
-    
+    s_write(fw, "[START]\r\n", 9);
+
     int lines = 1;
-    if(size > -1)
+    if(fr >= 0)
     {
         char * oneline = jo_malloc(256);
+        uint32_t bytes;
         // find the start tag
         while(strncmp(oneline, "[START]", 7))
-            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+        // write our new item at the top
+        s_write(fw, textline, strlen(textline));
+        s_write(fw, "\r\n", 2);
         // find the end tag and write everything inbetween unless it matches this line
-        uint32_t bytes;
+        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
         while(strncmp(oneline, "[END]", 5))
         {
             if(!strncmp(oneline, textline, strlen(textline)))
             {
-                oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+                oneline = s_gets(oneline, 256, fr, &bytes, st->size);
                 continue;
             }
-            s_write(fp, oneline, strlen(oneline));
+            s_write(fw, oneline, strlen(oneline));
+            s_write(fw, "\r\n", 2);
             lines++;
             if(lines >= maxLines)
                 break;
-            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
         }
         jo_free(oneline);
+    } else
+    {
+        // write our new item at the top, new file
+        s_write(fw, textline, strlen(textline));
+        s_write(fw, "\r\n", 2);
     }
-    s_write(fp, "[END]", 5);
-    s_close(fp);
+    s_write(fw, "[END]", 5);
+    s_close(fw);
     
+    if(fr >= 0)
+    {
+        // close then delete the old file
+        s_close(fr);
+        s_unlink(oldfilename);
+        jo_free(oldfilename);
+    }
+
     // change back to the current dir
     s_chdir(currentDirectory);
     return true;
 }
 bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLines)
 {
+
     if(strcmp("/", currentDirectory))
         s_chdir("/");
     s_chdir("satiator-rings");
 
+    char * oldfilename = jo_malloc(strlen(ini) + 4);
+    sprintf(oldfilename, "%s.bak", ini);
+
+    // stat the file
     s_stat_t *st = (s_stat_t*)statbuf;
-    int fp = s_stat(ini, st, sizeof(statbuf));
-    int size = -1;
-    if(fp >= 0)
+    int fr = s_stat(ini, st, sizeof(statbuf));
+    if(fr >= 0)
     {
-        size = st->size;
-        fp = s_open(ini, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
-    } else
-    {
-        fp = s_open(ini, FA_WRITE | FA_CREATE_ALWAYS);
+        // file already exists, open it for reading
+        s_rename(ini, oldfilename);
+
+        // open old ini for reading
+        fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);
+        if (fr < 0)
+        {
+            // failed change back to the current dir
+            jo_free(oldfilename);
+            s_chdir(currentDirectory);
+            return false;
+        }
     }
-    if (fp < 0)
+    // open new favs ini for writing
+    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    if (fw < 0)
     {
         // change back to the current dir
+        jo_free(oldfilename);
         s_chdir(currentDirectory);
         return false;
     }
-
-    int lines = 0;
-    if(size > -1)
+    s_write(fw, "[START]\r\n", 9);
+    int lines = 1;
+    if(fr >= 0)
     {
-        // find the end tag
         char * oneline = jo_malloc(256);
         uint32_t bytes;
         // find the start tag
         while(strncmp(oneline, "[START]", 7))
-            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
-        
+            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+        // find the end tag and write everything inbetween unless it matches this line
+        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
         while(strncmp(oneline, "[END]", 5))
         {
             if(!strncmp(oneline, textline, strlen(textline)))
             {
-                oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+                oneline = s_gets(oneline, 256, fr, &bytes, st->size);
                 continue;
             }
-            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+            s_write(fw, oneline, strlen(oneline));
+            s_write(fw, "\r\n", 2);
             lines++;
-            if(lines >= maxLines - 1)
+            if(lines >= maxLines)
                 break;
+            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
         }
         jo_free(oneline);
     }
-    else
-        s_write(fp, "[START]\r\n", 9);
-    s_write(fp, textline, strlen(textline));
-    s_write(fp, "\r\n", 2);
-    s_write(fp, "[END]", 5);
-    s_close(fp);
+    // write our new item at the end
+    s_write(fw, textline, strlen(textline));
+    s_write(fw, "\r\n", 2);
+    s_write(fw, "[END]", 5);
+    s_close(fw);
     
+    if(fr >= 0)
+    {
+        // close then delete the old file
+        s_close(fr);
+        s_unlink(oldfilename);
+        jo_free(oldfilename);
+    }
+
     // change back to the current dir
     s_chdir(currentDirectory);
     return true;
@@ -179,19 +231,19 @@ bool deleteIniLine(const char * ini, const char * textline)
     if(strcmp("/", currentDirectory))
         s_chdir("/");
     s_chdir("satiator-rings");
-    char * oldfilename = jo_malloc(strlen(ini) + 4);
-    sprintf(oldfilename, "%s.bak", ini);
-    s_rename(ini, oldfilename);
 
     // stat the file
     s_stat_t *st = (s_stat_t*)statbuf;
-    int fr = s_stat(oldfilename, st, sizeof(statbuf));
+    int fr = s_stat(ini, st, sizeof(statbuf));
     if(fr < 0)
     {
         // change back to the current dir
         s_chdir(currentDirectory);
         return false;
     }
+    char * oldfilename = jo_malloc(strlen(ini) + 4);
+    sprintf(oldfilename, "%s.bak", ini);
+    s_rename(ini, oldfilename);
 
     // open old favs ini for reading
     fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);

@@ -66,6 +66,7 @@
         "streambuf": "cpp",
         "system_error": "cpp",
         "thread": "cpp",
-        "tuple": "cpp"
+        "tuple": "cpp",
+        "ini.h": "c"
     }
 }

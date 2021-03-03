@@ -6,6 +6,7 @@
 #include "routine_states.h"
 #include "../satiator_functions.h"
 #include "../ini.h"
+#include "../bios.h"
 
 int printRow = 0;
 
@@ -79,7 +80,7 @@ void logic_bootscreen()
                     if(pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS)
                     {
                         centerText(20, "Patching Image");
-                        if(!satiatorPatchDescFileImage())
+                        if(!satiatorPatchDescFileImage(getRegionString()))
                         {
                             routine_scene = 2;
                             break;

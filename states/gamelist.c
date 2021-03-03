@@ -417,11 +417,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
                 jo_nbg2_printf(1, 27, "Deleted from favourites                        ");
                 strcpy(gameIdStr, "");
                 dirEntries[selectedDirEntry].type = DIR_NULL;
-                selectedDirEntry--;
-                if(selectedDirEntry < 0)
-                    selectedDirEntry = 0;
-                dirEntyCount--;
-                sortDirEntries();
+                loadIniList("favs.ini", true);
                 displayGameList(triggersHeld);
             }
             else
@@ -466,12 +462,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
             if(deleteIniLine("recent.ini", dirEntries[selectedDirEntry].name))
             {
                 jo_nbg2_printf(1, 27, "Deleted from recents                        ");
-                dirEntries[selectedDirEntry].type = DIR_NULL;
-                selectedDirEntry--;
-                if(selectedDirEntry < 0)
-                    selectedDirEntry = 0;
-                dirEntyCount--;
-                sortDirEntries();
+                loadIniList("recent.ini", false);
                 displayGameList(triggersHeld);
             }
             else

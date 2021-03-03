@@ -121,19 +121,22 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
 }
 
 // verify the image that is about to be loaded in the desc file needs patching
-int satiatorVerifyPatchDescFileImage()
+int satiatorVerifyPatchDescFileImage(const char * curRegion)
 {
+    centerText(21, "[>        ]");
     s_stat_t *st = (s_stat_t*)statbuf;
     int stret = s_stat(filenames[0], st, sizeof(statbuf)-1);
     if (stret < 0) {
         cdparse_set_error("Could not stat file #1");
         return -1;
     }
+    centerText(21, "[>>       ]");
     const char *dot = strrchr(filenames[0], '.');
     if (!dot) {
         cdparse_set_error("Unrecognised file #1 extension - no dot in filename");
         return -1;
     }
+    centerText(21, "[>>>      ]");
 
     const char *extension = dot + 1;
     int verifyLoc1 = 0x00;
@@ -153,16 +156,20 @@ int satiatorVerifyPatchDescFileImage()
         s_close(fp);
         return -1;
     }
+    centerText(21, "[>>>>     ]");
     // VERIFY THE CD FOR PATCHING
     char checkStr[32];
     s_seek(fp, verifyLoc1, SEEK_SET);
+    centerText(21, "[>>>>>    ]");
 
     s_read(fp, checkStr, 16);
+    centerText(21, "[>>>>>>   ]");
     if(strncmp("SEGA SEGASATURN ", checkStr, 16)) {
         cdparse_set_error("Verify Failure 1=%s", checkStr);
         s_close(fp);
         return -1;
     }
+    centerText(21, "[>>>>>>   ]");
     s_seek(fp, verifyLoc2, SEEK_SET);
     s_read(fp, checkStr, 16);
     if(strncmp("COPYRIGHT(C) SEG", checkStr, 16)) {
@@ -171,13 +178,15 @@ int satiatorVerifyPatchDescFileImage()
         s_close(fp);
         return -1;
     }
+    centerText(21, "[>>>>>>>  ]");
 
     s_seek(fp, regionLoc2, SEEK_SET);
     s_read(fp, checkStr, 28);
 
+    centerText(21, "[>>>>>>>> ]");
     char regionStr[32];
     strcpy(regionStr, "For ");
-    strcat(regionStr, getRegionString());
+    strcat(regionStr, curRegion);
     strcat(regionStr, ".");
     checkStr[strlen(regionStr)] = '\0';
     while(strlen(regionStr) < 28)
@@ -186,8 +195,10 @@ int satiatorVerifyPatchDescFileImage()
         strcat(checkStr, " ");
     }
     s_close(fp);
+    centerText(21, " ");
     if(!strcmp(regionStr, checkStr))
     {
+        centerText(20, "Adding To Recent History");
         // no patching needed
         addItemToRecentHistory();
         return 0;
@@ -197,7 +208,7 @@ int satiatorVerifyPatchDescFileImage()
 
 // patch the image that is about to be loaded in the desc file, should be ran after image2desc
 // make sure you verify first
-bool satiatorPatchDescFileImage()
+bool satiatorPatchDescFileImage(const char * curRegion)
 {
     s_stat_t *st = (s_stat_t*)statbuf;
     int stret = s_stat(filenames[0], st, sizeof(statbuf)-1);
@@ -231,7 +242,7 @@ bool satiatorPatchDescFileImage()
     // PATCH THE CD WITH THE NEW REGION
     char regionStr[32];
     strcpy(regionStr, "For ");
-    strcat(regionStr, getRegionString());
+    strcat(regionStr, curRegion);
     strcat(regionStr, ".");
     while(strlen(regionStr) < 28)
     {
@@ -265,7 +276,7 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
     }
     #if BIOS_BOOT
     centerText(20, "Verifying Region");
-    ret = satiatorVerifyPatchDescFileImage();
+    ret = satiatorVerifyPatchDescFileImage(getRegionString());
     if(ret < 0)
     {
         return SATIATOR_PATCH_FAILURE;
