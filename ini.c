@@ -319,8 +319,10 @@ void loadIniList(char * fn, bool sort)
             oneline = s_gets(oneline, 256, fp, &bytes, st->size);
             while(strncmp(oneline, "[END]", 5))
             {
-                if(strlen(oneline) > 99)
-                    continue;
+                if(dirEntries[dirEntyCount].name)
+                    jo_free(dirEntries[dirEntyCount].name);
+                dirEntries[dirEntyCount].name = NULL;
+                dirEntries[dirEntyCount].name = jo_malloc(strlen(oneline) + 5);
                 strcpy(dirEntries[dirEntyCount].name, oneline);
                 if (oneline[strlen(oneline) - 4] == '.')
                     dirEntries[dirEntyCount].type = DIR_SHORTCUT_GAME;
@@ -340,6 +342,9 @@ void loadIniList(char * fn, bool sort)
     }
     for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
+        if(dirEntries[i].name)
+            jo_free(dirEntries[i].name);
+        dirEntries[i].name = NULL;
         dirEntries[i].type = DIR_NULL;
     }
     if(sort)

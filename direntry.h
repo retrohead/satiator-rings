@@ -1,4 +1,4 @@
-#define MAX_LOADED_DIR_ENTRIES 1024
+#define MAX_LOADED_DIR_ENTRIES 5000
 
 enum dirEntryType
 {
@@ -12,7 +12,7 @@ enum dirEntryType
 
 typedef struct
 {
-    char name[100];
+    char * name;
     enum dirEntryType type;
 } dirEntry;
 

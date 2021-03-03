@@ -207,13 +207,15 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
         // UNIX hidden files, except .. when present
         if (st->name[0] == '.' && strcmp(st->name, ".."))
             continue;
-        if(!strcmp(st->name, "satiator-rings"))
+        if(!strncmp(st->name, "satiator-rings", 14))
             continue;
         // thanks Windows
         if (!strncmp(st->name, "System Volume Information", 25))
             continue;
-        if(strlen(st->name) > 99)
-            continue;
+        if(dirEntries[dirEntyCount].name)
+            jo_free(dirEntries[dirEntyCount].name);
+        dirEntries[dirEntyCount].name = NULL;
+        dirEntries[dirEntyCount].name = jo_malloc(strlen(st->name) + 5);
         strcpy(dirEntries[dirEntyCount].name, st->name);
         if (st->attrib & AM_DIR) {
             dirEntries[dirEntyCount].type = DIR_DIRECTORY;
@@ -244,6 +246,9 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
     }
     for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
+        if(dirEntries[i].name != NULL)
+            jo_free(dirEntries[i].name);
+        dirEntries[i].name = NULL;
         dirEntries[i].type = DIR_NULL;
     }
     sortDirEntries();
