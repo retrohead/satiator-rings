@@ -1,3 +1,5 @@
+#define ONE_LINE_MAX_LEN 1024
+
 #include <jo/jo.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,29 +49,29 @@ bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxL
     int lines = 1;
     if(fr >= 0)
     {
-        char * oneline = jo_malloc(256);
+        char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
         uint32_t bytes;
         // find the start tag
         while(strncmp(oneline, "[START]", 7))
-            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         // write our new item at the top
         s_write(fw, textline, strlen(textline));
         s_write(fw, "\r\n", 2);
         // find the end tag and write everything inbetween unless it matches this line
-        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         while(strncmp(oneline, "[END]", 5))
         {
             if(!strncmp(oneline, textline, strlen(textline)))
             {
-                oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
                 continue;
             }
             s_write(fw, oneline, strlen(oneline));
             s_write(fw, "\r\n", 2);
             lines++;
-            if(lines >= maxLines)
+            if(lines >= maxLines) // all lines after max lines will be deleted
                 break;
-            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         }
         jo_free(oneline);
     } else
@@ -95,7 +97,6 @@ bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxL
 }
 bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLines)
 {
-
     if(strcmp("/", currentDirectory))
         s_chdir("/");
     s_chdir("satiator-rings");
@@ -134,18 +135,18 @@ bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLin
     int lines = 1;
     if(fr >= 0)
     {
-        char * oneline = jo_malloc(256);
+        char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
         uint32_t bytes;
         // find the start tag
         while(strncmp(oneline, "[START]", 7))
-            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         // find the end tag and write everything inbetween unless it matches this line
-        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         while(strncmp(oneline, "[END]", 5))
         {
             if(!strncmp(oneline, textline, strlen(textline)))
             {
-                oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
                 continue;
             }
             s_write(fw, oneline, strlen(oneline));
@@ -153,13 +154,16 @@ bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLin
             lines++;
             if(lines >= maxLines)
                 break;
-            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         }
         jo_free(oneline);
     }
-    // write our new item at the end
-    s_write(fw, textline, strlen(textline));
-    s_write(fw, "\r\n", 2);
+    if(lines < maxLines)
+    {
+        // write our new item at the end
+        s_write(fw, textline, strlen(textline));
+        s_write(fw, "\r\n", 2);
+    }
     s_write(fw, "[END]", 5);
     s_close(fw);
     
@@ -173,7 +177,10 @@ bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLin
 
     // change back to the current dir
     s_chdir(currentDirectory);
-    return true;
+    if(lines < maxLines)
+        return true;
+    else
+        return false;
 }
 bool lineIsInIni(const char * ini, const char * textline)
 {
@@ -200,13 +207,13 @@ bool lineIsInIni(const char * ini, const char * textline)
         return false;
     }
     // read  the file and verify if the selected game is there
-    char * oneline = jo_malloc(256);
+    char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
     uint32_t bytes;
     while(strncmp(oneline, "[START]", 7))
     {
-        oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
     }
-    oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+    oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
     while(strncmp(oneline, "[END]", 5))
     {
         if(!strncmp(oneline, textline, strlen(textline)))
@@ -217,7 +224,7 @@ bool lineIsInIni(const char * ini, const char * textline)
             s_chdir(currentDirectory);
             return true;
         }
-        oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
     }
     s_close(fp);
     jo_free(oneline);
@@ -265,24 +272,24 @@ bool deleteIniLine(const char * ini, const char * textline)
     }
 
     // read  the file and verify if the selected game is there
-    char * oneline = jo_malloc(256);
+    char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
     uint32_t bytes;
     while(strncmp(oneline, "[START]", 7))
     {
-        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
     }
     s_write(fw, "[START]\r\n", 9);
-    oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+    oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
     while(strncmp(oneline, "[END]", 5))
     {
         if(!strncmp(oneline, textline, strlen(textline)))
         {
-            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
             continue;
         }
         s_write(fw, oneline, strlen(oneline));
         s_write(fw, "\r\n", 2);
-        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
     }
     s_close(fr);
     s_write(fw, "[END]", 9);
@@ -292,6 +299,38 @@ bool deleteIniLine(const char * ini, const char * textline)
     jo_free(oneline);
     jo_free(oldfilename);
     return true;
+}
+bool loadIniListFirstLine(char * fn, char * destbuf)
+{
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+    s_chdir("satiator-rings");
+    strcpy(currentDirectory, "/satiator-rings");
+    truncatedList = false;
+    dirEntyCount = 0;
+    selectedDirEntry = 0;
+    listOffset = 0;
+
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fp = s_stat(fn, st, sizeof(statbuf));
+    if (fp >=0)
+    {
+        fp = s_open(fn, FA_READ | FA_OPEN_EXISTING);
+        if (fp >= 0) {
+            char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
+            uint32_t bytes;
+            while(strncmp(oneline, "[START]", 7))
+            {
+                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
+            }
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
+            strcpy(destbuf, oneline);
+            jo_free(oneline);
+            s_close(fp);
+            return true;
+        }
+    }
+    return false;
 }
 void loadIniList(char * fn, bool sort)
 {
@@ -310,13 +349,13 @@ void loadIniList(char * fn, bool sort)
     {
         fp = s_open(fn, FA_READ | FA_OPEN_EXISTING);
         if (fp >= 0) {
-            char * oneline = jo_malloc(256);
+            char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
             uint32_t bytes;
             while(strncmp(oneline, "[START]", 7))
             {
-                oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
             }
-            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
             while(strncmp(oneline, "[END]", 5))
             {
                 if(dirEntries[dirEntyCount].name)
@@ -329,12 +368,12 @@ void loadIniList(char * fn, bool sort)
                 else
                     dirEntries[dirEntyCount].type = DIR_SHORTCUT_FOLDER;
                 dirEntyCount++;
-                if(dirEntyCount == MAX_LOADED_DIR_ENTRIES)
+                if(dirEntyCount == MAX_LOADED_DIR_ENTRIES / 4) // using a shorter list as shortcuts could be much longer
                 {
                     truncatedList = true;
                     break;
                 }
-                oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
             }
             s_close(fp);
             jo_free(oneline);

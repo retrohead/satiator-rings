@@ -10,6 +10,7 @@
 #define GAME_LIST_MAX_ITEMS 18
 #define GAME_LIST_MAX_ITEM_LEN 25
 #define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
+#define MAX_FAVOURITES 100
 
 enum routine_state_types game_list_state = ROUTINE_STATE_INITIALIZE;
 
@@ -195,7 +196,7 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
     dirEntyCount = 0;
     selectedDirEntry = 0;
     listOffset = 0;
-    if (s_opendir(directory))
+    if (s_opendir(directory) != 0)
     {
             jo_nbg2_printf(0, 29, "could not open dir %s", directory);
             return;
@@ -212,7 +213,7 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
         // thanks Windows
         if (!strncmp(st->name, "System Volume Information", 25))
             continue;
-        if(dirEntries[dirEntyCount].name)
+        if(dirEntries[dirEntyCount].name != NULL)
             jo_free(dirEntries[dirEntyCount].name);
         dirEntries[dirEntyCount].name = NULL;
         dirEntries[dirEntyCount].name = jo_malloc(strlen(st->name) + 5);
@@ -287,7 +288,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         strcat(fullpath, dirEntries[selectedDirEntry].name);
         if(!lineIsInIni("favs.ini", fullpath))
         {
-            if(writeUniqueIniLineAtEnd("favs.ini", fullpath, MAX_LOADED_DIR_ENTRIES))
+            if(writeUniqueIniLineAtEnd("favs.ini", fullpath, MAX_FAVOURITES))
                 jo_nbg2_printf(1, 27, "Item Added To Favourites                             ");
         }
         else

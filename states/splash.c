@@ -2,6 +2,8 @@
 
 #include <jo/jo.h>
 #include "../main.h"
+#include "../ini.h"
+#include "../debug.h"
 #include "routine_states.h"
 #include "../satiator/satiator.h"
 #include "../satiator_functions.h"
@@ -120,6 +122,73 @@ void animateLogo(int *frame)
             break;
     }
 }
+
+extern void loadFileList(char * directory, int (*filter)(dirEntry *entry));
+bool bootLastGameDir(char * dir)
+{
+    if(strcmp(currentDirectory, "/"))
+        s_chdir("/");
+    int ret = s_chdir(dir);
+    if (ret != FR_OK) {
+        jo_nbg2_printf(1, 27, "Could not open %s                     ", dir);
+        return false;
+    } else
+    {
+        strcpy(currentDirectory, dir);
+        loadFileList(".", satiatorExecutableFilter);
+        if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+void bootLastGameImage(char * fn)
+{
+    if(strcmp(currentDirectory, "/"))
+        s_chdir("/");
+    char * lastSlash = strrchr(fn, '/');
+    if(!lastSlash)
+    {
+        strcpy(currentDirectory, fn);
+    } else
+    {
+        // need to change directory
+        centerText(27, "opening directory");
+        char * dir = jo_malloc(256);
+        const char * fileName = lastSlash + 1;
+        strcpy(dir, fn);
+        dir[lastSlash - dir] = '\0';
+        s_chdir(dir);
+        strcpy(currentDirectory, dir);
+        jo_free(dir);
+        strcpy(dirEntries[selectedDirEntry].name, fileName);
+    }
+}
+bool bootLastGame()
+{
+    static bool failed = false; // we only ever want to run this once on boot
+    if(failed)
+        return false;
+    dirEntyCount = 0;
+    char * name = jo_malloc(1024);
+
+    if(loadIniListFirstLine("recent.ini", name))
+    {
+        if (name[strlen(name) - 4] == '.')
+        {
+            bootLastGameImage(name);
+            return true;
+        }
+        else
+        {
+            return bootLastGameDir(name);
+        }
+    }
+    jo_free(name);
+    failed = true;
+    return false;
+}
 void logic_splash()
 {
     static enum prog_state_types exit_state = PROG_STATE_GAMELIST;
@@ -157,7 +226,7 @@ void logic_splash()
                 switch(satiatorState)
                 {
                     case SATIATOR_STATE_NOT_FOUND:
-                        jo_nbg2_printf(9, 20, "Satiator Not Detected");
+                        centerText(20, "Satiator Not Detected");
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
@@ -170,8 +239,8 @@ void logic_splash()
                         }
                         break;
                     case SATIATOR_STATE_NOT_WORKING:
-                        jo_nbg2_printf(11, 20,   "Satiator Detected");
-                        jo_nbg2_printf(8,  22,"Satiator Is Not Working");
+                        centerText(20, "Satiator Detected");
+                        centerText(22, "Satiator Is Not Working");
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
@@ -184,8 +253,8 @@ void logic_splash()
                         }
                         break;
                     case SATIATOR_STATE_WORKING:
-                        jo_nbg2_printf(11, 20,   "Satiator Detected");
-                        jo_nbg2_printf(10, 22,  "Satiator Is Working");
+                        centerText(20, "Satiator Detected");
+                        centerText(22, "Satiator Is Working");
 
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
@@ -196,6 +265,19 @@ void logic_splash()
                         {
                             splash_state = ROUTINE_STATE_END;
                             exit_state = PROG_STATE_GAMELIST;
+                        }
+                        if(pad_controllers[0].btn_z == BUTTON_STATE_HELD)
+                        {
+                            // load the most recent game
+                            if(bootLastGame())
+                            {
+                                centerText(27, "Skipping To Boot Sequence");
+                                exit_state = PROG_STATE_BOOT;
+                                splash_state = ROUTINE_STATE_END;
+                            } else
+                            {
+                                centerText(27, "Failed Quick Boot");
+                            }
                         }
                         break;
                 }

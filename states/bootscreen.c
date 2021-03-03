@@ -8,6 +8,7 @@
 #include "../ini.h"
 #include "../bios.h"
 
+#define MAX_RECENT_ITEMS 100
 int printRow = 0;
 
 enum routine_state_types bootscreen_state = ROUTINE_STATE_INITIALIZE;
@@ -25,7 +26,7 @@ void addItemToRecentHistory()
     }
     // add the game to the the recent.ini
     deleteIniLine("recent.ini", fullpath);
-    writeUniqueIniLineAtStart("recent.ini", fullpath, MAX_LOADED_DIR_ENTRIES);
+    writeUniqueIniLineAtStart("recent.ini", fullpath, MAX_RECENT_ITEMS);
 
     jo_free(fullpath);
 }
