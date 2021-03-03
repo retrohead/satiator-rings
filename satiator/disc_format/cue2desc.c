@@ -16,9 +16,8 @@
 #include <ctype.h>
 #include "../endian.h"
 #include "cdparse.h"
-//#include "../../debug.h"
 #include "../../satiator_functions.h"
-#include "../../sprite_manager.h"
+#include "../../debug.h"
 
 char *my_strtok( char **stringp, const char *delim )
 {
@@ -141,6 +140,7 @@ static segment_t *alloc_seg(void) {
 }
 
 static cue2desc_error_t write_desc_file(const char *filename) {
+    centerText(20, "Writing Desc File");
     int out = s_open(filename, FA_WRITE|FA_CREATE_ALWAYS);
     if (out < 0) {
         cdparse_set_error("Can't open output file");
@@ -150,6 +150,7 @@ static cue2desc_error_t write_desc_file(const char *filename) {
 
     int offset = s_seek(out, 2 + nseg * sizeof(seg_desc_t), SEEK_SET);
     for (int i=0; i<n_filenames; i++) {
+        centerText(20, "Writing Filename %d of %d", i + 1, n_filenames);
         filename_offsets[i] = offset;
 
         uint8_t namelen = strlen(filenames[i]);
@@ -164,6 +165,7 @@ static cue2desc_error_t write_desc_file(const char *filename) {
     satiatorWriteU16(out, htole16(nseg));                                           // [u16] h_nseg;
 
     for (int i=0; i<nseg; i++) {
+        centerText(20, "Writing Segment %d of %d", i + 1, nseg);
         segment_t *seg = &segments[i];
         seg_desc_t desc;
         desc.track = seg->track;
@@ -481,10 +483,9 @@ int cue2desc(const char *cue_file, const char *desc_file) {
     char buf[512];
     char *line;
     uint32_t bytesRead = 0;
-    while (bytesRead < st->size) {
-        jo_nbg2_printf(22, 20, "Cue %d%%     ", (int)(((double)bytesRead / (double)st->size) * 100) );
-        draw_sprites();
-        slSynch();
+    while (bytesRead < st->size)
+    {
+        centerText(20, "Parsing Cue file %d%%", (int)(((double)bytesRead / (double)st->size) * 100));
         line = s_gets(buf, sizeof(buf), fp, &bytesRead, st->size);
         // Trim whitespace at front
         while (*line && whitespace(*line))
@@ -531,6 +532,7 @@ int cue2desc(const char *cue_file, const char *desc_file) {
             goto out;
         }
     }
+    centerText(20, "Parsing Cue file 100%%");
 
     handle_end_of_track_file();
 
@@ -539,9 +541,6 @@ int cue2desc(const char *cue_file, const char *desc_file) {
         segments[i].start = disc_fad;
         disc_fad += segments[i].length;
     }
-    jo_nbg2_printf(22, 20, " 100%%   ");
-    draw_sprites();
-    slSynch();
     ret = write_desc_file(desc_file);
 
 out:

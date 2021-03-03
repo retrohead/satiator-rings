@@ -1,9 +1,8 @@
 #include "main.h"
 #include "satiator_functions.h"
 
-
-#ifdef DEBUG
 char debug_buf[512];
+#ifdef DEBUG
 void debug_print(char * txt)
 {
     char * fn = "debuglog.txt";
@@ -23,3 +22,27 @@ void debug_print(char * txt)
     s_close(fp);
 }
 #endif
+
+void printCenterProcessText(int row, char * text)
+{
+    int x = ((320 / 8) / 2) - 1;
+    x -= strlen(text) / 2;
+    for (int i=0;i< (320 / 8);i++)
+    {
+        if(i < x)
+        {
+            jo_nbg2_printf(i, row, " ");
+        } else if(i - x < (int)strlen(text))
+        {
+            char c[2];
+            c[0] = text[i-x];
+            c[1] = '\0';
+            jo_nbg2_printf(i, row, "%s", c);
+        } else
+        {
+            jo_nbg2_printf(i, row, " ");
+        }
+    }
+    draw_sprites();
+    slSynch();
+}

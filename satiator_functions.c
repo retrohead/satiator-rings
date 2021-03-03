@@ -6,9 +6,10 @@
 #include "satiator/disc_format/cdparse.h"
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
+#include "debug.h"
 
 enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
-
+extern void addItemToRecentHistory();
 
 enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir)
 {
@@ -157,15 +158,16 @@ int satiatorVerifyPatchDescFileImage()
     s_seek(fp, verifyLoc1, SEEK_SET);
 
     s_read(fp, checkStr, 16);
-    if(!strcmp("SEGA SEGASATURN ", checkStr)) {
-        cdparse_set_error("Could not verify image region -1");
+    if(strncmp("SEGA SEGASATURN ", checkStr, 16)) {
+        cdparse_set_error("Verify Failure 1=%s", checkStr);
         s_close(fp);
         return -1;
     }
     s_seek(fp, verifyLoc2, SEEK_SET);
     s_read(fp, checkStr, 16);
-    if(!strcmp("COPYRIGHT(C) SEG", checkStr)) {
-        cdparse_set_error("Could not verify image region -2");
+    if(strncmp("COPYRIGHT(C) SEG", checkStr, 16)) {
+        cdparse_set_error("Could not verify image -2");
+        cdparse_set_error("Verify Failure 2=%s", checkStr);
         s_close(fp);
         return -1;
     }
@@ -184,8 +186,10 @@ int satiatorVerifyPatchDescFileImage()
         strcat(checkStr, " ");
     }
     s_close(fp);
-    if(!strcmp(regionStr, checkStr)) {
+    if(!strcmp(regionStr, checkStr))
+    {
         // no patching needed
+        addItemToRecentHistory();
         return 0;
     }
     return 1;
@@ -251,12 +255,16 @@ bool satiatorPatchDescFileImage()
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
     if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
+    {
+        centerText(20, "Booting Disc");
         return satiatorEmulateDesc(fn);
+    }
     int ret = image2desc(fn, "emu.desc");
     if (ret != SATIATOR_SUCCESS) {
         return SATIATOR_CREATE_DESC_ERR;
     }
     #if BIOS_BOOT
+    centerText(20, "Verifying Region");
     ret = satiatorVerifyPatchDescFileImage();
     if(ret < 0)
     {
@@ -267,6 +275,7 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
         return SATIATOR_PATCH_REQUIRED;
     }
     #endif
+    centerText(20, "Booting Disc");
     return satiatorEmulateDesc("emu.desc");
 }
 
@@ -299,15 +308,11 @@ char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t
         *bytesRead = *bytesRead + 1;
         if(j < 0)
         {
-            if(strlen(buf) < maxsize)
-                buf[strlen(buf)] = '\0';
             break;
         }
         c[1] = '\0';
         if(c[0] == '\n')
         {
-            if(strlen(buf) < maxsize)
-                buf[strlen(buf)] = '\0';
             break;
         }
         if(c[0] == '\r')
@@ -315,11 +320,11 @@ char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t
         strcat(buf, c);
         if(*bytesRead == totalBytes)
         {
-            if(strlen(buf) < maxsize)
-                buf[strlen(buf)] = '\0';
             break;
         }
     }
+    if(strlen(buf) < maxsize)
+        buf[strlen(buf)] = '\0';
     return buf;
 }
 

@@ -33,7 +33,7 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
 {
     char nam[1024];
     strcpy(nam,name);
-    if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
+    if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER) || (type == DIR_SHORTCUT_GAME))
     {
         // trim the ID from the folder name
         char * pos = strrchr(nam, '[');
@@ -256,6 +256,255 @@ void displayTime()
     else
         jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
 }
+void logic_gamelist_standard(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
+{
+    jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+    if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
+    {
+        jo_nbg2_clear();
+        jo_nbg2_printf(1, 6, "Favourites                                         ");
+        displayTime();
+        *display_type = GAME_LIST_FAVOURITES;
+        loadIniList("favs.ini", true);
+        strcpy(gameIdStr, "");
+        displayGameList(triggersHeld);
+        clearGameBoxSprite();
+    }
+    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    {
+        char fullpath[256];
+        strcpy(fullpath, "");
+        if(strcmp(currentDirectory, "/"))
+        {
+            strcpy(fullpath, currentDirectory);
+            strcat(fullpath, "/");
+        }
+        strcat(fullpath, dirEntries[selectedDirEntry].name);
+        if(!lineIsInIni("favs.ini", fullpath))
+        {
+            if(writeUniqueIniLineAtEnd("favs.ini", fullpath, MAX_LOADED_DIR_ENTRIES))
+                jo_nbg2_printf(1, 27, "Item Added To Favourites                             ");
+        }
+        else
+            jo_nbg2_printf(1, 27, "Already Added To Favourites                     ");
+    }
+    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    {
+        if(dirEntyCount > 0)
+        {
+            if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
+            {
+                if(strlen(currentDirectory) > 1)
+                    strcat(currentDirectory, "/");
+                strcat(currentDirectory, dirEntries[selectedDirEntry].name);
+                int ret = s_chdir(currentDirectory);
+                if (ret != FR_OK) {
+                    jo_nbg2_printf(1, 27, "Could not open %s             ", currentDirectory);
+                    currentDirectory[strstr("/" , currentDirectory) - currentDirectory] = '\0';
+                } else
+                {
+                    *depth = *depth + 1;
+                    loadFileList(".", satiatorExecutableFilter);
+                    displayGameList(triggersHeld);
+                    if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+                    {
+                        game_list_state = ROUTINE_STATE_END;
+                        *exit_state = PROG_STATE_BOOT;
+                    }
+                }
+            } else if(dirEntries[selectedDirEntry].type == DIR_GAME)
+            {
+                game_list_state = ROUTINE_STATE_END;
+                *exit_state = PROG_STATE_BOOT;
+            }
+        }
+    }
+    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    {
+        if(depth == 0)
+        {
+            game_list_state = ROUTINE_STATE_END;
+            *exit_state = PROG_STATE_SPLASH;
+            return;
+        }
+        char * pos = strrchr(currentDirectory, '/');
+        if(pos != JO_NULL)
+            currentDirectory[pos - currentDirectory] = '\0';
+        if(currentDirectory[0] == '\0')
+            strcpy(currentDirectory, "/");
+        int ret = s_chdir(currentDirectory);
+        if (ret != FR_OK) {
+            jo_nbg2_printf(1, 27, "Could not change dir to parent            ");
+        } else
+        {
+            depth--;
+            loadFileList(".", satiatorExecutableFilter);
+            displayGameList(triggersHeld);
+        }
+    }
+}
+void launchDirShortcut(enum game_list_display_types * display_type, enum prog_state_types * exit_state, int * depth)
+{
+    s_chdir("/");
+    int ret = s_chdir(dirEntries[selectedDirEntry].name);
+    if (ret != FR_OK) {
+        jo_nbg2_printf(1, 27, "Could not open %s                     ", dirEntries[selectedDirEntry].name);
+    } else
+    {
+        strcpy(currentDirectory, dirEntries[selectedDirEntry].name);
+        *depth = 0;
+        for(uint32_t i=0;i<strlen(currentDirectory);i++)
+            if(currentDirectory[i] == '/')
+                *depth = *depth + 1;
+        loadFileList(".", satiatorExecutableFilter);
+        displayGameList(false);
+        if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+        {
+            game_list_state = ROUTINE_STATE_END;
+            *exit_state = PROG_STATE_BOOT;
+        }
+        *display_type = GAME_LIST_STANDARD;
+    }
+}
+void launchGameShortcut(enum game_list_display_types * display_type, enum prog_state_types * exit_state, int * depth)
+{
+    s_chdir("/");
+    char * lastSlash = strrchr(dirEntries[selectedDirEntry].name, '/');
+    *depth = 0;
+    if(!lastSlash)
+    {
+        strcpy(currentDirectory, dirEntries[selectedDirEntry].name);
+    } else
+    {
+        // need to change directory
+        char * dir = jo_malloc(256);
+        const char * fileName = lastSlash + 1;
+        strcpy(dir, dirEntries[selectedDirEntry].name);
+        dir[lastSlash - dir] = '\0';
+        s_chdir(dir);
+        strcpy(currentDirectory, dir);
+        jo_free(dir);
+        *depth = 0;
+        for(uint32_t i=0;i<strlen(currentDirectory);i++)
+            if(currentDirectory[i] == '/')
+                *depth = *depth + 1;
+        strcpy(dirEntries[selectedDirEntry].name, fileName);
+    }
+    game_list_state = ROUTINE_STATE_END;
+    *exit_state = PROG_STATE_BOOT;
+    *display_type = GAME_LIST_STANDARD;
+}
+void logic_gamelist_favourites(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
+{
+    jo_nbg2_printf(1, 6, "Favourites                                         ");
+    if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
+    {
+        jo_nbg2_clear();
+        displayTime();
+        jo_nbg2_printf(1, 6, "Recent Play History                                ");
+        *display_type = GAME_LIST_RECENT_HISTORY;
+        strcpy(gameIdStr, "");
+        clearGameBoxSprite();
+        loadIniList("recent.ini", false);
+        displayGameList(triggersHeld);
+    }
+    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    {
+        if(lineIsInIni("favs.ini", dirEntries[selectedDirEntry].name))
+        {
+            if(deleteIniLine("favs.ini", dirEntries[selectedDirEntry].name))
+            {
+                jo_nbg2_printf(1, 27, "Deleted from favourites                        ");
+                strcpy(gameIdStr, "");
+                dirEntries[selectedDirEntry].type = DIR_NULL;
+                selectedDirEntry--;
+                if(selectedDirEntry < 0)
+                    selectedDirEntry = 0;
+                dirEntyCount--;
+                sortDirEntries();
+                displayGameList(triggersHeld);
+            }
+            else
+                jo_nbg2_printf(1, 27, "Failed to delete                             ");
+        }
+    }
+    
+    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    {
+        if(dirEntyCount > 0)
+        {
+            if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
+            {
+                launchDirShortcut(display_type, exit_state, depth);
+            } else if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_GAME)
+            {
+                launchGameShortcut(display_type, exit_state, depth);
+            }
+        }
+    }
+    if (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    {
+        *display_type = GAME_LIST_STANDARD;
+        s_chdir("/");
+        strcpy(currentDirectory, "/");
+        strcpy(gameIdStr, "");
+        jo_nbg2_clear();
+        displayTime();
+        jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+        clearGameBoxSprite();
+        loadFileList(".", satiatorExecutableFilter);
+        displayGameList(triggersHeld);
+    }
+}
+void logic_gamelist_recents(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
+{
+    jo_nbg2_printf(1, 6, "Recent Play History                                ");
+    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    {
+        if(lineIsInIni("recent.ini", dirEntries[selectedDirEntry].name))
+        {
+            if(deleteIniLine("recent.ini", dirEntries[selectedDirEntry].name))
+            {
+                jo_nbg2_printf(1, 27, "Deleted from recents                        ");
+                dirEntries[selectedDirEntry].type = DIR_NULL;
+                selectedDirEntry--;
+                if(selectedDirEntry < 0)
+                    selectedDirEntry = 0;
+                dirEntyCount--;
+                sortDirEntries();
+                displayGameList(triggersHeld);
+            }
+            else
+                jo_nbg2_printf(1, 27, "Failed to delete                             ");
+        }
+    }
+    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    {
+        if(dirEntyCount > 0)
+        {
+            if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
+            {
+                launchDirShortcut(display_type, exit_state, depth);
+            } else if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_GAME)
+            {
+                launchGameShortcut(display_type, exit_state, depth);
+            }
+        }
+    }
+    if((pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS))
+    {
+        *display_type = GAME_LIST_STANDARD;
+        s_chdir("/");
+        strcpy(currentDirectory, "/");
+        strcpy(gameIdStr, "");
+        jo_nbg2_clear();
+        displayTime();
+        jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+        clearGameBoxSprite();
+        loadFileList(".", satiatorExecutableFilter);
+        displayGameList(triggersHeld);
+    }
+}
 void logic_gamelist()
 {
     static enum prog_state_types exit_state = PROG_STATE_SPLASH;
@@ -277,10 +526,10 @@ void logic_gamelist()
                     break;
                 case GAME_LIST_FAVOURITES:
                     loadIniList("favs.ini", true);
-                    break
+                    break;
                 case GAME_LIST_RECENT_HISTORY:
                     loadIniList("recent.ini", false);
-                    break
+                    break;
             }
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayGameList(triggersHeld);
@@ -292,234 +541,13 @@ void logic_gamelist()
             switch(display_type)
             {
                 case GAME_LIST_STANDARD:
-                    jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
-                    if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
-                    {
-                        jo_nbg2_clear();
-                        jo_nbg2_printf(1, 6, "Favourites                                         ");
-                        displayTime();
-                        display_type = GAME_LIST_FAVOURITES;
-                        loadIniList("favs.ini", true);
-                        strcpy(gameIdStr, "");
-                        displayGameList(triggersHeld);
-                        displayGameBox("");
-                    }
-                    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
-                    {
-                        char fullpath[256];
-                        strcpy(fullpath, "");
-                        if(strcmp(currentDirectory, "/"))
-                        {
-                            strcpy(fullpath, currentDirectory);
-                            strcat(fullpath, "/");
-                        }
-                        strcat(fullpath, dirEntries[selectedDirEntry].name);
-                        if(!itemIsInIni("favs.ini", fullpath))
-                        {
-                            if(writeItemShortcut("favs.ini", fullpath))
-                                jo_nbg2_printf(1, 27, "Item Added To Favourites                             ");
-                        }
-                        else
-                            jo_nbg2_printf(1, 27, "Already Added To Favourites                     ");
-                    }
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
-                    {
-                        if(dirEntyCount > 0)
-                        {
-                            if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
-                            {
-                                if(strlen(currentDirectory) > 1)
-                                    strcat(currentDirectory, "/");
-                                strcat(currentDirectory, dirEntries[selectedDirEntry].name);
-                                int ret = s_chdir(currentDirectory);
-                                if (ret != FR_OK) {
-                                    jo_nbg2_printf(1, 27, "Could not open %s             ", currentDirectory);
-                                    currentDirectory[strstr("/" , currentDirectory) - currentDirectory] = '\0';
-                                } else
-                                {
-                                    depth = depth + 1;
-                                    loadFileList(".", satiatorExecutableFilter);
-                                    displayGameList(triggersHeld);
-                                    if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
-                                    {
-                                        game_list_state = ROUTINE_STATE_END;
-                                        exit_state = PROG_STATE_BOOT;
-                                    }
-                                }
-                            } else if(dirEntries[selectedDirEntry].type == DIR_GAME)
-                            {
-                                game_list_state = ROUTINE_STATE_END;
-                                exit_state = PROG_STATE_BOOT;
-                            }
-                        }
-                    }
-                    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
-                    {
-                        if(depth == 0)
-                        {
-                            game_list_state = ROUTINE_STATE_END;
-                            exit_state = PROG_STATE_SPLASH;
-                            return;
-                        }
-                        char * pos = strrchr(currentDirectory, '/');
-                        if(pos != JO_NULL)
-                            currentDirectory[pos - currentDirectory] = '\0';
-                        if(currentDirectory[0] == '\0')
-                            strcpy(currentDirectory, "/");
-                        int ret = s_chdir(currentDirectory);
-                        if (ret != FR_OK) {
-                            jo_nbg2_printf(1, 27, "Could not change dir to parent            ");
-                        } else
-                        {
-                            depth--;
-                            loadFileList(".", satiatorExecutableFilter);
-                            displayGameList(triggersHeld);
-                        }
-                    }
+                    logic_gamelist_standard(&display_type, &exit_state, triggersHeld, &depth);
                     break;
                 case GAME_LIST_FAVOURITES:
-                    jo_nbg2_printf(1, 6, "Favourites                                         ");
-                    if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
-                    {
-                        jo_nbg2_clear();
-                        displayTime();
-                        jo_nbg2_printf(1, 6, "Recent Play History                                ");
-                        display_type = GAME_LIST_RECENT_HISTORY;
-                        strcpy(gameIdStr, "");
-                        loadIniList("recent.ini", false);
-                        displayGameList(triggersHeld);
-                    }
-                    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
-                    {
-                        if(itemIsInIni("favs.ini", dirEntries[selectedDirEntry].name))
-                        {
-                            if(deleteSelectedShortcutFromIni("favs.ini"))
-                            {
-                                jo_nbg2_printf(1, 27, "Deleted from favourites                        ");
-                                strcpy(gameIdStr, "");
-                                dirEntries[selectedDirEntry].type = DIR_NULL;
-                                selectedDirEntry--;
-                                if(selectedDirEntry < 0)
-                                    selectedDirEntry = 0;
-                                dirEntyCount--;
-                                sortDirEntries();
-                                displayGameList(triggersHeld);
-                            }
-                            else
-                                jo_nbg2_printf(1, 27, "Failed to delete                             ");
-                        }
-                    }
-                    
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
-                    {
-                        if(dirEntyCount > 0)
-                        {
-                            if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
-                            {
-                                s_chdir("/");
-                                int ret = s_chdir(dirEntries[selectedDirEntry].name);
-                                if (ret != FR_OK) {
-                                    jo_nbg2_printf(1, 27, "Could not open %s                     ", dirEntries[selectedDirEntry].name);
-                                } else
-                                {
-                                    strcpy(currentDirectory, dirEntries[selectedDirEntry].name);
-                                    depth = 0;
-                                    for(uint32_t i=0;i<strlen(currentDirectory);i++)
-                                        if(currentDirectory[i] == '/')
-                                            depth++;
-                                    loadFileList(".", satiatorExecutableFilter);
-                                    displayGameList(triggersHeld);
-                                    if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
-                                    {
-                                        game_list_state = ROUTINE_STATE_END;
-                                        exit_state = PROG_STATE_BOOT;
-                                    }
-                                    display_type = GAME_LIST_STANDARD;
-                                }
-                            } else if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_GAME)
-                            {
-                                // TODO shortcut to game file
-                            }
-                        }
-                    }
-                    if (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
-                    {
-                        display_type = GAME_LIST_STANDARD;
-                        s_chdir("/");
-                        strcpy(currentDirectory, "/");
-                        strcpy(gameIdStr, "");
-                        jo_nbg2_clear();
-                        displayTime();
-                        jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
-                        loadFileList(".", satiatorExecutableFilter);
-                        displayGameList(triggersHeld);
-                    }
+                    logic_gamelist_favourites(&display_type, &exit_state, triggersHeld, &depth);
                     break;
                 case GAME_LIST_RECENT_HISTORY:
-                    jo_nbg2_printf(1, 6, "Recent Play History                                ");
-                    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
-                    {
-                        if(itemIsInIni("recent.ini", dirEntries[selectedDirEntry].name))
-                        {
-                            if(deleteSelectedShortcutFromIni("recent.ini"))
-                            {
-                                jo_nbg2_printf(1, 27, "Deleted from recents                        ");
-                                dirEntries[selectedDirEntry].type = DIR_NULL;
-                                selectedDirEntry--;
-                                if(selectedDirEntry < 0)
-                                    selectedDirEntry = 0;
-                                dirEntyCount--;
-                                sortDirEntries();
-                                displayGameList(triggersHeld);
-                            }
-                            else
-                                jo_nbg2_printf(1, 27, "Failed to delete                             ");
-                        }
-                    }
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
-                    {
-                        if(dirEntyCount > 0)
-                        {
-                            if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
-                            {
-                                s_chdir("/");
-                                int ret = s_chdir(dirEntries[selectedDirEntry].name);
-                                if (ret != FR_OK) {
-                                    jo_nbg2_printf(1, 27, "Could not open %s                     ", dirEntries[selectedDirEntry].name);
-                                } else
-                                {
-                                    strcpy(currentDirectory, dirEntries[selectedDirEntry].name);
-                                    depth = 0;
-                                    for(uint32_t i=0;i<strlen(currentDirectory);i++)
-                                        if(currentDirectory[i] == '/')
-                                            depth++;
-                                    loadFileList(".", satiatorExecutableFilter);
-                                    displayGameList(triggersHeld);
-                                    if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
-                                    {
-                                        game_list_state = ROUTINE_STATE_END;
-                                        exit_state = PROG_STATE_BOOT;
-                                    }
-                                    display_type = GAME_LIST_STANDARD;
-                                }
-                            } else if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_GAME)
-                            {
-                                // TODO shortcut to game file
-                            }
-                        }
-                    }
-                    if((pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS))
-                    {
-                        display_type = GAME_LIST_STANDARD;
-                        s_chdir("/");
-                        strcpy(currentDirectory, "/");
-                        strcpy(gameIdStr, "");
-                        jo_nbg2_clear();
-                        displayTime();
-                        jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
-                        loadFileList(".", satiatorExecutableFilter);
-                        displayGameList(triggersHeld);
-                    }
+                    logic_gamelist_recents(&display_type, &exit_state, triggersHeld, &depth);
                     break;
             }
 

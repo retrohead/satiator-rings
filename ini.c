@@ -6,7 +6,65 @@
 #include "states/routine_states.h"
 #include "satiator_functions.h"
 
-bool writeItemShortcut(const char * ini, const char * fullpath)
+bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxLines)
+{
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+    s_chdir("satiator-rings");
+
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fp = s_stat(ini, st, sizeof(statbuf));
+    int size = -1;
+    if(fp >= 0)
+    {
+        size = st->size;
+        fp = s_open(ini, FA_WRITE | FA_READ | FA_OPEN_ALWAYS);
+    } else
+    {
+        fp = s_open(ini, FA_WRITE | FA_CREATE_ALWAYS);
+    }
+    if (fp < 0)
+    {
+        // change back to the current dir
+        s_chdir(currentDirectory);
+        return false;
+    }
+    s_write(fp, "[START]\r\n", 9);
+    s_write(fp, textline, strlen(textline));
+    s_write(fp, "\r\n", 2);
+    
+    int lines = 1;
+    if(size > -1)
+    {
+        char * oneline = jo_malloc(256);
+        // find the start tag
+        while(strncmp(oneline, "[START]", 7))
+            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+        // find the end tag and write everything inbetween unless it matches this line
+        uint32_t bytes;
+        while(strncmp(oneline, "[END]", 5))
+        {
+            if(!strncmp(oneline, textline, strlen(textline)))
+            {
+                oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+                continue;
+            }
+            s_write(fp, oneline, strlen(oneline));
+            lines++;
+            if(lines >= maxLines)
+                break;
+            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+        }
+        jo_free(oneline);
+    }
+    s_write(fp, "[END]", 5);
+    s_close(fp);
+    
+    // change back to the current dir
+    s_chdir(currentDirectory);
+    return true;
+}
+bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLines)
 {
     if(strcmp("/", currentDirectory))
         s_chdir("/");
@@ -30,11 +88,33 @@ bool writeItemShortcut(const char * ini, const char * fullpath)
         return false;
     }
 
+    int lines = 0;
     if(size > -1)
-        s_seek(fp, -5, SEEK_END); // 5 bytes puts us before the [END] tag
+    {
+        // find the end tag
+        char * oneline = jo_malloc(256);
+        uint32_t bytes;
+        // find the start tag
+        while(strncmp(oneline, "[START]", 7))
+            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+        
+        while(strncmp(oneline, "[END]", 5))
+        {
+            if(!strncmp(oneline, textline, strlen(textline)))
+            {
+                oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+                continue;
+            }
+            oneline = s_gets(oneline, 256, fp, &bytes, st->size);
+            lines++;
+            if(lines >= maxLines - 1)
+                break;
+        }
+        jo_free(oneline);
+    }
     else
         s_write(fp, "[START]\r\n", 9);
-    s_write(fp, fullpath, strlen(fullpath));
+    s_write(fp, textline, strlen(textline));
     s_write(fp, "\r\n", 2);
     s_write(fp, "[END]", 5);
     s_close(fp);
@@ -43,7 +123,7 @@ bool writeItemShortcut(const char * ini, const char * fullpath)
     s_chdir(currentDirectory);
     return true;
 }
-bool itemIsInIni(const char * ini, const char * fullpath)
+bool lineIsInIni(const char * ini, const char * textline)
 {
     if(strcmp("/", currentDirectory))
         s_chdir("/");
@@ -77,7 +157,7 @@ bool itemIsInIni(const char * ini, const char * fullpath)
     oneline = s_gets(oneline, 256, fp, &bytes, st->size);
     while(strncmp(oneline, "[END]", 5))
     {
-        if(!strncmp(oneline, fullpath, strlen(fullpath)))
+        if(!strncmp(oneline, textline, strlen(textline)))
         {
             s_close(fp);
             jo_free(oneline);
@@ -94,38 +174,71 @@ bool itemIsInIni(const char * ini, const char * fullpath)
     s_chdir(currentDirectory);
     return false;
 }
-bool deleteSelectedShortcutFromIni(const char * ini)
+bool deleteIniLine(const char * ini, const char * textline)
 {
     if(strcmp("/", currentDirectory))
         s_chdir("/");
     s_chdir("satiator-rings");
+    char * oldfilename = jo_malloc(strlen(ini) + 4);
+    sprintf(oldfilename, "%s.bak", ini);
+    s_rename(ini, oldfilename);
 
-    // delete the old file
-    s_unlink(ini);
-
-    // open favs ini for writing
-    int fp = s_open(ini, FA_WRITE | FA_CREATE_NEW);
-    if (fp < 0)
+    // stat the file
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat(oldfilename, st, sizeof(statbuf));
+    if(fr < 0)
     {
         // change back to the current dir
         s_chdir(currentDirectory);
         return false;
     }
-    
-    s_write(fp, "[START]\r\n", 9);
-    for(int i=0;i< dirEntyCount;i++)
-    {
-        if(i != selectedDirEntry)
-        {
-            s_write(fp, dirEntries[i].name, strlen(dirEntries[i].name));
-            s_write(fp, "\r\n", 2);
-        }
-    }
-    s_write(fp, "[END]", 5);
-    s_close(fp);
 
-    // change back to the current dir
-    s_chdir(currentDirectory);
+    // open old favs ini for reading
+    fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);
+    if (fr < 0)
+    {
+        // change back to the current dir
+        jo_free(oldfilename);
+        s_chdir(currentDirectory);
+        return false;
+    }
+    // open new favs ini for writing
+    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    if (fw < 0)
+    {
+        // change back to the current dir
+        jo_free(oldfilename);
+        s_chdir(currentDirectory);
+        return false;
+    }
+
+    // read  the file and verify if the selected game is there
+    char * oneline = jo_malloc(256);
+    uint32_t bytes;
+    while(strncmp(oneline, "[START]", 7))
+    {
+        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+    }
+    s_write(fw, "[START]\r\n", 9);
+    oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+    while(strncmp(oneline, "[END]", 5))
+    {
+        if(!strncmp(oneline, textline, strlen(textline)))
+        {
+            oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+            continue;
+        }
+        s_write(fw, oneline, strlen(oneline));
+        s_write(fw, "\r\n", 2);
+        oneline = s_gets(oneline, 256, fr, &bytes, st->size);
+    }
+    s_close(fr);
+    s_write(fw, "[END]", 9);
+    s_close(fw);
+    // delete the old file
+    s_unlink(oldfilename);
+    jo_free(oneline);
+    jo_free(oldfilename);
     return true;
 }
 void loadIniList(char * fn, bool sort)
