@@ -6,10 +6,10 @@ int fontpalsUsed = 0;
 jo_palette          *font_palette_handling(void)
 {
     if(fontpalsUsed >= 2)
-        return;
+        return NULL;
     jo_create_palette(&font_palettes[fontpalsUsed]);
     fontpalsUsed++;
-    return (&font_palettes[fontpalsUsed]);
+    return (&font_palettes[fontpalsUsed - 1]);
 }
 void                    load_fonts(void)
 {

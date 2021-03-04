@@ -35,7 +35,9 @@ int textScrollX = 0;
 void displayGameListItem(const char * name, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
 {
     char nam[1024];
-    strcpy(nam,name);
+    strcpy(nam, name);
+    if(type == DIR_NULL)
+        strcpy(nam,"");
     if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER) || (type == DIR_SHORTCUT_GAME))
     {
         // trim the ID from the folder name
@@ -314,10 +316,12 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         jo_nbg2_printf(1, 6, "Favourites                                         ");
         displayTime();
         *display_type = GAME_LIST_FAVOURITES;
+        clearGameBoxSprite();
+        draw_sprites();
+        slSynch();
         loadIniList("favs.ini", true);
         strcpy(gameIdStr, "");
         displayGameList(triggersHeld);
-        clearGameBoxSprite();
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
@@ -353,6 +357,10 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
                 } else
                 {
                     *depth = *depth + 1;
+                    jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+                    clearGameBoxSprite();
+                    draw_sprites();
+                    slSynch();
                     loadFileList(".", satiatorExecutableFilter);
                     displayGameList(triggersHeld);
                     if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
@@ -387,6 +395,9 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         } else
         {
             depth--;
+            clearGameBoxSprite();
+            draw_sprites();
+            slSynch();
             loadFileList(".", satiatorExecutableFilter);
             displayGameList(triggersHeld);
         }
@@ -454,6 +465,8 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         *display_type = GAME_LIST_RECENT_HISTORY;
         strcpy(gameIdStr, "");
         clearGameBoxSprite();
+        draw_sprites();
+        slSynch();
         loadIniList("recent.ini", false);
         displayGameList(triggersHeld);
     }
@@ -466,6 +479,9 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
                 jo_nbg2_printf(1, 27, "Deleted from favourites                        ");
                 strcpy(gameIdStr, "");
                 dirEntries[selectedDirEntry].type = DIR_NULL;
+                clearGameBoxSprite();
+                draw_sprites();
+                slSynch();
                 loadIniList("favs.ini", true);
                 displayGameList(triggersHeld);
             }
@@ -497,6 +513,8 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         displayTime();
         jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
         clearGameBoxSprite();
+        draw_sprites();
+        slSynch();
         loadFileList(".", satiatorExecutableFilter);
         displayGameList(triggersHeld);
     }
@@ -511,6 +529,9 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
             if(deleteIniLine("recent.ini", dirEntries[selectedDirEntry].name))
             {
                 jo_nbg2_printf(1, 27, "Deleted from recents                        ");
+                clearGameBoxSprite();
+                draw_sprites();
+                slSynch();
                 loadIniList("recent.ini", false);
                 displayGameList(triggersHeld);
             }
@@ -541,6 +562,8 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
         displayTime();
         jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
         clearGameBoxSprite();
+        draw_sprites();
+        slSynch();
         loadFileList(".", satiatorExecutableFilter);
         displayGameList(triggersHeld);
     }

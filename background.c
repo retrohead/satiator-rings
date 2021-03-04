@@ -12,6 +12,6 @@ void load_background(const char *sub_dir, const char *fn)
 
 void init_background()
 {
-    jo_set_displayed_screens(JO_NBG2_SCREEN, JO_SPRITE_SCREEN, JO_NBG3_SCREEN, JO_NBG1_SCREEN, JO_NBG0_SCREEN, JO_RBG0_SCREEN);
+    jo_core_set_screens_order(JO_NBG2_SCREEN, JO_SPRITE_SCREEN, JO_NBG3_SCREEN, JO_NBG1_SCREEN, JO_NBG0_SCREEN, JO_RBG0_SCREEN);
     jo_nbg2_clear();
 }
