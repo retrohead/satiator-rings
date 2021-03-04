@@ -84,7 +84,9 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
         }
     }
     else
+    {
         jo_nbg2_printf(1, ypos, "  ");
+    }
     if((nam[0] != '\0') && (nam[1] == '\0'))
         strcpy(nam, "/");
     nam[GAME_LIST_MAX_ITEM_LEN] = '\0'; // truncate to the max length
@@ -100,7 +102,15 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
         strcat(nam, " ");
         len++;
     }
-    jo_nbg2_printf(3, ypos, nam);
+    if(selected)
+    {
+        //jo_nbg2_printf(3, ypos, "                                                     ");
+        jo_nbg2_printf(3, ypos, nam);
+    } else
+    {
+        jo_nbg2_printf(3, ypos, nam);
+        //jo_nbg3_printf(3, ypos, "                                                     ");
+    }
 }
 void clearGameBoxSprite()
 {

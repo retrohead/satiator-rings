@@ -93,7 +93,7 @@ void draw_objects(void)
 void			jo_main(void)
 {
 	jo_core_init(JO_COLOR_White);
-    load_nbg2_font();
+    load_fonts();
     initControllers();
 	jo_core_add_callback(application_logic);
 	jo_core_add_callback(draw_objects);
