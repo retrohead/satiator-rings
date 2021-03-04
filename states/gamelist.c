@@ -11,6 +11,8 @@
 #define GAME_LIST_MAX_ITEM_LEN 25
 #define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
 #define MAX_FAVOURITES 100
+float BOX_BOUNCE_MAX_SPEED = 0.30f;
+float BOX_BOUNCE_VELOCITY = 0.02f;
 
 enum routine_state_types game_list_state = ROUTINE_STATE_INITIALIZE;
 
@@ -112,6 +114,36 @@ void clearGameBoxSprite()
         strcpy(gameIdStr, "");
     }
 }
+void animateBoxart()
+{
+    if((gameBoxSprite == -1) || (gameBoxTex == -1))
+        return;
+    if(sprites[gameBoxSprite].velocity_y == 0.0f)
+        return;
+
+    // adjust speed according to velocity
+    sprites[gameBoxSprite].speed_y -= sprites[gameBoxSprite].velocity_y;
+    if(sprites[gameBoxSprite].speed_y <= -BOX_BOUNCE_MAX_SPEED)
+    {
+        // top of the bounce
+        sprites[gameBoxSprite].speed_y = -BOX_BOUNCE_MAX_SPEED;
+        sprites[gameBoxSprite].velocity_y = -sprites[gameBoxSprite].velocity_y;
+    }
+    else if(sprites[gameBoxSprite].speed_y > BOX_BOUNCE_MAX_SPEED)
+    {
+        // bottom of the bounce
+        sprites[gameBoxSprite].speed_y = BOX_BOUNCE_MAX_SPEED;
+        sprites[gameBoxSprite].velocity_y = -sprites[gameBoxSprite].velocity_y;
+    }
+    sprites[gameBoxSprite].y -= sprites[gameBoxSprite].speed_y;
+}
+void startBoxartBounce()
+{
+    if((gameBoxSprite == -1) || (gameBoxTex == -1))
+        return;
+    sprites[gameBoxSprite].speed_y = BOX_BOUNCE_MAX_SPEED;
+    sprites[gameBoxSprite].velocity_y = BOX_BOUNCE_VELOCITY;
+}
 void displayGameBox(char * idStr)
 {
     int id;
@@ -134,7 +166,8 @@ void displayGameBox(char * idStr)
         gameBoxTex = load_sprite_texture(dir, idStr);
         if(gameBoxTex >= 0)
         {
-            gameBoxSprite = create_sprite(gameBoxTex, 310 - getTextureWidth(gameBoxTex), 215 - getTextureHeight(gameBoxTex), 0, 1.0, 1.0, 0);
+            gameBoxSprite = create_sprite(gameBoxTex, 310 - getTextureWidth(gameBoxTex), 200 - getTextureHeight(gameBoxTex), 0, 1.0, 1.0, 0);
+            startBoxartBounce();
         }
     } else if(gameBoxTex != -1)
     {
@@ -508,6 +541,7 @@ void logic_gamelist()
     static int depth = 0;
     static bool triggersHeld = false;
     static enum game_list_display_types display_type = GAME_LIST_STANDARD;
+
     switch(game_list_state)
     {
         case ROUTINE_STATE_INITIALIZE:
@@ -535,6 +569,7 @@ void logic_gamelist()
             break;
         case ROUTINE_STATE_RUN:
             displayTime();
+            animateBoxart();
             switch(display_type)
             {
                 case GAME_LIST_STANDARD:

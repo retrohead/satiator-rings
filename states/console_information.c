@@ -19,7 +19,7 @@ void logic_console_info()
             clearMenuOptions();
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayMenuOptions(selectedMenuOption);
-            jo_nbg2_printf(1, 8, "Console Region: %s", getRegionString());
+            jo_nbg2_printf(1, 10, "Cartridge     : %s", getCatridgeString());
             console_info_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_MENU;
             break;
@@ -30,7 +30,8 @@ void logic_console_info()
             else
                 jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
             
-            jo_nbg2_printf(1, 9, "Console Date  : %d-%02d-%02d %02d:%02d:%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
+            jo_nbg2_printf(1, 8,  "Console Region: %s", getRegionString());
+            jo_nbg2_printf(1, 9,  "Console Date  : %d-%02d-%02d %02d:%02d:%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
             controlMenuOptions(&selectedMenuOption, &console_info_state, &exit_state);
             break;
         case ROUTINE_STATE_END:

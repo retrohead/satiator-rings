@@ -1,5 +1,6 @@
 #include <jo/jo.h>
 #include <stdint.h>
+#include <string.h>
 
 static struct region_s {
    uint8_t id;
@@ -30,4 +31,39 @@ const char * getRegionString()
         if (r->id == region)
             return r->key;
     return NULL;
+}
+static  __jo_force_inline jo_extended_ram_cartridge_type      jo_get_extended_ram_cartridge_type(void)
+{
+    return *((char *)0x24FFFFFF) == 0x5a ? CART_8MBits : *((char *)0x24FFFFFF) == 0x5c ? CART_32MBits : CART_NONE;
+}
+char * getMemCardString()
+{
+    static char buf[30];
+    strcpy(buf, "No Cartridge");
+    jo_extended_ram_cartridge_type cart = jo_get_extended_ram_cartridge_type();
+    if(cart != CART_NONE)
+        return (char *)buf;
+    // try mounting a save device
+    if(!jo_backup_mount(JoCartridgeMemoryBackup))
+        return (char *)buf;
+    sprintf(buf, "Mem Card %d Blocks", jo_backup_get_total_block_count(JoCartridgeMemoryBackup));
+    jo_backup_unmount(JoCartridgeMemoryBackup);
+    return (char *)buf;
+}
+const char * getCatridgeString()
+{
+    jo_extended_ram_cartridge_type cart = jo_get_extended_ram_cartridge_type();
+    switch(cart)
+    {
+        case CART_8MBits:
+            return "1mb Extended RAM";
+            break;
+        case CART_32MBits:
+            return "4mb Extended RAM";
+            break;
+        case CART_NONE:
+        default:
+            return getMemCardString();
+            break;
+    }
 }
