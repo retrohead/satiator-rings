@@ -14,7 +14,7 @@ void clearMenuOptions()
     }
 }
 
-void createMenuOption(char * txt, enum prog_state_types state)
+void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type)
 {
     if(usedMenuOptions >= MAX_MENU_OPTIONS)
         return;
@@ -23,7 +23,8 @@ void createMenuOption(char * txt, enum prog_state_types state)
         if(menuOptions[i].prog_state == PROG_STATE_INITIALIZE)
         {
             menuOptions[i].prog_state = state;
-            strcpy(menuOptions[i].txt, txt);
+            menuOptions[i].txt = txt;
+            menuOptions[i].type = type;
             usedMenuOptions++;
             return;
         }
@@ -44,20 +45,28 @@ void displayMenuOptions(int selectedOption)
     }
 }
 
-void controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state, enum prog_state_types * exit_state)
+int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state, enum prog_state_types * exit_state)
 {
     if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
         *menu_state = ROUTINE_STATE_END;
-        return;
+        return 0;
     }
     if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
     {
         switch(pad_controllers[0].direction_id)
         {
             case LEFT:
+            case UP_LEFT:
+            case DOWN_LEFT:
+                if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
+                    return -1;
                 break;
             case RIGHT:
+            case DOWN_RIGHT:
+            case UP_RIGHT:
+                if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
+                    return 1;
                 break;
             case UP:
                 *selectedOption = *selectedOption - 1;
@@ -72,10 +81,14 @@ void controlMenuOptions(int *selectedOption, enum routine_state_types *menu_stat
         }
         displayMenuOptions(*selectedOption);
     }
-    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    if(menuOptions[*selectedOption].type == OPTION_PROGRAM_STATE)
     {
-        *menu_state = ROUTINE_STATE_END;
-        if(usedMenuOptions > 0)
-            *exit_state = menuOptions[*selectedOption].prog_state;
+        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+        {
+            *menu_state = ROUTINE_STATE_END;
+            if(usedMenuOptions > 0)
+                *exit_state = menuOptions[*selectedOption].prog_state;
+        }
     }
+    return 0;
 }

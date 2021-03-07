@@ -63,6 +63,9 @@ void application_logic(void)
         case PROG_STATE_MENU:
             logic_menu();
             break;
+        case PROG_STATE_OPTIONS:
+            logic_options();
+            break;
         case PROG_STATE_CONSOLE_INFO:
             logic_console_info();
             break;
@@ -72,6 +75,16 @@ void application_logic(void)
         case PROG_STATE_EXIT:
             s_mode(s_cdrom);
             jo_core_exit_to_multiplayer();
+            break;
+        case PROG_STATE_EXIT_TO_MENU:
+            dirEntyCount = 1;
+            selectedDirEntry = 0;
+            if(dirEntries[0].name != NULL)
+                jo_free(dirEntries[0].name);
+            dirEntries[0].name = jo_malloc(10);
+            dirEntries[0].type = DIR_GAME;
+            strcpy(dirEntries[0].name, "menu.bin");
+            prog_state = PROG_STATE_BOOT;
             break;
     }
 }

@@ -46,7 +46,7 @@ void cdparse_set_error(const char *fmt, ...) {
 }
 
 enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
-    centerText(20, "Reading ISO File");
+    centerTextVblank(20, "Reading ISO File");
     s_stat_t *st = (s_stat_t*)statbuf;
     int ret = s_stat(infile, st, sizeof(statbuf)-1);
     if (ret < 0) {
@@ -54,7 +54,7 @@ enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
         return SATIATOR_FILE_STAT_ERR;
     }
     
-    centerText(20, "Creating Desc File");
+    centerTextVblank(20, "Creating Desc File");
     int fd = s_open(outfile, FA_WRITE|FA_CREATE_ALWAYS);
     if (fd < 0) {
         cdparse_set_error("Can't open output file");
@@ -75,7 +75,7 @@ enum SATIATOR_ERROR_CODE iso2desc(const char *infile, const char *outfile) {
     satiatorWriteU8(fd, filename_len);
     satiatorWriteData(fd, infile, filename_len);
 
-    centerText(20, "Completing");
+    centerTextVblank(20, "Completing");
     s_close(fd);
     return SATIATOR_SUCCESS;
 }

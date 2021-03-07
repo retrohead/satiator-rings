@@ -40,7 +40,7 @@ void logic_bootscreen()
             create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 1, 1.0, 1.0, 0);
             create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[0].x, sprites[0].y + getSpriteHeight(0) + 15, 0, 1.0, 1.0, 0);
             create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[0].x, sprites[1].y + getSpriteHeight(1) + 5, 0, 1.0, 1.0, 0);
-            centerText(20, "Loading");
+            centerTextVblank(20, "Loading");
             bootscreen_state = ROUTINE_STATE_RUN;
             break;
         case ROUTINE_STATE_RUN:
@@ -74,21 +74,24 @@ void logic_bootscreen()
                     break;
                 case 3:
                     // confirm patching
-                    jo_nbg2_printf(9,  22,"Region Patch Required");
-                    jo_nbg2_printf(9,  24,"     C = Confirm    ");
-                    jo_nbg2_printf(9,  25,"     B = Cancel     ");
-
-                    if(pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS)
+                    if(options[OPTIONS_AUTO_PATCH] == 0)
                     {
-                        centerText(20, "Patching Image");
+                        jo_nbg2_printf(9,  22,"Region Patch Required");
+                        jo_nbg2_printf(9,  24,"     C = Confirm    ");
+                        jo_nbg2_printf(9,  25,"     B = Cancel     ");
+                    }
+
+                    if((pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (options[OPTIONS_AUTO_PATCH] == 1))
+                    {
+                        centerTextVblank(20, "Patching Image");
                         if(!satiatorPatchDescFileImage(getRegionString()))
                         {
                             routine_scene = 2;
                             break;
                         }
-                        centerText(20, "Adding To Recent History");
+                        centerTextVblank(20, "Adding To Recent History");
                         addItemToRecentHistory();
-                        centerText(20, "Booting Disc");
+                        centerTextVblank(20, "Booting Disc");
                         ret = satiatorEmulateDesc("emu.desc");
                         if(ret == SATIATOR_PATCH_REQUIRED)
                         {

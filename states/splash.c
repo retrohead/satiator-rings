@@ -1,4 +1,4 @@
-#define MAX_SPLASH_FRAME 100
+#define MAX_SPLASH_FRAME 60
 
 #include <jo/jo.h>
 #include "../main.h"
@@ -12,6 +12,20 @@ enum routine_state_types splash_state = ROUTINE_STATE_INITIALIZE;
 
 int logosprites[3];
 
+void finishLogo()
+{
+    sprites[logosprites[0]].y = 20;
+    sprites[logosprites[0]].rot_speed = 0;
+
+    for(int i=0;i<3;i++)
+    {
+        sprites[logosprites[i]].x = 80;
+        sprites[logosprites[i]].scale_x = 1;
+        sprites[logosprites[i]].scale_y = 1;
+        sprites[logosprites[i]].rot_angle = 0;
+        sprites[logosprites[i]].speed_x = 0;
+    }
+}
 void animateLogo(int *frame)
 {
     sprites[logosprites[0]].rot_angle += sprites[logosprites[0]].rot_speed;
@@ -106,17 +120,7 @@ void animateLogo(int *frame)
             break;
             
         default:
-            sprites[logosprites[0]].y = 20;
-            sprites[logosprites[0]].rot_speed = 0;
-
-            for(int i=0;i<3;i++)
-            {
-                sprites[logosprites[i]].x = 80;
-                sprites[logosprites[i]].scale_x = 1;
-                sprites[logosprites[i]].scale_y = 1;
-                sprites[logosprites[i]].rot_angle = 0;
-                sprites[logosprites[i]].speed_x = 0;
-            }
+            finishLogo();
             if(*frame < MAX_SPLASH_FRAME)
                 *frame = *frame + 1;
             break;
@@ -154,7 +158,7 @@ void bootLastGameImage(char * fn)
     } else
     {
         // need to change directory
-        centerText(27, "opening directory");
+        centerTextVblank(27, "opening directory");
         char * dir = jo_malloc(256);
         const char * fileName = lastSlash + 1;
         strcpy(dir, fn);
@@ -162,6 +166,9 @@ void bootLastGameImage(char * fn)
         s_chdir(dir);
         strcpy(currentDirectory, dir);
         jo_free(dir);
+        if(dirEntries[selectedDirEntry].name != NULL)
+            jo_free(dirEntries[selectedDirEntry].name);
+        dirEntries[selectedDirEntry].name = jo_malloc(strlen(fileName));
         strcpy(dirEntries[selectedDirEntry].name, fileName);
     }
 }
@@ -226,7 +233,7 @@ void logic_splash()
                 switch(satiatorState)
                 {
                     case SATIATOR_STATE_NOT_FOUND:
-                        centerText(20, "Satiator Not Detected");
+                        centerTextVblank(20, "Satiator Not Detected");
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
@@ -239,8 +246,8 @@ void logic_splash()
                         }
                         break;
                     case SATIATOR_STATE_NOT_WORKING:
-                        centerText(20, "Satiator Detected");
-                        centerText(22, "Satiator Is Not Working");
+                        centerTextVblank(20, "Satiator Detected");
+                        centerTextVblank(22, "Satiator Is Not Working");
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
@@ -253,8 +260,8 @@ void logic_splash()
                         }
                         break;
                     case SATIATOR_STATE_WORKING:
-                        centerText(20, "Satiator Detected");
-                        centerText(22, "Satiator Is Working");
+                        centerTextVblank(20, "Satiator Detected");
+                        centerTextVblank(22, "Satiator Is Working");
 
                         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
                         {
@@ -271,12 +278,12 @@ void logic_splash()
                             // load the most recent game
                             if(bootLastGame())
                             {
-                                centerText(27, "Skipping To Boot Sequence");
+                                centerTextVblank(27, "Skipping To Boot Sequence");
                                 exit_state = PROG_STATE_BOOT;
                                 splash_state = ROUTINE_STATE_END;
                             } else
                             {
-                                centerText(27, "Failed Quick Boot");
+                                centerTextVblank(27, "Failed Quick Boot");
                             }
                         }
                         break;
@@ -290,6 +297,8 @@ void logic_splash()
             break;
         case ROUTINE_STATE_END:
             routine_scene = 0;
+            finishLogo();
+            initOptions();
             splash_state = ROUTINE_STATE_INITIALIZE;
             prog_state = exit_state;
             break;

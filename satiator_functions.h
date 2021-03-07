@@ -37,5 +37,6 @@ extern enum SATIATOR_ERROR_CODE satiatorWriteU16(int fd, uint16_t val);
 extern enum SATIATOR_ERROR_CODE satiatorWriteU32(int fd, uint32_t val);
 extern enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile);
 extern enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir);
+extern enum SATIATOR_ERROR_CODE satiatorLaunchOriginalMenu();
 extern char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes);
 extern bool satiatorPatchDescFileImage(const char * curRegion);

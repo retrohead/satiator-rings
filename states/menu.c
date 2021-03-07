@@ -16,10 +16,12 @@ void logic_menu()
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
             clearMenuOptions();
-            createMenuOption("Game List", PROG_STATE_GAMELIST);
-            createMenuOption("Console Information", PROG_STATE_CONSOLE_INFO);
-            createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO);
-            createMenuOption("Exit To Multiplayer", PROG_STATE_EXIT);
+            createMenuOption("Game List", PROG_STATE_GAMELIST, OPTION_PROGRAM_STATE);
+            createMenuOption("Console Information", PROG_STATE_CONSOLE_INFO, OPTION_PROGRAM_STATE);
+            createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO, OPTION_PROGRAM_STATE);
+            createMenuOption("Options", PROG_STATE_OPTIONS, OPTION_PROGRAM_STATE);
+            //createMenuOption("Exit To Original Menu", PROG_STATE_EXIT_TO_MENU);
+            createMenuOption("Exit To Multiplayer", PROG_STATE_EXIT, OPTION_PROGRAM_STATE);
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayMenuOptions(selectedMenuOption);
             menu_state = ROUTINE_STATE_RUN;

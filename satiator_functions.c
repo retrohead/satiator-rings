@@ -123,20 +123,20 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
 // verify the image that is about to be loaded in the desc file needs patching
 int satiatorVerifyPatchDescFileImage(const char * curRegion)
 {
-    centerText(21, "[>        ]");
+    centerTextVblank(21, "[>        ]");
     s_stat_t *st = (s_stat_t*)statbuf;
     int stret = s_stat(filenames[0], st, sizeof(statbuf)-1);
     if (stret < 0) {
         cdparse_set_error("Could not stat file #1");
         return -1;
     }
-    centerText(21, "[>>       ]");
+    centerTextVblank(21, "[>>       ]");
     const char *dot = strrchr(filenames[0], '.');
     if (!dot) {
         cdparse_set_error("Unrecognised file #1 extension - no dot in filename");
         return -1;
     }
-    centerText(21, "[>>>      ]");
+    centerTextVblank(21, "[>>>      ]");
 
     const char *extension = dot + 1;
     int verifyLoc1 = 0x00;
@@ -156,20 +156,20 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
         s_close(fp);
         return -1;
     }
-    centerText(21, "[>>>>     ]");
+    centerTextVblank(21, "[>>>>     ]");
     // VERIFY THE CD FOR PATCHING
     char checkStr[32];
     s_seek(fp, verifyLoc1, SEEK_SET);
-    centerText(21, "[>>>>>    ]");
+    centerTextVblank(21, "[>>>>>    ]");
 
     s_read(fp, checkStr, 16);
-    centerText(21, "[>>>>>>   ]");
+    centerTextVblank(21, "[>>>>>>   ]");
     if(strncmp("SEGA SEGASATURN ", checkStr, 16)) {
         cdparse_set_error("Verify Failure 1=%s", checkStr);
         s_close(fp);
         return -1;
     }
-    centerText(21, "[>>>>>>   ]");
+    centerTextVblank(21, "[>>>>>>   ]");
     s_seek(fp, verifyLoc2, SEEK_SET);
     s_read(fp, checkStr, 16);
     if(strncmp("COPYRIGHT(C) SEG", checkStr, 16)) {
@@ -178,12 +178,12 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
         s_close(fp);
         return -1;
     }
-    centerText(21, "[>>>>>>>  ]");
+    centerTextVblank(21, "[>>>>>>>  ]");
 
     s_seek(fp, regionLoc2, SEEK_SET);
     s_read(fp, checkStr, 28);
 
-    centerText(21, "[>>>>>>>> ]");
+    centerTextVblank(21, "[>>>>>>>> ]");
     char regionStr[32];
     strcpy(regionStr, "For ");
     strcat(regionStr, curRegion);
@@ -195,10 +195,10 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
         strcat(checkStr, " ");
     }
     s_close(fp);
-    centerText(21, " ");
+    centerTextVblank(21, " ");
     if(!strcmp(regionStr, checkStr))
     {
-        centerText(20, "Adding To Recent History");
+        centerTextVblank(20, "Adding To Recent History");
         // no patching needed
         addItemToRecentHistory();
         return 0;
@@ -263,11 +263,72 @@ bool satiatorPatchDescFileImage(const char * curRegion)
     return true;
 }
 
+// launch the orignal menu
+enum SATIATOR_ERROR_CODE satiatorLaunchOriginalMenu()
+{
+    centerTextVblank(20, "Launching Menu");
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fp = s_stat("menu.bin", st, sizeof(statbuf));
+    if (fp < 0)
+    {
+        centerTextVblank(20, "Could Not Stat File");
+        return SATIATOR_FILE_STAT_ERR;
+    }
+
+    fp = s_open("menu.bin", FA_READ | FA_OPEN_EXISTING);
+    if (fp >= 0)
+    {
+        centerTextVblank(20, "Open Ok");
+        char * buf = (char *)0x00200000;
+        
+        centerTextVblank(20, "Allocate Ok");
+        int bytesRead = 0;
+        s_seek(fp, 0x1000, SEEK_SET);
+        int totalSize = (int)st->size - 0x1000;
+        //int totalSize = (int)st->size;
+        while(bytesRead < totalSize)
+        {
+            centerTextVblank(20, "Reading File %d%%", (int)(((double)bytesRead / (double)totalSize) * 100));
+            int toRead = 1024;
+            if(toRead > totalSize - bytesRead)
+                toRead = totalSize - bytesRead;
+            int b = s_read(fp, &buf[bytesRead], toRead);
+            if(b <= 0)
+            {
+                s_close(fp);
+                centerTextVblank(20, "Could Not Read File");
+                return SATIATOR_READ_ERR;
+            }
+            bytesRead += b;
+        }
+        centerTextVblank(20, "Reading File 100%%");
+        s_close(fp);
+        s_mode(s_cdrom);
+        centerTextVblank(20, "Jumping to %d bytes", bytesRead);
+
+        // jump to the location
+        (**(void(**)(void))0x00200000)();
+        centerTextVblank(20, "Jumped");
+        return SATIATOR_SUCCESS;
+    }
+    centerTextVblank(20, "Could Not Open File");
+    return SATIATOR_OPEN_FILE_ERR;
+}
+
+// try launching a file, return an error if it fails
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
+    if (!strncmp(fn, "menu.bin", 8))
+    {
+        centerTextVblank(20, "Booting Menu");
+        return satiatorLaunchOriginalMenu();
+    }
     if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
     {
-        centerText(20, "Booting Disc");
+        centerTextVblank(20, "Booting Disc");
         return satiatorEmulateDesc(fn);
     }
     int ret = image2desc(fn, "emu.desc");
@@ -275,7 +336,7 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
         return SATIATOR_CREATE_DESC_ERR;
     }
     #if BIOS_BOOT
-    centerText(20, "Verifying Region");
+    centerTextVblank(20, "Verifying Region");
     ret = satiatorVerifyPatchDescFileImage(getRegionString());
     if(ret < 0)
     {
@@ -286,7 +347,7 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
         return SATIATOR_PATCH_REQUIRED;
     }
     #endif
-    centerText(20, "Booting Disc");
+    centerTextVblank(20, "Booting Disc");
     return satiatorEmulateDesc("emu.desc");
 }
 

@@ -14,33 +14,30 @@ bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxL
         s_chdir("/");
     s_chdir("satiator-rings");
 
-    char * oldfilename = jo_malloc(strlen(ini) + 4);
-    sprintf(oldfilename, "%s.bak", ini);
+    char * newfile = jo_malloc(strlen(ini) + 4);
+    sprintf(newfile, "%s.bak", ini);
 
     // stat the file
     s_stat_t *st = (s_stat_t*)statbuf;
     int fr = s_stat(ini, st, sizeof(statbuf));
     if(fr >= 0)
     {
-        // file already exists, open it for reading
-        s_rename(ini, oldfilename);
-
         // open old ini for reading
-        fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);
+        fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
         if (fr < 0)
         {
             // failed change back to the current dir
-            jo_free(oldfilename);
+            jo_free(newfile);
             s_chdir(currentDirectory);
             return false;
         }
     }
     // open new favs ini for writing
-    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    int fw = s_open(newfile, FA_WRITE | FA_CREATE_NEW);
     if (fw < 0)
     {
         // change back to the current dir
-        jo_free(oldfilename);
+        jo_free(newfile);
         s_chdir(currentDirectory);
         return false;
     }
@@ -87,9 +84,12 @@ bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxL
     {
         // close then delete the old file
         s_close(fr);
-        s_unlink(oldfilename);
-        jo_free(oldfilename);
+        s_unlink(ini);
+        jo_free(newfile);
     }
+
+    // rename the new file
+    s_rename(newfile, ini);
 
     // change back to the current dir
     s_chdir(currentDirectory);
@@ -101,33 +101,30 @@ bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLin
         s_chdir("/");
     s_chdir("satiator-rings");
 
-    char * oldfilename = jo_malloc(strlen(ini) + 4);
-    sprintf(oldfilename, "%s.bak", ini);
+    char * newfile = jo_malloc(strlen(ini) + 5);
+    sprintf(newfile, "%s.bak", ini);
 
     // stat the file
     s_stat_t *st = (s_stat_t*)statbuf;
     int fr = s_stat(ini, st, sizeof(statbuf));
     if(fr >= 0)
     {
-        // file already exists, open it for reading
-        s_rename(ini, oldfilename);
-
         // open old ini for reading
-        fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);
+        fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
         if (fr < 0)
         {
             // failed change back to the current dir
-            jo_free(oldfilename);
+            jo_free(newfile);
             s_chdir(currentDirectory);
             return false;
         }
     }
     // open new favs ini for writing
-    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    int fw = s_open(newfile, FA_WRITE | FA_CREATE_NEW);
     if (fw < 0)
     {
         // change back to the current dir
-        jo_free(oldfilename);
+        jo_free(newfile);
         s_chdir(currentDirectory);
         return false;
     }
@@ -171,9 +168,12 @@ bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLin
     {
         // close then delete the old file
         s_close(fr);
-        s_unlink(oldfilename);
-        jo_free(oldfilename);
+        s_unlink(ini);
+        jo_free(newfile);
     }
+
+    // move the new file
+    s_rename(newfile, ini);
 
     // change back to the current dir
     s_chdir(currentDirectory);
@@ -208,6 +208,7 @@ bool lineIsInIni(const char * ini, const char * textline)
     }
     // read  the file and verify if the selected game is there
     char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
+    strcpy(oneline, "");
     uint32_t bytes;
     while(strncmp(oneline, "[START]", 7))
     {
@@ -248,31 +249,31 @@ bool deleteIniLine(const char * ini, const char * textline)
         s_chdir(currentDirectory);
         return false;
     }
-    char * oldfilename = jo_malloc(strlen(ini) + 4);
-    sprintf(oldfilename, "%s.bak", ini);
-    s_rename(ini, oldfilename);
+    char * newfile = jo_malloc(strlen(ini) + 4);
+    sprintf(newfile, "%s.bak", ini);
 
     // open old favs ini for reading
-    fr = s_open(oldfilename, FA_READ | FA_OPEN_EXISTING);
+    fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
     if (fr < 0)
     {
         // change back to the current dir
-        jo_free(oldfilename);
+        jo_free(newfile);
         s_chdir(currentDirectory);
         return false;
     }
     // open new favs ini for writing
-    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    int fw = s_open(newfile, FA_WRITE | FA_CREATE_NEW);
     if (fw < 0)
     {
         // change back to the current dir
-        jo_free(oldfilename);
+        jo_free(newfile);
         s_chdir(currentDirectory);
         return false;
     }
 
     // read  the file and verify if the selected game is there
     char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
+    strcpy(oneline, "");
     uint32_t bytes;
     while(strncmp(oneline, "[START]", 7))
     {
@@ -295,9 +296,10 @@ bool deleteIniLine(const char * ini, const char * textline)
     s_write(fw, "[END]", 9);
     s_close(fw);
     // delete the old file
-    s_unlink(oldfilename);
+    s_unlink(ini);
+    s_rename(newfile, ini);
     jo_free(oneline);
-    jo_free(oldfilename);
+    jo_free(newfile);
     return true;
 }
 bool loadIniListFirstLine(char * fn, char * destbuf)
@@ -318,6 +320,7 @@ bool loadIniListFirstLine(char * fn, char * destbuf)
         fp = s_open(fn, FA_READ | FA_OPEN_EXISTING);
         if (fp >= 0) {
             char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
+            strcpy(oneline, "");
             uint32_t bytes;
             while(strncmp(oneline, "[START]", 7))
             {
@@ -350,6 +353,7 @@ void loadIniList(char * fn, bool sort)
         fp = s_open(fn, FA_READ | FA_OPEN_EXISTING);
         if (fp >= 0) {
             char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
+            strcpy(oneline, "");
             uint32_t bytes;
             while(strncmp(oneline, "[START]", 7))
             {

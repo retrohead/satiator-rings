@@ -23,7 +23,7 @@ void debug_print(char * txt)
 }
 #endif
 
-void printCenterProcessText(int row, char * text)
+void printCenterText(int row, char * text)
 {
     int x = ((320 / 8) / 2) - 1;
     x -= strlen(text) / 2;
@@ -43,6 +43,10 @@ void printCenterProcessText(int row, char * text)
             jo_nbg2_printf(i, row, " ");
         }
     }
+}
+void printCenterProcessText(int row, char * text)
+{
+    printCenterText(row, text);
     draw_sprites();
     slSynch();
 }
