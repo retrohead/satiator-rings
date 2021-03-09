@@ -9,7 +9,6 @@ enum game_list_view_types
     GAME_VIEW_TEXT_AND_IMAGE,
     GAME_VIEW_TEXT_ONLY,
     GAME_VIEW_MAX_COUNT,
-    GAME_VIEW_IMAGES, // hidden option at the moment
 };
 
 #define OPTIONS_COUNT 2

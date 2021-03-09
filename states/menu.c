@@ -20,7 +20,7 @@ void logic_menu()
             createMenuOption("Console Information", PROG_STATE_CONSOLE_INFO, OPTION_PROGRAM_STATE);
             createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO, OPTION_PROGRAM_STATE);
             createMenuOption("Options", PROG_STATE_OPTIONS, OPTION_PROGRAM_STATE);
-            //createMenuOption("Exit To Original Menu", PROG_STATE_EXIT_TO_MENU);
+            createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE);
             createMenuOption("Exit To Multiplayer", PROG_STATE_EXIT, OPTION_PROGRAM_STATE);
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayMenuOptions(selectedMenuOption);

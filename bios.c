@@ -40,9 +40,6 @@ char * getMemCardString()
 {
     static char buf[30];
     strcpy(buf, "No Cartridge");
-    jo_extended_ram_cartridge_type cart = jo_get_extended_ram_cartridge_type();
-    if(cart != CART_NONE)
-        return (char *)buf;
     // try mounting a save device
     if(!jo_backup_mount(JoCartridgeMemoryBackup))
         return (char *)buf;
@@ -50,7 +47,7 @@ char * getMemCardString()
     jo_backup_unmount(JoCartridgeMemoryBackup);
     return (char *)buf;
 }
-const char * getCatridgeString()
+const char * getCartridgeString()
 {
     jo_extended_ram_cartridge_type cart = jo_get_extended_ram_cartridge_type();
     switch(cart)

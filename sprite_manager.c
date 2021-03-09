@@ -112,7 +112,7 @@ void draw_sprites()
     jo_sprite_enable_gouraud_shading();
     for(i=0;i<MAX_SPRITES;i++)
     {
-        if(sprites[i].used)
+        if(sprites[i].used && sprites[i].sprite_tex_id != -1)
         {
             jo_set_gouraud_shading_brightness(16);
             jo_sprite_change_sprite_scale_xy(sprites[i].scale_x, sprites[i].scale_y);

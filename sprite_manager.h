@@ -8,7 +8,7 @@
 
 typedef struct 
 {
-    unsigned short sprite_tex_id;
+    int sprite_tex_id;
     float x;
     float y;
     unsigned short z;

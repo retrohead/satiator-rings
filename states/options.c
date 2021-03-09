@@ -106,8 +106,6 @@ char * getListTypeName(int value)
             return "List Type <Text and Image>";
         case GAME_VIEW_TEXT_ONLY:
             return "List Type <Text Only>     ";
-        case GAME_VIEW_IMAGES:
-            return "List Type <Images>        ";
     }
     return "list type err";
 }

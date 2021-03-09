@@ -7,9 +7,11 @@
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
 #include "debug.h"
+#include "ar.h"
 
 enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
 extern void addItemToRecentHistory();
+int patchModeRequired = 0;
 
 enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir)
 {
@@ -120,7 +122,7 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     }
 }
 
-// verify the image that is about to be loaded in the desc file needs patching
+// verify the image that is about to be loaded in the desc file needs patching, returns 1 if its at 0x00 or 2 if its at 0x10
 int satiatorVerifyPatchDescFileImage(const char * curRegion)
 {
     centerTextVblank(21, "[>        ]");
@@ -137,18 +139,10 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
         return -1;
     }
     centerTextVblank(21, "[>>>      ]");
-
-    const char *extension = dot + 1;
     int verifyLoc1 = 0x00;
     int verifyLoc2 = 0xdc0;
     int regionLoc2 = 0xe04;
-    if (strncmp(extension, "iso", 3))
-    {
-        // bin files have a different location for the region flags
-        verifyLoc1 = 0x10;
-        verifyLoc2 = 0xf00;
-        regionLoc2 = 0xf44;
-    }
+    patchModeRequired = 0;
     
     int fp = s_open(filenames[0], FA_READ | FA_WRITE | FA_OPEN_EXISTING);
     if (fp < 0) {
@@ -165,9 +159,19 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
     s_read(fp, checkStr, 16);
     centerTextVblank(21, "[>>>>>>   ]");
     if(strncmp("SEGA SEGASATURN ", checkStr, 16)) {
-        cdparse_set_error("Verify Failure 1=%s", checkStr);
-        s_close(fp);
-        return -1;
+        // try the 2nd veryify location
+        verifyLoc1 = 0x10;
+        verifyLoc2 = 0xf00;
+        regionLoc2 = 0xf44;
+        patchModeRequired = 1;
+        s_seek(fp, verifyLoc1, SEEK_SET);
+        s_read(fp, checkStr, 16);
+
+        if(strncmp("SEGA SEGASATURN ", checkStr, 16)) {
+            cdparse_set_error("Verify Failure 1=%s", checkStr);
+            s_close(fp);
+            return -1;
+        }
     }
     centerTextVblank(21, "[>>>>>>   ]");
     s_seek(fp, verifyLoc2, SEEK_SET);
@@ -207,7 +211,7 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
 }
 
 // patch the image that is about to be loaded in the desc file, should be ran after image2desc
-// make sure you verify first
+// make sure you verify first to set the patch mode
 bool satiatorPatchDescFileImage(const char * curRegion)
 {
     s_stat_t *st = (s_stat_t*)statbuf;
@@ -221,13 +225,11 @@ bool satiatorPatchDescFileImage(const char * curRegion)
         cdparse_set_error("Unrecognised file #1 extension - no dot in filename");
         return false;
     }
-
-    const char *extension = dot + 1;
     int regionLoc1 = 0x40;
     int regionLoc2 = 0xe04;
-    if (strncmp(extension, "iso", 3))
+    if (patchModeRequired == 1)
     {
-        // bin files have a different location for the region flags
+        // some files have a different location for the region flags
         regionLoc1 = 0x50;
         regionLoc2 = 0xf44;
     }
@@ -264,64 +266,21 @@ bool satiatorPatchDescFileImage(const char * curRegion)
 }
 
 // launch the orignal menu
-enum SATIATOR_ERROR_CODE satiatorLaunchOriginalMenu()
+int satiatorLaunchOriginalMenu()
 {
-    centerTextVblank(20, "Launching Menu");
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int fp = s_stat("menu.bin", st, sizeof(statbuf));
-    if (fp < 0)
-    {
-        centerTextVblank(20, "Could Not Stat File");
-        return SATIATOR_FILE_STAT_ERR;
-    }
-
-    fp = s_open("menu.bin", FA_READ | FA_OPEN_EXISTING);
-    if (fp >= 0)
-    {
-        centerTextVblank(20, "Open Ok");
-        char * buf = (char *)0x00200000;
-        
-        centerTextVblank(20, "Allocate Ok");
-        int bytesRead = 0;
-        s_seek(fp, 0x1000, SEEK_SET);
-        int totalSize = (int)st->size - 0x1000;
-        //int totalSize = (int)st->size;
-        while(bytesRead < totalSize)
-        {
-            centerTextVblank(20, "Reading File %d%%", (int)(((double)bytesRead / (double)totalSize) * 100));
-            int toRead = 1024;
-            if(toRead > totalSize - bytesRead)
-                toRead = totalSize - bytesRead;
-            int b = s_read(fp, &buf[bytesRead], toRead);
-            if(b <= 0)
-            {
-                s_close(fp);
-                centerTextVblank(20, "Could Not Read File");
-                return SATIATOR_READ_ERR;
-            }
-            bytesRead += b;
-        }
-        centerTextVblank(20, "Reading File 100%%");
-        s_close(fp);
-        s_mode(s_cdrom);
-        centerTextVblank(20, "Jumping to %d bytes", bytesRead);
-
-        // jump to the location
-        (**(void(**)(void))0x00200000)();
-        centerTextVblank(20, "Jumped");
-        return SATIATOR_SUCCESS;
-    }
-    centerTextVblank(20, "Could Not Open File");
-    return SATIATOR_OPEN_FILE_ERR;
+    s_mode(s_api);
+    for (volatile int i=0; i<2000; i++)
+        ;
+    int (**bios_get_satiator_rom)(uint32_t index, uint32_t size, uint32_t addr) = (void*)0x06000298;
+    int ret = (*bios_get_satiator_rom)(2, 2, 0x200000);
+    ((void(*)(void))0x200000)();
+    return ret;
 }
 
 // try launching a file, return an error if it fails
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
-    if (!strncmp(fn, "menu.bin", 8))
+    if (!strncmp(fn, "origmenu", 8))
     {
         centerTextVblank(20, "Booting Menu");
         return satiatorLaunchOriginalMenu();

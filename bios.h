@@ -1,2 +1,2 @@
 extern const char * getRegionString();
-extern char * getCatridgeString();
+extern char * getCartridgeString();

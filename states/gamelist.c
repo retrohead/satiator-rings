@@ -13,8 +13,6 @@
 #define GAME_LIST_MAX_ITEM_LEN 25
 #define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
 #define MAX_FAVOURITES 100
-#define MAX_VISIBLE_GAME_BOX 5
-#define GAME_BOX_BUFFER 1
 
 float BOX_BOUNCE_MAX_SPEED = 0.30f;
 float BOX_BOUNCE_VELOCITY = 0.02f;
@@ -39,7 +37,7 @@ typedef struct
 
 bool textLeft = false;
 
-gameBoxType gameBox[MAX_VISIBLE_GAME_BOX + GAME_BOX_BUFFER];
+gameBoxType gameBox;
 int defaultBoxTex = -1;
 uint8_t textScrollDelay = 0;
 int selectedGameBoxSprite = 0;
@@ -134,97 +132,82 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
     }
     displayGameListItemText(nam, ypos, selected, type, triggersHeld);
 }
-void clearGameBoxSprite(int id)
+void clearGameBoxSprite()
 {
-    if(gameBox[id].tex != -1)
+    if(gameBox.tex != -1)
     {
-        jo_sprite_free_from(spriteTex[gameBox[id].tex].texture_id);
-        spriteTex[gameBox[id].tex].used = false;
-        gameBox[id].tex = -1;
+        jo_sprite_free_from(spriteTex[gameBox.tex].texture_id);
+        spriteTex[gameBox.tex].used = false;
+        gameBox.tex = -1;
     }
-    sprites[gameBox[id].sprite].used = false;
-    gameBox[id].sprite = -1;
-    gameBox[id].id = -1;
+    if(gameBox.sprite != -1)
+        sprites[gameBox.sprite].used = false;
+    gameBox.sprite = -1;
+    gameBox.id = -1;
 }
-void clearGameBoxSprites()
+void animateBoxart()
 {
-    for(int i=0;i<MAX_VISIBLE_GAME_BOX + GAME_BOX_BUFFER;i++)
-    {
-        clearGameBoxSprite(i);
-    }
-}
-void animateBoxart(int id)
-{
-    if(gameBox[id].sprite == -1)
+    if(gameBox.sprite == -1)
         return;
-    if(sprites[gameBox[id].sprite].velocity_y == 0.0f)
+    if(sprites[gameBox.sprite].velocity_y == 0.0f)
         return;
 
     // adjust speed according to velocity
-    sprites[gameBox[id].sprite].speed_y -= sprites[gameBox[id].sprite].velocity_y;
-    if(sprites[gameBox[id].sprite].speed_y <= -BOX_BOUNCE_MAX_SPEED)
+    sprites[gameBox.sprite].speed_y -= sprites[gameBox.sprite].velocity_y;
+    if(sprites[gameBox.sprite].speed_y <= -BOX_BOUNCE_MAX_SPEED)
     {
         // top of the bounce
-        sprites[gameBox[id].sprite].speed_y = -BOX_BOUNCE_MAX_SPEED;
-        sprites[gameBox[id].sprite].velocity_y = -sprites[gameBox[id].sprite].velocity_y;
+        sprites[gameBox.sprite].speed_y = -BOX_BOUNCE_MAX_SPEED;
+        sprites[gameBox.sprite].velocity_y = -sprites[gameBox.sprite].velocity_y;
     }
-    else if(sprites[gameBox[id].sprite].speed_y > BOX_BOUNCE_MAX_SPEED)
+    else if(sprites[gameBox.sprite].speed_y > BOX_BOUNCE_MAX_SPEED)
     {
         // bottom of the bounce
-        sprites[gameBox[id].sprite].speed_y = BOX_BOUNCE_MAX_SPEED;
-        sprites[gameBox[id].sprite].velocity_y = -sprites[gameBox[id].sprite].velocity_y;
+        sprites[gameBox.sprite].speed_y = BOX_BOUNCE_MAX_SPEED;
+        sprites[gameBox.sprite].velocity_y = -sprites[gameBox.sprite].velocity_y;
     }
-    sprites[gameBox[id].sprite].y -= sprites[gameBox[id].sprite].speed_y;
+    sprites[gameBox.sprite].y -= sprites[gameBox.sprite].speed_y;
 }
-void animateBoxarts()
+void startBoxartBounce()
 {
-    for(int i=0;i<MAX_VISIBLE_GAME_BOX + GAME_BOX_BUFFER;i++)
-    {
-        animateBoxart(i);
-    }
-}
-void startBoxartBounce(int id)
-{
-    if(gameBox[id].sprite == -1)
+    if(gameBox.sprite == -1)
         return;
-    sprites[gameBox[id].sprite].speed_y = BOX_BOUNCE_MAX_SPEED;
-    sprites[gameBox[id].sprite].velocity_y = BOX_BOUNCE_VELOCITY;
+    sprites[gameBox.sprite].speed_y = BOX_BOUNCE_MAX_SPEED;
+    sprites[gameBox.sprite].velocity_y = BOX_BOUNCE_VELOCITY;
 }
-void displayGameBox(char * idStr, int boxid, bool bounce, float x, float y, float scale_x, float scale_y, bool singleView)
+void displayGameBox(int id, bool bounce, float x, float y, float scale_x, float scale_y, bool singleView)
 {
-    clearGameBoxSprite(boxid);
+    clearGameBoxSprite();
     if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
         return;
-    int id;
-    int boxID = 0;
-    if(strcmp(idStr, "") && strcmp(idStr, "!"))
+    gameBox.id = id;
+
+    if(gameBox.id >= 0)
     {
-        sscanf(idStr, "%d", &id);
-        gameBox[boxid].id = id;
+        char fn[20];
+        int boxFolderID = 0;
         while(id >= 100)
         {
             id -= 100;
-            boxID++;
+            boxFolderID++;
         }
-        sprintf(idStr, "%dS.TGA", id);
+        sprintf(fn, "%dS.TGA", id);
         char dir[50];
-        if(boxID > 0)
-            sprintf(dir, "BOX%d", boxID);
+        if(boxFolderID > 0)
+            sprintf(dir, "BOX%d", boxFolderID);
         else
             strcpy(dir, "BOX");
-        gameBox[boxid].tex = load_sprite_texture(dir, idStr);
-    } else
-    {
-        gameBox[boxid].id = -1;
+        gameBox.tex = load_sprite_texture(dir, fn);
     }
-    if(gameBox[boxid].tex >= 0)
+
+    if(gameBox.tex >= 0)
     {
         if(singleView)
         {
-            x -= getTextureWidth(gameBox[boxid].tex);
-            y -= getTextureHeight(gameBox[boxid].tex);
+            x -= getTextureWidth(gameBox.tex);
+            y -= getTextureHeight(gameBox.tex);
         }
-        gameBox[boxid].sprite = create_sprite(gameBox[boxid].tex, x, y, 0, scale_x, scale_y, 0);
+        gameBox.sprite = create_sprite(gameBox.tex, x, y, 0, scale_x, scale_y, 0);
     } else
     {
         if(singleView)
@@ -232,12 +215,12 @@ void displayGameBox(char * idStr, int boxid, bool bounce, float x, float y, floa
             x -= getTextureWidth(defaultBoxTex);
             y -= getTextureHeight(defaultBoxTex);
         }
-        gameBox[boxid].sprite = create_sprite(defaultBoxTex, x, y, 0, scale_x, scale_y, 0);
+        gameBox.sprite = create_sprite(defaultBoxTex, x, y, 0, scale_x, scale_y, 0);
     }
     if(bounce)
-        startBoxartBounce(boxid);
+        startBoxartBounce();
 }
-void displayDirEntryItemGameBox(int entryId, int boxId, bool bounce, float x, float y, float scale_x, float scale_y, bool singleView)
+void displayDirEntryItemGameBox(int entryId, bool bounce, float x, float y, float scale_x, float scale_y, bool singleView)
 {
     if((dirEntries[entryId].type == DIR_DIRECTORY) || (dirEntries[entryId].type == DIR_SHORTCUT_FOLDER))
     {
@@ -249,31 +232,20 @@ void displayDirEntryItemGameBox(int entryId, int boxId, bool bounce, float x, fl
             gameId[strlen(gameId) - 1] = '\0'; // strip ending bracket
             int id;
             sscanf(gameId, "%d", &id);
-            if(id != gameBox[boxId].id)
-                displayGameBox(gameId, boxId, bounce, x, y, scale_x, scale_y, singleView);
+            if(id != gameBox.id)
+                displayGameBox(id, bounce, x, y, scale_x, scale_y, singleView);
         } else
         {
-            displayGameBox("", boxId, bounce, x, y, scale_x, scale_y, singleView);
+            displayGameBox(-1, bounce, x, y, scale_x, scale_y, singleView);
         }
     } else
     {
-        displayGameBox("", boxId, bounce, x, y, scale_x, scale_y, singleView);
+        displayGameBox(-1, bounce, x, y, scale_x, scale_y, singleView);
     }
 }
 void updateBoxarts()
 {
-    if(options[OPTIONS_LIST_MODE] == GAME_VIEW_IMAGES)
-    {
-        int x = 10;
-        for(int i=0;i<MAX_VISIBLE_GAME_BOX; i++)
-        {
-            displayDirEntryItemGameBox(i + listOffset, i, false, x, 100, 1.0, 1.0, false);
-            x += jo_sprite_get_width(gameBox[i].tex);
-        }
-    } else
-    {
-        displayDirEntryItemGameBox(selectedDirEntry, selectedGameBoxSprite, true, 310, 200, 1.0, 1.0, true);
-    }
+    displayDirEntryItemGameBox(selectedDirEntry, true, 310, 200, 1.0, 1.0, true);
 }
 void clearMessage()
 {
@@ -286,10 +258,7 @@ void displayGameList(bool triggersHeld)
     textScrollDelay = TEXT_SCROLL_DELAY;
     textLeft = false;
 
-    int max = GAME_LIST_MAX_ITEMS;
-    if(options[OPTIONS_LIST_MODE] == GAME_VIEW_IMAGES)
-        max = MAX_VISIBLE_GAME_BOX;
-    for(int i=listOffset;i < listOffset + max;i++)
+    for(int i=listOffset;i < listOffset + GAME_LIST_MAX_ITEMS;i++)
     {
         if(i >= dirEntyCount)
         {
@@ -382,7 +351,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         jo_nbg2_printf(1, 6, "Favourites                                         ");
         displayTime();
         *display_type = GAME_LIST_FAVOURITES;
-        clearGameBoxSprites();
+        clearGameBoxSprite();
         draw_sprites();
         slSynch();
         loadIniList("favs.ini", true);
@@ -423,7 +392,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
                 {
                     *depth = *depth + 1;
                     jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
-                    clearGameBoxSprites();
+                    clearGameBoxSprite();
                     draw_sprites();
                     slSynch();
                     loadFileList(".", satiatorExecutableFilter);
@@ -460,7 +429,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         } else
         {
             depth--;
-            clearGameBoxSprites();
+            clearGameBoxSprite();
             draw_sprites();
             slSynch();
             loadFileList(".", satiatorExecutableFilter);
@@ -528,7 +497,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         displayTime();
         jo_nbg2_printf(1, 6, "Recent Play History                                ");
         *display_type = GAME_LIST_RECENT_HISTORY;
-        clearGameBoxSprites();
+        clearGameBoxSprite();
         draw_sprites();
         slSynch();
         loadIniList("recent.ini", false);
@@ -542,7 +511,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
             {
                 jo_nbg2_printf(1, 27, "Deleted from favourites                        ");
                 dirEntries[selectedDirEntry].type = DIR_NULL;
-                clearGameBoxSprites();
+                clearGameBoxSprite();
                 draw_sprites();
                 slSynch();
                 loadIniList("favs.ini", true);
@@ -574,7 +543,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         jo_nbg2_clear();
         displayTime();
         jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
-        clearGameBoxSprites();
+        clearGameBoxSprite();
         draw_sprites();
         slSynch();
         loadFileList(".", satiatorExecutableFilter);
@@ -591,7 +560,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
             if(deleteIniLine("recent.ini", dirEntries[selectedDirEntry].name))
             {
                 jo_nbg2_printf(1, 27, "Deleted from recents                        ");
-                clearGameBoxSprites();
+                clearGameBoxSprite();
                 draw_sprites();
                 slSynch();
                 loadIniList("recent.ini", false);
@@ -622,7 +591,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
         jo_nbg2_clear();
         displayTime();
         jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
-        clearGameBoxSprites();
+        clearGameBoxSprite();
         draw_sprites();
         slSynch();
         loadFileList(".", satiatorExecutableFilter);
@@ -640,12 +609,9 @@ void logic_gamelist()
     {
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
-            for(int i=0;i< MAX_VISIBLE_GAME_BOX + GAME_BOX_BUFFER;i++)
-            {
-                gameBox[i].tex = -1;
-                gameBox[i].sprite = -1;
-                gameBox[i].id = -1;
-            }
+            gameBox.tex = -1;
+            gameBox.sprite = -1;
+            gameBox.id = -1;
             triggersHeld = false;
             switch(display_type)
             {
@@ -666,10 +632,8 @@ void logic_gamelist()
             exit_state = PROG_STATE_SPLASH;
             break;
         case ROUTINE_STATE_RUN:
-            if(options[OPTIONS_LIST_MODE] == GAME_VIEW_IMAGES)
-                maxlistItems = MAX_VISIBLE_GAME_BOX;
             displayTime();
-            animateBoxarts();
+            animateBoxart();
             switch(display_type)
             {
                 case GAME_LIST_STANDARD:
@@ -701,15 +665,7 @@ void logic_gamelist()
                     options[OPTIONS_LIST_MODE] = GAME_VIEW_TEXT_AND_IMAGE;
                 else
                     options[OPTIONS_LIST_MODE]++;
-                
-                for(int i=0;i< MAX_VISIBLE_GAME_BOX + GAME_BOX_BUFFER;i++)
-                {
-                    gameBox[i].id = -1;
-                }
-                if(options[OPTIONS_LIST_MODE] == GAME_VIEW_IMAGES)
-                {
-                    selectedDirEntry = 0; // reset to the start to rebuffer the images properly
-                }
+                gameBox.id = -1;
                 displayGameList(triggersHeld);
             }
             if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
@@ -717,48 +673,24 @@ void logic_gamelist()
                 switch(pad_controllers[0].direction_id)
                 {
                     case LEFT:
-                        if(options[OPTIONS_LIST_MODE] == GAME_VIEW_IMAGES)
-                        {
-                            if(selectedDirEntry > 0)
-                            {
-                                selectedDirEntry--;
-                                if(selectedDirEntry - listOffset  < 0)
-                                    listOffset--;
-                            }
-                        }
                         break;
                     case RIGHT:
-                        if(options[OPTIONS_LIST_MODE] == GAME_VIEW_IMAGES)
-                        {
-                            if(selectedDirEntry < dirEntyCount - 1)
-                            {
-                                selectedDirEntry ++;
-                                if(selectedDirEntry - listOffset >= maxlistItems)
-                                    listOffset++;
-                            }
-                        }
                         break;
                     case UP:
-                        if(options[OPTIONS_LIST_MODE] != GAME_VIEW_IMAGES)
-                        {
                             if(selectedDirEntry > 0)
                             {
                                 selectedDirEntry--;
                                 if(selectedDirEntry - listOffset  < 0)
                                     listOffset--;
                             }
-                        }
                         break;
                     case DOWN:
-                        if(options[OPTIONS_LIST_MODE] != GAME_VIEW_IMAGES)
-                        {
                             if(selectedDirEntry < dirEntyCount - 1)
                             {
                                 selectedDirEntry ++;
                                 if(selectedDirEntry - listOffset >= maxlistItems)
                                     listOffset++;
                             }
-                        }
                         break;
                 }
                 displayGameList(triggersHeld);
@@ -773,7 +705,7 @@ void logic_gamelist()
                 }
                 triggersHeld = true;
                 displayGameList(triggersHeld);
-                clearGameBoxSprite(0);
+                clearGameBoxSprite();
             }
             if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
             {
@@ -785,7 +717,7 @@ void logic_gamelist()
                 }
                 triggersHeld = true;
                 displayGameList(triggersHeld);
-                clearGameBoxSprite(0);
+                clearGameBoxSprite();
             }
             if((pad_controllers[0].btn_r == BUTTON_STATE_IDLE) && (pad_controllers[0].btn_l == BUTTON_STATE_IDLE) && (triggersHeld))
             {

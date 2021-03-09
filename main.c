@@ -83,7 +83,7 @@ void application_logic(void)
                 jo_free(dirEntries[0].name);
             dirEntries[0].name = jo_malloc(10);
             dirEntries[0].type = DIR_GAME;
-            strcpy(dirEntries[0].name, "menu.bin");
+            strcpy(dirEntries[0].name, "origmenu");
             prog_state = PROG_STATE_BOOT;
             break;
     }

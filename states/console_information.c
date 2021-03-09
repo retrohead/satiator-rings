@@ -19,7 +19,7 @@ void logic_console_info()
             clearMenuOptions();
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
             displayMenuOptions(selectedMenuOption);
-            jo_nbg2_printf(1, 10, "Cartridge     : %s", getCatridgeString());
+            jo_nbg2_printf(1, 10, "Cartridge     : %s", getCartridgeString());
             console_info_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_MENU;
             break;
