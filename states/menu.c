@@ -23,6 +23,7 @@ void logic_menu()
             createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE);
             createMenuOption("Exit To Multiplayer", PROG_STATE_EXIT, OPTION_PROGRAM_STATE);
             create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
+            jo_nbg2_printf(1, 27, "Satiator Rings Version %s", VERSION);
             displayMenuOptions(selectedMenuOption);
             menu_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_GAMELIST;
