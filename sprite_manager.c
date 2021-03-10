@@ -72,7 +72,7 @@ int get_free_texture()
     return -1;
 }
 
-bool cdFileExists(char *directory, char *filename)
+bool cdFileExists(const char *directory,const char *filename)
 {
     // check the file exists
     if (directory != JO_NULL)
@@ -86,7 +86,7 @@ bool cdFileExists(char *directory, char *filename)
     }
     return true;
 }
-int load_sprite_texture(char *directory, char *filename)
+int load_sprite_texture(const char *directory,const char *filename)
 {
     if(!cdFileExists(directory, filename))
         return -1;
@@ -123,7 +123,7 @@ void draw_sprites()
                 spriteTex[sprites[i].sprite_tex_id].texture_id, 
                 (int)(sprites[i].x - 160 + (getSpriteWidth(i)/ 2)), 
                 (int)(sprites[i].y - 120 + (getSpriteHeight(i)/ 2)), 
-                sprites[i].z + 100, 
+                sprites[i].z + 101, 
                 (int)(sprites[i].rot_angle));
                 
             if(sprites[i].isTransparent)

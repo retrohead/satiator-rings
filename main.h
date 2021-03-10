@@ -42,6 +42,7 @@
 #include "pad_controllers.h"
 #include "background.h"
 #include "font.h"
+#include "sound.h"
 
 // program states
 enum prog_state_types

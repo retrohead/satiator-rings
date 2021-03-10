@@ -5,3 +5,4 @@ extern void debug_print(char * buf);
 extern void printCenterText(int row, char * text);
 extern void printCenterProcessText(int row, char * text);
 #define centerTextVblank(ypos, ...)		do {sprintf(debug_buf, __VA_ARGS__); printCenterProcessText(ypos, debug_buf); } while(0)
+#define centerText(ypos, ...)		do {sprintf(debug_buf, __VA_ARGS__); printCenterText(ypos, debug_buf); } while(0)

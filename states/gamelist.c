@@ -347,6 +347,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
         jo_nbg2_printf(1, 6, "Favourites                                         ");
         displayTime();
@@ -359,6 +360,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_MOVE, false);
         char fullpath[256];
         strcpy(fullpath, "");
         if(strcmp(currentDirectory, "/"))
@@ -379,6 +381,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     {
         if(dirEntyCount > 0)
         {
+            playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
             {
                 if(strlen(currentDirectory) > 1)
@@ -412,6 +415,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     }
     if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_SELECT, false);
         if(depth == 0)
         {
             game_list_state = ROUTINE_STATE_END;
@@ -493,6 +497,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     jo_nbg2_printf(1, 6, "Favourites                                         ");
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
         displayTime();
         jo_nbg2_printf(1, 6, "Recent Play History                                ");
@@ -505,6 +510,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_MOVE, false);
         if(lineIsInIni("favs.ini", dirEntries[selectedDirEntry].name))
         {
             if(deleteIniLine("favs.ini", dirEntries[selectedDirEntry].name))
@@ -526,6 +532,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     {
         if(dirEntyCount > 0)
         {
+            playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
             {
                 launchDirShortcut(display_type, exit_state, depth);
@@ -537,6 +544,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     }
     if (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_SELECT, false);
         *display_type = GAME_LIST_STANDARD;
         s_chdir("/");
         strcpy(currentDirectory, "/");
@@ -555,6 +563,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
     jo_nbg2_printf(1, 6, "Recent Play History                                ");
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
+        playSfx(SFX_MOVE, false);
         if(lineIsInIni("recent.ini", dirEntries[selectedDirEntry].name))
         {
             if(deleteIniLine("recent.ini", dirEntries[selectedDirEntry].name))
@@ -574,6 +583,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
     {
         if(dirEntyCount > 0)
         {
+            playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
             {
                 launchDirShortcut(display_type, exit_state, depth);
@@ -585,6 +595,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
     }
     if((pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS))
     {
+        playSfx(SFX_SELECT, false);
         *display_type = GAME_LIST_STANDARD;
         s_chdir("/");
         strcpy(currentDirectory, "/");
@@ -657,6 +668,7 @@ void logic_gamelist()
             {
                 game_list_state = ROUTINE_STATE_END;
                 exit_state = PROG_STATE_MENU;
+                playSfx(SFX_SELECT, false);
             }
             if(pad_controllers[0].btn_z == BUTTON_STATE_NEWPRESS)
             {
@@ -667,6 +679,7 @@ void logic_gamelist()
                     options[OPTIONS_LIST_MODE]++;
                 gameBox.id = -1;
                 displayGameList(triggersHeld);
+                playSfx(SFX_SELECT, false);
             }
             if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
             {
@@ -682,6 +695,10 @@ void logic_gamelist()
                                 selectedDirEntry--;
                                 if(selectedDirEntry - listOffset  < 0)
                                     listOffset--;
+                                playSfx(SFX_MOVE, false);
+                                draw_sprites();
+                                slSynch();
+                                
                             }
                         break;
                     case DOWN:
@@ -690,6 +707,9 @@ void logic_gamelist()
                                 selectedDirEntry ++;
                                 if(selectedDirEntry - listOffset >= maxlistItems)
                                     listOffset++;
+                                playSfx(SFX_MOVE, false);
+                                draw_sprites();
+                                slSynch();
                             }
                         break;
                 }
@@ -699,6 +719,7 @@ void logic_gamelist()
             {
                 if(selectedDirEntry > 0)
                 {
+                    playSfx(SFX_MOVE, true);
                     selectedDirEntry--;
                     if(selectedDirEntry - listOffset  < 0)
                         listOffset--;
@@ -711,6 +732,7 @@ void logic_gamelist()
             {
                 if(selectedDirEntry < dirEntyCount - 1)
                 {
+                    playSfx(SFX_MOVE, true);
                     selectedDirEntry ++;
                     if(selectedDirEntry - listOffset >= maxlistItems)
                         listOffset++;

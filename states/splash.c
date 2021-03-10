@@ -1,4 +1,4 @@
-#define MAX_SPLASH_FRAME 60
+#define MAX_SPLASH_FRAME 10
 
 #include <jo/jo.h>
 #include "../main.h"
@@ -11,6 +11,7 @@
 enum routine_state_types splash_state = ROUTINE_STATE_INITIALIZE;
 
 int logosprites[3];
+jo_sound     introsound;
 
 void finishLogo()
 {
@@ -96,6 +97,7 @@ void animateLogo(int *frame)
             sprites[logosprites[1]].scale_y -= sprites[logosprites[1]].speed_x;
             if(sprites[logosprites[1]].scale_x <= 1)
             {
+                playSfx(SFX_THUD, false);
                 sprites[logosprites[1]].scale_x = 1;
                 sprites[logosprites[1]].scale_y = 1;
 
@@ -113,6 +115,7 @@ void animateLogo(int *frame)
             sprites[logosprites[2]].scale_y -= sprites[logosprites[2]].speed_x;
             if(sprites[logosprites[2]].scale_x <= 1)
             {
+                playSfx(SFX_THUD, false);
                 sprites[logosprites[2]].scale_x = 1;
                 sprites[logosprites[2]].scale_y = 1;
                 *frame = *frame + 1;
@@ -203,10 +206,14 @@ void logic_splash()
     {
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
+            //load_background("TEX","BG.TGA");
             logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 1, 1.0, 1.0, 0);
             logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 0, 1.0, 1.0, 0);
             logosprites[2] = create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[logosprites[0]].x, sprites[logosprites[1]].y + getSpriteHeight(logosprites[1]) + 5, 0, 1.0, 1.0, 0);
 
+            loadSfx(SFX_INTRO);
+            loadSfx(SFX_THUD);
+            loadSfx(SFX_SANSHIRO);
             
             // move the sprites off screen until ready
             sprites[logosprites[1]].x += 320;
@@ -224,12 +231,15 @@ void logic_splash()
 
             splash_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_GAMELIST;
+            playSfx(SFX_INTRO, false);
             break;
         case ROUTINE_STATE_RUN:
             animateLogo(&routine_scene);
             if(routine_scene > 4)
             {
                 initSatiator();
+                if(routine_scene == 5)
+                    playSfx(SFX_SANSHIRO, false);
                 switch(satiatorState)
                 {
                     case SATIATOR_STATE_NOT_FOUND:
@@ -299,6 +309,9 @@ void logic_splash()
             routine_scene = 0;
             finishLogo();
             initOptions();
+            freeSfx();
+            loadSfx(SFX_SELECT);
+            loadSfx(SFX_MOVE);
             splash_state = ROUTINE_STATE_INITIALIZE;
             prog_state = exit_state;
             break;

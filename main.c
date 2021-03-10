@@ -43,6 +43,7 @@ void application_logic(void)
 {
     jo_getdate(&dt);
     updateControllers();
+    processSfxDelays();
     prog_previous_state = prog_state;
     switch(prog_state)
     {
@@ -107,6 +108,7 @@ void			jo_main(void)
 {
 	jo_core_init(JO_COLOR_White);
     load_fonts();
+    initSfx();
     initControllers();
 	jo_core_add_callback(application_logic);
 	jo_core_add_callback(draw_objects);
