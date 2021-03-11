@@ -7,13 +7,6 @@
 #include "routine_states.h"
 #include "../satiator_functions.h"
 
-#define GAME_LIST_MAX_ITEMS 18
-#define GAME_IMAGES_MAX_ITEMS 5
-#define GAME_IMAGES_SCALE 0.75f
-#define GAME_LIST_MAX_ITEM_LEN 25
-#define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
-#define MAX_FAVOURITES 100
-
 float BOX_BOUNCE_MAX_SPEED = 0.30f;
 float BOX_BOUNCE_VELOCITY = 0.02f;
 
@@ -42,15 +35,15 @@ int defaultBoxTex = -1;
 uint8_t textScrollDelay = 0;
 int selectedGameBoxSprite = 0;
 int textScrollX = 0;
+int shadowSprite = 0;
 
 void displayGameListItemText(char * nam, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
 {
     int maxLen = GAME_LIST_MAX_ITEM_LEN;
     if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
-        maxLen = 35;
+        maxLen = 38;
     if(selected)
     {
-        jo_nbg2_printf(1, ypos, "> ");
         int len = strlen(nam);
         if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
             len++;
@@ -81,10 +74,6 @@ void displayGameListItemText(char * nam, int ypos, bool selected, enum dirEntryT
             }
         }
     }
-    else
-    {
-        jo_nbg2_printf(1, ypos, "  ");
-    }
     if((nam[0] != '\0') && (nam[1] == '\0'))
         strcpy(nam, "/");
     nam[maxLen] = '\0'; // truncate to the max length
@@ -92,7 +81,6 @@ void displayGameListItemText(char * nam, int ypos, bool selected, enum dirEntryT
     {
         if((int)strlen(nam) >= maxLen - 1)
             nam[maxLen - 1] = '\0';
-        strcat(nam, "/");
     }
     int len = strlen(nam);
     while(len < 39) // clear the rest of the list
@@ -100,15 +88,7 @@ void displayGameListItemText(char * nam, int ypos, bool selected, enum dirEntryT
         strcat(nam, " ");
         len++;
     }
-    if(selected)
-    {
-        //jo_nbg2_printf(3, ypos, "                                                     ");
-        jo_nbg2_printf(3, ypos, nam);
-    } else
-    {
-        jo_nbg2_printf(3, ypos, nam);
-        //jo_nbg3_printf(3, ypos, "                                                     ");
-    }
+    jo_nbg2_printf(1, ypos, nam);
 }
 void displayGameListItem(const char * name, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
 {
@@ -144,6 +124,8 @@ void clearGameBoxSprite()
         sprites[gameBox.sprite].used = false;
     gameBox.sprite = -1;
     gameBox.id = -1;
+    sprites[shadowSprite].x = 320;
+    sprites[shadowSprite].y = 240;
 }
 void animateBoxart()
 {
@@ -166,6 +148,7 @@ void animateBoxart()
         sprites[gameBox.sprite].speed_y = BOX_BOUNCE_MAX_SPEED;
         sprites[gameBox.sprite].velocity_y = -sprites[gameBox.sprite].velocity_y;
     }
+    sprites[shadowSprite].scale_x -= sprites[gameBox.sprite].speed_y / 15;
     sprites[gameBox.sprite].y -= sprites[gameBox.sprite].speed_y;
 }
 void startBoxartBounce()
@@ -208,6 +191,15 @@ void displayGameBox(int id, bool bounce, float x, float y, float scale_x, float 
             y -= getTextureHeight(gameBox.tex);
         }
         gameBox.sprite = create_sprite(gameBox.tex, x, y, 0, scale_x, scale_y, 0);
+        sprites[shadowSprite].x = x + 2;
+        sprites[shadowSprite].y = y + getTextureHeight(gameBox.tex) + 5;
+        sprites[shadowSprite].scale_x = 0.9;
+        sprites[shadowSprite].scale_y = 0.9;
+        if(getTextureWidth(gameBox.tex) != getTextureWidth(defaultBoxTex))
+        {
+            sprites[shadowSprite].scale_x = 0.7;
+            sprites[shadowSprite].x -= 7;
+        }
     } else
     {
         if(singleView)
@@ -215,6 +207,11 @@ void displayGameBox(int id, bool bounce, float x, float y, float scale_x, float 
             x -= getTextureWidth(defaultBoxTex);
             y -= getTextureHeight(defaultBoxTex);
         }
+        sprites[shadowSprite].x = x + 2;
+        sprites[shadowSprite].y = y + getTextureHeight(defaultBoxTex) + 5;
+        sprites[shadowSprite].scale_x = 0.9;
+        sprites[shadowSprite].scale_y = 0.9;
+
         gameBox.sprite = create_sprite(defaultBoxTex, x, y, 0, scale_x, scale_y, 0);
     }
     if(bounce)
@@ -249,7 +246,7 @@ void updateBoxarts()
 }
 void clearMessage()
 {
-    jo_nbg2_printf(0, 27, "                                               ");
+    displayStatus(" ");
 }
 void displayGameList(bool triggersHeld)
 {
@@ -262,16 +259,19 @@ void displayGameList(bool triggersHeld)
     {
         if(i >= dirEntyCount)
         {
-            displayGameListItem("", (i - listOffset) + 8, false, dirEntries[i].type, triggersHeld);
+            displayGameListItem("", (i - listOffset) + 5, false, dirEntries[i].type, triggersHeld);
             continue;
         }
-        displayGameListItem(dirEntries[i].name, (i - listOffset) + 8, i==selectedDirEntry, dirEntries[i].type, triggersHeld);
+        displayGameListItem(dirEntries[i].name, (i - listOffset) + 5, i==selectedDirEntry, dirEntries[i].type, triggersHeld);
     }
+    updateSelectionSprite((selectedDirEntry- listOffset) + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
     if(!triggersHeld)
         updateBoxarts();
 }
 void loadFileList(char * directory, int (*filter)(dirEntry *entry))
 {
+    sprites[selectionSprite].x = 640;
+    sprites[selectionSprite].y = 250;
     truncatedList = false;
     dirEntyCount = 0;
     selectedDirEntry = 0;
@@ -334,48 +334,48 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
     }
     sortDirEntries();
 }
-void displayTime()
-{
-    jo_nbg2_printf(15, 4, "GAMELIST");
-    if(dt.second % 2 == 0)
-        jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
-    else
-        jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
-}
 void logic_gamelist_standard(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
-    jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+    jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
-        jo_nbg2_printf(1, 6, "Favourites                                         ");
+        jo_nbg2_printf(1, 3, "Favourites                                         ");
         displayTime();
         *display_type = GAME_LIST_FAVOURITES;
         clearGameBoxSprite();
         draw_sprites();
         slSynch();
-        loadIniList("favs.ini", true);
+        loadIniList("favs.ini", true, "", false);
         displayGameList(triggersHeld);
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_MOVE, false);
-        char fullpath[256];
-        strcpy(fullpath, "");
+        char * addFav = jo_malloc(1024);
+        strcpy(addFav, "");
         if(strcmp(currentDirectory, "/"))
         {
-            strcpy(fullpath, currentDirectory);
-            strcat(fullpath, "/");
+            strcpy(addFav, currentDirectory);
+            strcat(addFav, "/");
         }
-        strcat(fullpath, dirEntries[selectedDirEntry].name);
-        if(!lineIsInIni("favs.ini", fullpath))
-        {
-            if(writeUniqueIniLineAtEnd("favs.ini", fullpath, MAX_FAVOURITES))
-                jo_nbg2_printf(1, 27, "Item Added To Favourites                             ");
-        }
+        strcat(addFav, dirEntries[selectedDirEntry].name);
+        jo_nbg2_clear();
+        jo_nbg2_printf(1, 3, "Favourites                                         ");
+        displayTime();
+        *display_type = GAME_LIST_FAVOURITES;
+        clearGameBoxSprite();
+        sprites[selectionSprite].x = 640;
+        sprites[selectionSprite].y = 240;
+        draw_sprites();
+        slSynch();
+        int result = addItemToIni("favs.ini", addFav, false, true, true);
+        jo_free(addFav);
+        displayGameList(triggersHeld);
+        if(result)
+            displayStatus("Item Added To Favourites");
         else
-            jo_nbg2_printf(1, 27, "Already Added To Favourites                     ");
+            displayStatus("Already Added To Favourites");
     }
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
@@ -389,13 +389,15 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
                 strcat(currentDirectory, dirEntries[selectedDirEntry].name);
                 int ret = s_chdir(currentDirectory);
                 if (ret != FR_OK) {
-                    jo_nbg2_printf(1, 27, "Could not open %s             ", currentDirectory);
+                    displayStatus("Could not open %s", currentDirectory);
                     currentDirectory[strstr("/" , currentDirectory) - currentDirectory] = '\0';
                 } else
                 {
                     *depth = *depth + 1;
-                    jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+                    jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
                     clearGameBoxSprite();
+                    sprites[selectionSprite].x = 640;
+                    sprites[selectionSprite].y = 240;
                     draw_sprites();
                     slSynch();
                     loadFileList(".", satiatorExecutableFilter);
@@ -429,11 +431,15 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
             strcpy(currentDirectory, "/");
         int ret = s_chdir(currentDirectory);
         if (ret != FR_OK) {
-            jo_nbg2_printf(1, 27, "Could not change dir to parent            ");
+            displayStatus("Could not change dir to parent");
         } else
         {
-            depth--;
+            *depth = *depth - 1;
+            if(*depth < 0)
+                *depth = 0;
             clearGameBoxSprite();
+            sprites[selectionSprite].x = 640;
+            sprites[selectionSprite].y = 240;
             draw_sprites();
             slSynch();
             loadFileList(".", satiatorExecutableFilter);
@@ -446,7 +452,7 @@ void launchDirShortcut(enum game_list_display_types * display_type, enum prog_st
     s_chdir("/");
     int ret = s_chdir(dirEntries[selectedDirEntry].name);
     if (ret != FR_OK) {
-        jo_nbg2_printf(1, 27, "Could not open %s                     ", dirEntries[selectedDirEntry].name);
+        displayStatus("Could not open %s", dirEntries[selectedDirEntry].name);
     } else
     {
         strcpy(currentDirectory, dirEntries[selectedDirEntry].name);
@@ -494,38 +500,34 @@ void launchGameShortcut(enum game_list_display_types * display_type, enum prog_s
 }
 void logic_gamelist_favourites(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
-    jo_nbg2_printf(1, 6, "Favourites                                         ");
+    jo_nbg2_printf(1, 3, "Favourites                                         ");
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
         displayTime();
-        jo_nbg2_printf(1, 6, "Recent Play History                                ");
+        jo_nbg2_printf(1, 3, "Recent Play History                                ");
         *display_type = GAME_LIST_RECENT_HISTORY;
         clearGameBoxSprite();
+        sprites[selectionSprite].x = 640;
+        sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
-        loadIniList("recent.ini", false);
+        loadIniList("recent.ini", false, "", false);
         displayGameList(triggersHeld);
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_MOVE, false);
-        if(lineIsInIni("favs.ini", dirEntries[selectedDirEntry].name))
-        {
-            if(deleteIniLine("favs.ini", dirEntries[selectedDirEntry].name))
-            {
-                jo_nbg2_printf(1, 27, "Deleted from favourites                        ");
-                dirEntries[selectedDirEntry].type = DIR_NULL;
-                clearGameBoxSprite();
-                draw_sprites();
-                slSynch();
-                loadIniList("favs.ini", true);
-                displayGameList(triggersHeld);
-            }
-            else
-                jo_nbg2_printf(1, 27, "Failed to delete                             ");
-        }
+        playSfx(SFX_SELECT, false);
+        writeIniList("favs.ini", dirEntries[selectedDirEntry].name);
+        dirEntries[selectedDirEntry].type = DIR_NULL;
+        if(selectedDirEntry > 0)
+            selectedDirEntry--;
+        dirEntyCount--;
+        for(int i=selectedDirEntry + 1; i < dirEntyCount;i++)
+            dirEntries[i] = dirEntries[i + 1];
+        displayGameList(triggersHeld);
+        displayStatus("Item deleted from favourites");
     }
     
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
@@ -550,8 +552,10 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         strcpy(currentDirectory, "/");
         jo_nbg2_clear();
         displayTime();
-        jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+        jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
         clearGameBoxSprite();
+        sprites[selectionSprite].x = 640;
+        sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
         loadFileList(".", satiatorExecutableFilter);
@@ -560,24 +564,19 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
 }
 void logic_gamelist_recents(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
-    jo_nbg2_printf(1, 6, "Recent Play History                                ");
+    jo_nbg2_printf(1, 3, "Recent Play History                                ");
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_MOVE, false);
-        if(lineIsInIni("recent.ini", dirEntries[selectedDirEntry].name))
-        {
-            if(deleteIniLine("recent.ini", dirEntries[selectedDirEntry].name))
-            {
-                jo_nbg2_printf(1, 27, "Deleted from recents                        ");
-                clearGameBoxSprite();
-                draw_sprites();
-                slSynch();
-                loadIniList("recent.ini", false);
-                displayGameList(triggersHeld);
-            }
-            else
-                jo_nbg2_printf(1, 27, "Failed to delete                             ");
-        }
+        playSfx(SFX_SELECT, false);
+        writeIniList("recent.ini", dirEntries[selectedDirEntry].name);
+        dirEntries[selectedDirEntry].type = DIR_NULL;
+        if(selectedDirEntry > 0)
+            selectedDirEntry--;
+        dirEntyCount--;
+        for(int i=selectedDirEntry + 1; i < dirEntyCount;i++)
+            dirEntries[i] = dirEntries[i + 1];
+        displayGameList(triggersHeld);
+        displayStatus("Item deleted from recents");
     }
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
@@ -601,8 +600,10 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
         strcpy(currentDirectory, "/");
         jo_nbg2_clear();
         displayTime();
-        jo_nbg2_printf(1, 6, "%s                                                  ", currentDirectory);
+        jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
         clearGameBoxSprite();
+        sprites[selectionSprite].x = 640;
+        sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
         loadFileList(".", satiatorExecutableFilter);
@@ -630,14 +631,17 @@ void logic_gamelist()
                     loadFileList(".", satiatorExecutableFilter);
                     break;
                 case GAME_LIST_FAVOURITES:
-                    loadIniList("favs.ini", true);
+                    loadIniList("favs.ini", true, "", false);
                     break;
                 case GAME_LIST_RECENT_HISTORY:
-                    loadIniList("recent.ini", false);
+                    loadIniList("recent.ini", false, "", false);
                     break;
             }
             defaultBoxTex = load_sprite_texture("TEX", "SBOX.TGA");
-            create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
+            create_sprite(load_sprite_texture("TEX", "GAME.TGA"), 0, 4, 1, 1, 1, 0);
+            shadowSprite = create_sprite(load_sprite_texture("TEX", "SHDW.TGA"), 320, 240, 1, 1, 1, 0);
+            loadSelectionSprite();
+            displayStatus("Press start for options");
             displayGameList(triggersHeld);
             game_list_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_SPLASH;
@@ -662,7 +666,7 @@ void logic_gamelist()
             if(dirEntyCount > 0)
             {
                 // scroll the selected item text every frame
-                displayGameListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 8, true, dirEntries[selectedDirEntry].type, triggersHeld);
+                displayGameListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
             }
             if(pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS)
             {
@@ -695,11 +699,16 @@ void logic_gamelist()
                                 selectedDirEntry--;
                                 if(selectedDirEntry - listOffset  < 0)
                                     listOffset--;
-                                playSfx(SFX_MOVE, false);
-                                draw_sprites();
-                                slSynch();
                                 
+                            } else
+                            {
+                                selectedDirEntry = dirEntyCount - 1;
+                                listOffset = dirEntyCount - maxlistItems;
                             }
+                            playSfx(SFX_MOVE, false);
+                            updateSelectionSprite(selectedDirEntry - listOffset, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                            draw_sprites();
+                            slSynch();
                         break;
                     case DOWN:
                             if(selectedDirEntry < dirEntyCount - 1)
@@ -707,22 +716,31 @@ void logic_gamelist()
                                 selectedDirEntry ++;
                                 if(selectedDirEntry - listOffset >= maxlistItems)
                                     listOffset++;
-                                playSfx(SFX_MOVE, false);
-                                draw_sprites();
-                                slSynch();
+                            } else
+                            {
+                                selectedDirEntry = 0;
+                                listOffset = 0;
                             }
+                            playSfx(SFX_MOVE, false);
+                            updateSelectionSprite(selectedDirEntry - listOffset, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                            draw_sprites();
+                            slSynch();
                         break;
                 }
                 displayGameList(triggersHeld);
             }
             if(pad_controllers[0].btn_l == BUTTON_STATE_HELD)
             {
+                playSfx(SFX_MOVE, true);
                 if(selectedDirEntry > 0)
                 {
-                    playSfx(SFX_MOVE, true);
                     selectedDirEntry--;
                     if(selectedDirEntry - listOffset  < 0)
                         listOffset--;
+                } else
+                {
+                    selectedDirEntry = dirEntyCount - 1;
+                    listOffset = dirEntyCount - maxlistItems;
                 }
                 triggersHeld = true;
                 displayGameList(triggersHeld);
@@ -730,12 +748,16 @@ void logic_gamelist()
             }
             if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
             {
+                playSfx(SFX_MOVE, true);
                 if(selectedDirEntry < dirEntyCount - 1)
                 {
-                    playSfx(SFX_MOVE, true);
-                    selectedDirEntry ++;
+                    selectedDirEntry ++;s
                     if(selectedDirEntry - listOffset >= maxlistItems)
                         listOffset++;
+                } else
+                {
+                    selectedDirEntry = 0;
+                    listOffset = 0;
                 }
                 triggersHeld = true;
                 displayGameList(triggersHeld);

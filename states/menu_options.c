@@ -2,6 +2,9 @@
 #include "menu_options.h"
 #define MAX_MENU_OPTIONS 10
 
+
+int selectorSprite;
+
 menuOption menuOptions[MAX_MENU_OPTIONS];
 int usedMenuOptions = 0;
 
@@ -14,7 +17,7 @@ void clearMenuOptions()
     }
 }
 
-void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type)
+void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type, int row)
 {
     if(usedMenuOptions >= MAX_MENU_OPTIONS)
         return;
@@ -25,6 +28,7 @@ void createMenuOption(const char * txt, enum prog_state_types state, enum menu_o
             menuOptions[i].prog_state = state;
             menuOptions[i].txt = txt;
             menuOptions[i].type = type;
+            menuOptions[i].row = row;
             usedMenuOptions++;
             return;
         }
@@ -37,11 +41,9 @@ void displayMenuOptions(int selectedOption)
     {
         if(menuOptions[i].prog_state == PROG_STATE_INITIALIZE)
             return;
+        centerText(menuOptions[i].row, menuOptions[i].txt);
         if(i == selectedOption)
-            jo_nbg2_printf(1, i+8, "> ");
-        else
-            jo_nbg2_printf(1, i+8, "  ");
-        jo_nbg2_printf(3, i+8, menuOptions[i].txt);
+            updateSelectionSprite(menuOptions[i].row, false);
     }
 }
 
@@ -55,27 +57,34 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
     }
     if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_MOVE, false);
         switch(pad_controllers[0].direction_id)
         {
             case LEFT:
             case UP_LEFT:
             case DOWN_LEFT:
                 if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
+                {
+                    playSfx(SFX_MOVE, false);
                     return -1;
+                }
                 break;
             case RIGHT:
             case DOWN_RIGHT:
             case UP_RIGHT:
                 if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
+                {
+                    playSfx(SFX_MOVE, false);
                     return 1;
+                }
                 break;
             case UP:
+                playSfx(SFX_MOVE, false);
                 *selectedOption = *selectedOption - 1;
                 if(*selectedOption < 0)
                     *selectedOption += usedMenuOptions;
                 break;
             case DOWN:
+                playSfx(SFX_MOVE, false);spriteTex
                 *selectedOption = *selectedOption + 1;
                 if(*selectedOption >= usedMenuOptions)
                     *selectedOption -= usedMenuOptions;
