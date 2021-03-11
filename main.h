@@ -30,7 +30,7 @@
 #pragma once
 
 // program version, keep this length to avoid having to resize strings
-#define VERSION "0.7"
+#define VERSION "0.8"
 #define _GNU_SOURCE
 #define DEBUG
 
@@ -51,6 +51,7 @@ enum prog_state_types
     PROG_STATE_SPLASH,
     PROG_STATE_GAMELIST,
     PROG_STATE_BOOT,
+    PROG_STATE_QUICKBOOT,
     PROG_STATE_MENU,
     PROG_STATE_OPTIONS,
     PROG_STATE_CONSOLE_INFO,

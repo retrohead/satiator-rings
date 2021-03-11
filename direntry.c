@@ -11,7 +11,14 @@ int listOffset = 0;
 bool truncatedList = true;
 dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
 
-
+void initDirEntries()
+{
+    for(int i=0;i<MAX_LOADED_DIR_ENTRIES;i++)
+    {
+        dirEntries[i].name = NULL;
+        dirEntries[i].type = DIR_NULL;
+    }
+}
 int compareDirEntry(const void *pa, const void *pb) {
     const dirEntry *a = pa, *b = pb;
     if (a->type == DIR_DIRECTORY && b->type != DIR_DIRECTORY)

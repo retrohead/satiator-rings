@@ -706,7 +706,7 @@ void logic_gamelist()
                                 listOffset = dirEntyCount - maxlistItems;
                             }
                             playSfx(SFX_MOVE, false);
-                            updateSelectionSprite(selectedDirEntry - listOffset, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                            updateSelectionSprite(selectedDirEntry - listOffset + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
                             draw_sprites();
                             slSynch();
                         break;
@@ -722,7 +722,7 @@ void logic_gamelist()
                                 listOffset = 0;
                             }
                             playSfx(SFX_MOVE, false);
-                            updateSelectionSprite(selectedDirEntry - listOffset, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                            updateSelectionSprite(selectedDirEntry - listOffset + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
                             draw_sprites();
                             slSynch();
                         break;
@@ -751,7 +751,7 @@ void logic_gamelist()
                 playSfx(SFX_MOVE, true);
                 if(selectedDirEntry < dirEntyCount - 1)
                 {
-                    selectedDirEntry ++;s
+                    selectedDirEntry ++;
                     if(selectedDirEntry - listOffset >= maxlistItems)
                         listOffset++;
                 } else

@@ -23,5 +23,6 @@ extern int dirEntyCount;
 extern int listOffset;
 extern bool truncatedList;
 
+extern void initDirEntries();
 extern int compareDirEntry(const void *pa, const void *pb);
 extern void sortDirEntries();

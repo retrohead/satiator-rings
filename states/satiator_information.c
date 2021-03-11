@@ -21,7 +21,9 @@ void logic_satiator_info()
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
             clearMenuOptions();
-            create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
+            create_sprite(load_sprite_texture("TEX", "SIATOR.TGA"), 0, 4, 1, 1, 1, 0);
+            displayVersion();
+            displayStatus("Press any button to continue");
 
             s_get_fw_version(fwVer, sizeof(fwVer));
             jo_nbg2_printf(1, 8, "Firmware Ver  : %s", fwVer);
@@ -36,11 +38,7 @@ void logic_satiator_info()
             exit_state = PROG_STATE_MENU;
             break;
         case ROUTINE_STATE_RUN:
-            jo_nbg2_printf(13, 4, "SATIATOR INFO");
-            if(dt.second % 2 == 0)
-                jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
-            else
-                jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
+            displayTime();
 
             controlMenuOptions(&selectedMenuOption, &satiator_info_state, &exit_state);
             break;

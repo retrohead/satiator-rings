@@ -17,19 +17,16 @@ void logic_console_info()
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
             clearMenuOptions();
-            create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
+            create_sprite(load_sprite_texture("TEX", "CONSOLE.TGA"), 0, 4, 1, 1, 1, 0);
+            displayVersion();
+            displayStatus("Press any button to continue");
             displayMenuOptions(selectedMenuOption);
             jo_nbg2_printf(1, 10, "Cartridge     : %s", getCartridgeString());
             console_info_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_MENU;
             break;
         case ROUTINE_STATE_RUN:
-            jo_nbg2_printf(13, 4, "CONSOLE INFO");
-            if(dt.second % 2 == 0)
-                jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
-            else
-                jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
-            
+            displayTime();            
             jo_nbg2_printf(1, 8,  "Console Region: %s", getRegionString());
             jo_nbg2_printf(1, 9,  "Console Date  : %d-%02d-%02d %02d:%02d:%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
             controlMenuOptions(&selectedMenuOption, &console_info_state, &exit_state);

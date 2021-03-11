@@ -115,16 +115,28 @@ void draw_sprites()
         if(sprites[i].used && sprites[i].sprite_tex_id != -1)
         {
             jo_set_gouraud_shading_brightness(16);
+            if((sprites[i].scale_x != 1.0) || (sprites[i].scale_y != 1.0))
             jo_sprite_change_sprite_scale_xy(sprites[i].scale_x, sprites[i].scale_y);
             
             if(sprites[i].isTransparent)
 	            jo_sprite_enable_half_transparency();
+            if(sprites[i].rot_angle < 1.0)
+            {
+            jo_sprite_draw3D(
+                spriteTex[sprites[i].sprite_tex_id].texture_id, 
+                (int)(sprites[i].x - 160 + (getSpriteWidth(i) / 2)), 
+                (int)(sprites[i].y - 120 + (getSpriteHeight(i) / 2)), 
+                sprites[i].z + 101);
+            }
+            else
+            {
             jo_sprite_draw3D_and_rotate(
                 spriteTex[sprites[i].sprite_tex_id].texture_id, 
-                (int)(sprites[i].x - 160 + (getSpriteWidth(i)/ 2)), 
-                (int)(sprites[i].y - 120 + (getSpriteHeight(i)/ 2)), 
+                (int)(sprites[i].x - 160 + (getSpriteWidth(i) / 2)), 
+                (int)(sprites[i].y - 120 + (getSpriteHeight(i) / 2)), 
                 sprites[i].z + 101, 
                 (int)(sprites[i].rot_angle));
+            }
                 
             if(sprites[i].isTransparent)
 	            jo_sprite_disable_half_transparency();

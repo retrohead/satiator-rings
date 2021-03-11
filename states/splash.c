@@ -12,6 +12,7 @@ enum routine_state_types splash_state = ROUTINE_STATE_INITIALIZE;
 
 int logosprites[3];
 jo_sound     introsound;
+char name[512];
 
 void finishLogo()
 {
@@ -137,7 +138,7 @@ bool bootLastGameDir(char * dir)
         s_chdir("/");
     int ret = s_chdir(dir);
     if (ret != FR_OK) {
-        jo_nbg2_printf(1, 27, "Could not open %s                     ", dir);
+        displayStatus("Could not open %s", dir);
         return false;
     } else
     {
@@ -161,14 +162,11 @@ void bootLastGameImage(char * fn)
     } else
     {
         // need to change directory
-        centerTextVblank(27, "opening directory");
-        char * dir = jo_malloc(256);
         const char * fileName = lastSlash + 1;
-        strcpy(dir, fn);
-        dir[lastSlash - dir] = '\0';
-        s_chdir(dir);
-        strcpy(currentDirectory, dir);
-        jo_free(dir);
+        strcpy(name, fn);
+        name[lastSlash - name] = '\0';
+        s_chdir(name);
+        strcpy(currentDirectory, name);
         if(dirEntries[selectedDirEntry].name != NULL)
             jo_free(dirEntries[selectedDirEntry].name);
         dirEntries[selectedDirEntry].name = jo_malloc(strlen(fileName));
@@ -181,7 +179,6 @@ bool bootLastGame()
     if(failed)
         return false;
     dirEntyCount = 0;
-    char * name = jo_malloc(1024);
 
     if(loadIniListFirstLine("recent.ini", name))
     {
@@ -195,7 +192,6 @@ bool bootLastGame()
             return bootLastGameDir(name);
         }
     }
-    jo_free(name);
     failed = true;
     return false;
 }
@@ -205,11 +201,17 @@ void logic_splash()
     switch(splash_state)
     {
         case ROUTINE_STATE_INITIALIZE:
+            changeFontCol(&font_palettes[0], JO_COLOR_Red);
+            create_sprite(load_sprite_texture("TEX", "BLANK.TGA"), 160, 120, 3, 50.0, 50.0, 0);
+            draw_sprites();
+            slSynch();
+            load_background("TEX","BG.TGA");
+
             routine_scene = 0;
-            //load_background("TEX","BG.TGA");
-            logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 1, 1.0, 1.0, 0);
-            logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 0, 1.0, 1.0, 0);
-            logosprites[2] = create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[logosprites[0]].x, sprites[logosprites[1]].y + getSpriteHeight(logosprites[1]) + 5, 0, 1.0, 1.0, 0);
+            logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 2, 1.0, 1.0, 0);
+            logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 1, 1.0, 1.0, 0);
+            logosprites[2] = create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[logosprites[0]].x, sprites[logosprites[1]].y + getSpriteHeight(logosprites[1]) + 5, 1, 1.0, 1.0, 0);
+
 
             loadSfx(SFX_INTRO);
             loadSfx(SFX_THUD);
@@ -285,16 +287,9 @@ void logic_splash()
                         }
                         if(pad_controllers[0].btn_z == BUTTON_STATE_HELD)
                         {
-                            // load the most recent game
-                            if(bootLastGame())
-                            {
-                                centerTextVblank(27, "Skipping To Boot Sequence");
-                                exit_state = PROG_STATE_BOOT;
-                                splash_state = ROUTINE_STATE_END;
-                            } else
-                            {
-                                centerTextVblank(27, "Failed Quick Boot");
-                            }
+                            centerTextVblank(28, "Skipping To Boot Sequence");
+                            exit_state = PROG_STATE_QUICKBOOT;
+                            splash_state = ROUTINE_STATE_END;
                         }
                         break;
                 }

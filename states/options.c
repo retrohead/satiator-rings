@@ -136,21 +136,19 @@ void logic_options()
             clearMenuOptions();
             for(int i=0;i<OPTIONS_COUNT;i++)
             {
-                createMenuOption(getOptionName(i, options[i]), PROG_STATE_OPTIONS, OPTION_CHANGE_VARIABLE);
+                createMenuOption(getOptionName(i, options[i]), PROG_STATE_OPTIONS, OPTION_CHANGE_VARIABLE, 8 + i);
             }
-            createMenuOption("Save", PROG_STATE_MENU, OPTION_PROGRAM_STATE);
-            createMenuOption("Cancel", PROG_STATE_MENU, OPTION_PROGRAM_STATE);
-            create_sprite(load_sprite_texture("TEX", "LOGO.TGA"), 5, 5, 1, 1.0, 1.0, 0);
+            createMenuOption("Save", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 1);
+            createMenuOption("Cancel", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 2);
+            create_sprite(load_sprite_texture("TEX", "OPTION.TGA"), 0, 4, 1, 1, 1, 0);
+            loadSelectionSprite();
             displayMenuOptions(selectedMenuOption);
+            displayVersion();
             options_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_MENU;
             break;
         case ROUTINE_STATE_RUN:
-            jo_nbg2_printf(17, 4, "OPTIONS");
-            if(dt.second % 2 == 0)
-                jo_nbg2_printf(33, 4, "%02d %02d", dt.hour, dt.minute);
-            else
-                jo_nbg2_printf(33, 4, "%02d:%02d", dt.hour, dt.minute);
+            displayTime();
             int changed = controlMenuOptions(&selectedMenuOption, &options_state, &exit_state);  
             if((changed != 0) && (selectedMenuOption < OPTIONS_COUNT))
             {
@@ -178,10 +176,10 @@ void logic_options()
                 if(!saveOptions())
                 {
                     options_state = ROUTINE_STATE_RUN;
-                    printCenterText(27, "Failed To Save Options!");
+                    displayStatus("Failed To Save Options!");
                 } else
                 {
-                    printCenterText(27, "Options Saved!");
+                    displayStatus("Options Saved!");
                 }
             }
             break;

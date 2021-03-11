@@ -12,11 +12,13 @@ typedef struct
     const char * txt;
     enum prog_state_types prog_state;
     enum menu_option_types type;
+    int row;
 } menuOption;
 
 extern menuOption menuOptions[10];
+extern int selectorSprite;
 
 extern void clearMenuOptions();
-extern void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type);
+extern void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type, int row);
 extern int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state, enum prog_state_types * exit_state);
 extern void displayMenuOptions(int selectedOption);

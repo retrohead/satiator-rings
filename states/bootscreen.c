@@ -24,10 +24,7 @@ void addItemToRecentHistory()
         strcat(fullpath, "/");
         strcat(fullpath, dirEntries[selectedDirEntry].name);
     }
-    // add the game to the the recent.ini
-    deleteIniLine("recent.ini", fullpath);
-    writeUniqueIniLineAtStart("recent.ini", fullpath, MAX_RECENT_ITEMS);
-
+    addItemToIni("recent.ini", fullpath, true, false, false);
     jo_free(fullpath);
 }
 void logic_bootscreen()
@@ -37,11 +34,16 @@ void logic_bootscreen()
     {
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
-            create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 1, 1.0, 1.0, 0);
-            create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[0].x, sprites[0].y + getSpriteHeight(0) + 15, 0, 1.0, 1.0, 0);
-            create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[0].x, sprites[1].y + getSpriteHeight(1) + 5, 0, 1.0, 1.0, 0);
-            centerTextVblank(20, "Loading");
+            if(prog_state != PROG_STATE_QUICKBOOT)
+            {
+                create_sprite(load_sprite_texture("TEX", "BLANK.TGA"), 160, 120, 3, 50.0, 50.0, 0);
+                draw_sprites();
+                slSynch();
+                
+            }
             bootscreen_state = ROUTINE_STATE_RUN;
+            centerText(20, "Loading");
+            centerText(21, "%s", dirEntries[selectedDirEntry].name);
             break;
         case ROUTINE_STATE_RUN:
             switch(routine_scene)
@@ -76,13 +78,16 @@ void logic_bootscreen()
                     // confirm patching
                     if(options[OPTIONS_AUTO_PATCH] == 0)
                     {
-                        jo_nbg2_printf(9,  22,"Region Patch Required");
-                        jo_nbg2_printf(9,  24,"     C = Confirm    ");
-                        jo_nbg2_printf(9,  25,"     B = Cancel     ");
+                        printCenterText(22,"Region Patch Required");
+                        printCenterText(24,"Confirm (C)");
+                        printCenterText(25,"Cancel (B)");
                     }
 
                     if((pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (options[OPTIONS_AUTO_PATCH] == 1))
                     {
+                        printCenterText(22,"");
+                        printCenterText(24,"");
+                        printCenterText(25,"");
                         centerTextVblank(20, "Patching Image");
                         if(!satiatorPatchDescFileImage(getRegionString()))
                         {

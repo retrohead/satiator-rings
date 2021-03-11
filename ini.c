@@ -5,303 +5,10 @@
 #include <string.h>
 #include <stdio.h>
 #include "main.h"
+#include "ini.h"
 #include "states/routine_states.h"
 #include "satiator_functions.h"
 
-bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxLines)
-{
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
-
-    char * newfile = jo_malloc(strlen(ini) + 4);
-    sprintf(newfile, "%s.bak", ini);
-
-    // stat the file
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int fr = s_stat(ini, st, sizeof(statbuf));
-    if(fr >= 0)
-    {
-        // open old ini for reading
-        fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
-        if (fr < 0)
-        {
-            // failed change back to the current dir
-            jo_free(newfile);
-            s_chdir(currentDirectory);
-            return false;
-        }
-    }
-    // open new favs ini for writing
-    int fw = s_open(newfile, FA_WRITE | FA_CREATE_NEW);
-    if (fw < 0)
-    {
-        // change back to the current dir
-        jo_free(newfile);
-        s_chdir(currentDirectory);
-        return false;
-    }
-    s_write(fw, "[START]\r\n", 9);
-
-    int lines = 1;
-    if(fr >= 0)
-    {
-        char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
-        uint32_t bytes;
-        // find the start tag
-        while(strncmp(oneline, "[START]", 7))
-            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-        // write our new item at the top
-        s_write(fw, textline, strlen(textline));
-        s_write(fw, "\r\n", 2);
-        // find the end tag and write everything inbetween unless it matches this line
-        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-        while(strncmp(oneline, "[END]", 5))
-        {
-            if(!strncmp(oneline, textline, strlen(textline)))
-            {
-                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-                continue;
-            }
-            s_write(fw, oneline, strlen(oneline));
-            s_write(fw, "\r\n", 2);
-            lines++;
-            if(lines >= maxLines) // all lines after max lines will be deleted
-                break;
-            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-        }
-        jo_free(oneline);
-    } else
-    {
-        // write our new item at the top, new file
-        s_write(fw, textline, strlen(textline));
-        s_write(fw, "\r\n", 2);
-    }
-    s_write(fw, "[END]", 5);
-    s_close(fw);
-    
-    if(fr >= 0)
-    {
-        // close then delete the old file
-        s_close(fr);
-        s_unlink(ini);
-        jo_free(newfile);
-    }
-
-    // rename the new file
-    s_rename(newfile, ini);
-
-    // change back to the current dir
-    s_chdir(currentDirectory);
-    return true;
-}
-bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLines)
-{
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
-
-    char * newfile = jo_malloc(strlen(ini) + 5);
-    sprintf(newfile, "%s.bak", ini);
-
-    // stat the file
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int fr = s_stat(ini, st, sizeof(statbuf));
-    if(fr >= 0)
-    {
-        // open old ini for reading
-        fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
-        if (fr < 0)
-        {
-            // failed change back to the current dir
-            jo_free(newfile);
-            s_chdir(currentDirectory);
-            return false;
-        }
-    }
-    // open new favs ini for writing
-    int fw = s_open(newfile, FA_WRITE | FA_CREATE_NEW);
-    if (fw < 0)
-    {
-        // change back to the current dir
-        jo_free(newfile);
-        s_chdir(currentDirectory);
-        return false;
-    }
-    s_write(fw, "[START]\r\n", 9);
-    int lines = 1;
-    if(fr >= 0)
-    {
-        char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
-        uint32_t bytes;
-        // find the start tag
-        while(strncmp(oneline, "[START]", 7))
-            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-        // find the end tag and write everything inbetween unless it matches this line
-        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-        while(strncmp(oneline, "[END]", 5))
-        {
-            if(!strncmp(oneline, textline, strlen(textline)))
-            {
-                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-                continue;
-            }
-            s_write(fw, oneline, strlen(oneline));
-            s_write(fw, "\r\n", 2);
-            lines++;
-            if(lines >= maxLines)
-                break;
-            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-        }
-        jo_free(oneline);
-    }
-    if(lines < maxLines)
-    {
-        // write our new item at the end
-        s_write(fw, textline, strlen(textline));
-        s_write(fw, "\r\n", 2);
-    }
-    s_write(fw, "[END]", 5);
-    s_close(fw);
-    
-    if(fr >= 0)
-    {
-        // close then delete the old file
-        s_close(fr);
-        s_unlink(ini);
-        jo_free(newfile);
-    }
-
-    // move the new file
-    s_rename(newfile, ini);
-
-    // change back to the current dir
-    s_chdir(currentDirectory);
-    if(lines < maxLines)
-        return true;
-    else
-        return false;
-}
-bool lineIsInIni(const char * ini, const char * textline)
-{
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
-
-    // stat the file
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int fp = s_stat(ini, st, sizeof(statbuf));
-    if(fp < 0)
-    {
-        // change back to the current dir
-        s_chdir(currentDirectory);
-        return false;
-    }
-
-    // open favs ini for reading
-    fp = s_open(ini, FA_READ | FA_OPEN_ALWAYS);
-    if (fp < 0)
-    {
-        // change back to the current dir
-        s_chdir(currentDirectory);
-        return false;
-    }
-    // read  the file and verify if the selected game is there
-    char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
-    strcpy(oneline, "");
-    uint32_t bytes;
-    while(strncmp(oneline, "[START]", 7))
-    {
-        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
-    }
-    oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
-    while(strncmp(oneline, "[END]", 5))
-    {
-        if(!strncmp(oneline, textline, strlen(textline)))
-        {
-            s_close(fp);
-            jo_free(oneline);
-            // change back to the current dir
-            s_chdir(currentDirectory);
-            return true;
-        }
-        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
-    }
-    s_close(fp);
-    jo_free(oneline);
-
-    // change back to the current dir
-    s_chdir(currentDirectory);
-    return false;
-}
-bool deleteIniLine(const char * ini, const char * textline)
-{
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
-
-    // stat the file
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int fr = s_stat(ini, st, sizeof(statbuf));
-    if(fr < 0)
-    {
-        // change back to the current dir
-        s_chdir(currentDirectory);
-        return false;
-    }
-    char * newfile = jo_malloc(strlen(ini) + 4);
-    sprintf(newfile, "%s.bak", ini);
-
-    // open old favs ini for reading
-    fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
-    if (fr < 0)
-    {
-        // change back to the current dir
-        jo_free(newfile);
-        s_chdir(currentDirectory);
-        return false;
-    }
-    // open new favs ini for writing
-    int fw = s_open(newfile, FA_WRITE | FA_CREATE_NEW);
-    if (fw < 0)
-    {
-        // change back to the current dir
-        jo_free(newfile);
-        s_chdir(currentDirectory);
-        return false;
-    }
-
-    // read  the file and verify if the selected game is there
-    char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
-    strcpy(oneline, "");
-    uint32_t bytes;
-    while(strncmp(oneline, "[START]", 7))
-    {
-        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-    }
-    s_write(fw, "[START]\r\n", 9);
-    oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-    while(strncmp(oneline, "[END]", 5))
-    {
-        if(!strncmp(oneline, textline, strlen(textline)))
-        {
-            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-            continue;
-        }
-        s_write(fw, oneline, strlen(oneline));
-        s_write(fw, "\r\n", 2);
-        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-    }
-    s_close(fr);
-    s_write(fw, "[END]", 9);
-    s_close(fw);
-    // delete the old file
-    s_unlink(ini);
-    s_rename(newfile, ini);
-    jo_free(oneline);
-    jo_free(newfile);
-    return true;
-}
 bool loadIniListFirstLine(char * fn, char * destbuf)
 {
     if(strcmp("/", currentDirectory))
@@ -335,16 +42,79 @@ bool loadIniListFirstLine(char * fn, char * destbuf)
     }
     return false;
 }
-void loadIniList(char * fn, bool sort)
+void writeIniList(char * fn, char * deleteEntry)
 {
     if(strcmp("/", currentDirectory))
         s_chdir("/");
     s_chdir("satiator-rings");
-    strcpy(currentDirectory, "/satiator-rings");
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fp = s_stat(fn, st, sizeof(statbuf));
+    if (fp >=0)
+        s_unlink(fn);
+    fp = s_open(fn, FA_WRITE | FA_CREATE_NEW);
+    s_write(fp, "[START]\r\n",9);
+    for(int i=0;i<dirEntyCount;i++)
+    {
+        if((dirEntries[i].type == DIR_SHORTCUT_FOLDER) || (dirEntries[i].type == DIR_SHORTCUT_GAME))
+        {
+            if(deleteEntry != NULL)
+            {
+                if(!strcmp(deleteEntry, dirEntries[i].name))
+                    continue;
+            }
+            s_write(fp, dirEntries[i].name, strlen(dirEntries[i].name));
+            s_write(fp, "\r\n" ,2);
+        }
+    }
+    s_write(fp, "[END]",5);
+    s_close(fp);
+    s_chdir(currentDirectory);
+}
+bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort)
+{
+    bool ret = loadIniList(ini, false, fn, addStart);
+    writeIniList(ini, NULL);
+    if(!keepList)
+    {
+        for(int i=0;i<MAX_LOADED_DIR_ENTRIES;i++)
+        {
+            if(dirEntries[i].name != NULL)
+                jo_free(dirEntries[i].name);
+        }
+    }
+    if(sort)
+        sortDirEntries();
+    return ret;
+}
+void addDirEntryItem(char * fn)
+{
+    if(dirEntries[dirEntyCount].name)
+        jo_free(dirEntries[dirEntyCount].name);
+    dirEntries[dirEntyCount].name = NULL;
+    dirEntries[dirEntyCount].name = jo_malloc(strlen(fn) + 5);
+    strcpy(dirEntries[dirEntyCount].name, fn);
+    if (fn[strlen(fn) - 4] == '.')
+        dirEntries[dirEntyCount].type = DIR_SHORTCUT_GAME;
+    else
+        dirEntries[dirEntyCount].type = DIR_SHORTCUT_FOLDER;
+    dirEntyCount++;
+}
+bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
+{
+    bool ret = true;
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+    s_chdir("satiator-rings");
     truncatedList = false;
     dirEntyCount = 0;
     selectedDirEntry = 0;
     listOffset = 0;
+
+    bool addItem = false;
+    if(strcmp(addItemStr, ""))
+        addItem = true;
+    if(addItem && addAtStart)
+        addDirEntryItem(addItemStr);
 
     s_stat_t *st = (s_stat_t*)statbuf;
     int fp = s_stat(fn, st, sizeof(statbuf));
@@ -362,16 +132,13 @@ void loadIniList(char * fn, bool sort)
             oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
             while(strncmp(oneline, "[END]", 5))
             {
-                if(dirEntries[dirEntyCount].name)
-                    jo_free(dirEntries[dirEntyCount].name);
-                dirEntries[dirEntyCount].name = NULL;
-                dirEntries[dirEntyCount].name = jo_malloc(strlen(oneline) + 5);
-                strcpy(dirEntries[dirEntyCount].name, oneline);
-                if (oneline[strlen(oneline) - 4] == '.')
-                    dirEntries[dirEntyCount].type = DIR_SHORTCUT_GAME;
-                else
-                    dirEntries[dirEntyCount].type = DIR_SHORTCUT_FOLDER;
-                dirEntyCount++;
+                if(addItem && !strcmp(addItemStr, oneline))
+                {
+                    ret = false;
+                    oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
+                    continue;
+                }
+                addDirEntryItem(oneline);
                 if(dirEntyCount == MAX_LOADED_DIR_ENTRIES / 4) // using a shorter list as shortcuts could be much longer
                 {
                     truncatedList = true;
@@ -382,7 +149,10 @@ void loadIniList(char * fn, bool sort)
             s_close(fp);
             jo_free(oneline);
         }
+        s_chdir(currentDirectory);
     }
+    if(addItem && !addAtStart && ret)
+        addDirEntryItem(addItemStr);
     for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
         if(dirEntries[i].name)
@@ -392,4 +162,5 @@ void loadIniList(char * fn, bool sort)
     }
     if(sort)
         sortDirEntries();
+    return ret;
 }

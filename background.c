@@ -1,9 +1,11 @@
 
 #include <jo/jo.h>
+#include "satiator/iapetus/iapetus.h"
+#include "background.h"
 
+jo_img      bg;
 void load_background(const char *sub_dir, const char *fn)
 {
-    jo_img      bg;
     bg.data = NULL;
     jo_tga_loader(&bg, sub_dir, fn, JO_COLOR_Transparent);
     jo_set_background_sprite(&bg, 0, 0);

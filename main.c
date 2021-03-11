@@ -30,6 +30,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
+#include "ini.h"
 #include "states/routine_states.h"
 #include "satiator_functions.h"
 #include "satiator/iapetus/video/vdp.h"
@@ -57,6 +58,18 @@ void application_logic(void)
             break;
         case PROG_STATE_GAMELIST:
             logic_gamelist();
+            break;
+        case PROG_STATE_QUICKBOOT:
+            // load the most recent game
+            if(bootLastGame())
+            {
+                displayStatus("Booting");
+                prog_state = PROG_STATE_BOOT;
+            } else
+            {
+                displayStatus("Failed Quick Boot");
+                prog_state = PROG_STATE_GAMELIST;
+            }
             break;
         case PROG_STATE_BOOT:
             logic_bootscreen();
@@ -106,7 +119,8 @@ void draw_objects(void)
 
 void			jo_main(void)
 {
-	jo_core_init(JO_COLOR_White);
+	jo_core_init(JO_COLOR_Black);
+    initDirEntries();
     load_fonts();
     initSfx();
     initControllers();

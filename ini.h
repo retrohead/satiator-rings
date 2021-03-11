@@ -1,6 +1,4 @@
-void loadIniList(char * fn, bool sort);
+bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart);
+bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort);
 bool loadIniListFirstLine(char * fn, char * destbuf);
-bool deleteIniLine(const char * ini, const char * textline);
-bool lineIsInIni(const char * ini, const char * textline);
-bool writeUniqueIniLineAtEnd(const char * ini, const char * textline, int maxLines);
-bool writeUniqueIniLineAtStart(const char * ini, const char * textline, int maxLines);
+void writeIniList(char * fn, char * deleteEntry);

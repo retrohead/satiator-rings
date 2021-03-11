@@ -84,7 +84,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
                     *selectedOption += usedMenuOptions;
                 break;
             case DOWN:
-                playSfx(SFX_MOVE, false);spriteTex
+                playSfx(SFX_MOVE, false);
                 *selectedOption = *selectedOption + 1;
                 if(*selectedOption >= usedMenuOptions)
                     *selectedOption -= usedMenuOptions;
