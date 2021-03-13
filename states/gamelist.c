@@ -26,8 +26,6 @@ typedef struct
     int sprite;
 } gameBoxType;
 
-
-
 bool textLeft = false;
 
 gameBoxType gameBox;
@@ -170,6 +168,7 @@ void displayGameBox(int id, bool bounce, float x, float y, float scale_x, float 
         char fn[20];
         char dir[50];
         boxartIdToTexturePath(gameBox.id, dir, fn);
+        listScrolldelay = LIST_SCROLL_DELAY; // make the list start scrolling if the direction is held by the time the box has finished loading for a better experience
         gameBox.tex = load_sprite_texture(dir, fn);
     }
 
@@ -246,72 +245,6 @@ void displayGameList(bool triggersHeld)
     updateSelectionSprite((selectedDirEntry- listOffset) + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
     if(!triggersHeld)
         updateBoxarts();
-}
-void loadFileList(char * directory, int (*filter)(dirEntry *entry))
-{
-    sprites[selectionSprite].x = 640;
-    sprites[selectionSprite].y = 250;
-    truncatedList = false;
-    dirEntyCount = 0;
-    selectedDirEntry = 0;
-    listOffset = 0;
-    if (s_opendir(directory) != 0)
-    {
-            jo_nbg2_printf(0, 29, "could not open dir %s", directory);
-            return;
-    }
-    s_stat_t *st = (s_stat_t*)statbuf;
-    int len;
-    while ((len = s_stat(NULL, st, sizeof(statbuf)-1)) > 0) {
-        st->name[len] = 0;
-        // UNIX hidden files, except .. when present
-        if (st->name[0] == '.' && strcmp(st->name, ".."))
-            continue;
-        if(!strncmp(st->name, "satiator-rings", 14))
-            continue;
-        // thanks Windows
-        if (!strncmp(st->name, "System Volume Information", 25))
-            continue;
-        if(dirEntries[dirEntyCount].name != NULL)
-            jo_free(dirEntries[dirEntyCount].name);
-        dirEntries[dirEntyCount].name = NULL;
-        dirEntries[dirEntyCount].name = jo_malloc(strlen(st->name) + 5);
-        strcpy(dirEntries[dirEntyCount].name, st->name);
-        if (st->attrib & AM_DIR) {
-            dirEntries[dirEntyCount].type = DIR_DIRECTORY;
-        } else {
-            strcpy(dirEntries[dirEntyCount].name, st->name);
-            const char *dot = strrchr(dirEntries[dirEntyCount].name, '.');
-            const char *extension = dot + 1;
-            if (strncmp(extension, "cue", 3) && strncmp(extension, "iso", 3))
-                dirEntries[dirEntyCount].type = DIR_FILE;
-            else
-                dirEntries[dirEntyCount].type = DIR_GAME;
-        }
-
-        if (filter && !filter(&dirEntries[dirEntyCount]))
-            continue;
-
-        if (!dirEntries[dirEntyCount].name)
-        {
-            return;
-        }
-
-        dirEntyCount++;
-        if(dirEntyCount == MAX_LOADED_DIR_ENTRIES)
-        {
-            truncatedList = true;
-            break;
-        }
-    }
-    for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
-    {
-        if(dirEntries[i].name != NULL)
-            jo_free(dirEntries[i].name);
-        dirEntries[i].name = NULL;
-        dirEntries[i].type = DIR_NULL;
-    }
-    sortDirEntries();
 }
 void logic_gamelist_standard(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
@@ -502,11 +435,11 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         playSfx(SFX_SELECT, false);
         writeIniList("favs.ini", dirEntries[selectedDirEntry].name);
         dirEntries[selectedDirEntry].type = DIR_NULL;
+        for(int i=selectedDirEntry; i < dirEntyCount;i++)
+            dirEntries[i] = dirEntries[i + 1];
         if(selectedDirEntry > 0)
             selectedDirEntry--;
         dirEntyCount--;
-        for(int i=selectedDirEntry + 1; i < dirEntyCount;i++)
-            dirEntries[i] = dirEntries[i + 1];
         displayGameList(triggersHeld);
         displayStatus("Item deleted from favourites");
     }
@@ -551,11 +484,11 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
         playSfx(SFX_SELECT, false);
         writeIniList("recent.ini", dirEntries[selectedDirEntry].name);
         dirEntries[selectedDirEntry].type = DIR_NULL;
+        for(int i=selectedDirEntry; i < dirEntyCount;i++)
+            dirEntries[i] = dirEntries[i + 1];
         if(selectedDirEntry > 0)
             selectedDirEntry--;
         dirEntyCount--;
-        for(int i=selectedDirEntry + 1; i < dirEntyCount;i++)
-            dirEntries[i] = dirEntries[i + 1];
         displayGameList(triggersHeld);
         displayStatus("Item deleted from recents");
     }
@@ -666,6 +599,37 @@ void logic_gamelist()
                 displayGameList(triggersHeld);
                 playSfx(SFX_SELECT, false);
             }
+            
+            if(pad_controllers[0].direction_status == BUTTON_STATE_HELD)
+            {
+                switch(pad_controllers[0].direction_id)
+                {    
+                    case UP:
+                        if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
+                        {
+                            listScrolldelay++;
+                            break;
+                        }
+                        listScrolldelay = 0;
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                        triggersHeld = true;
+                        displayGameList(triggersHeld);
+                        clearGameBoxSprite();
+                        break;
+                    case DOWN:
+                        if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
+                        {
+                            listScrolldelay++;
+                            break;
+                        }
+                        listScrolldelay = 0;
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                        triggersHeld = true;
+                        displayGameList(triggersHeld);
+                        clearGameBoxSprite();
+                        break;
+                }
+            }
             if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
             {
                 switch(pad_controllers[0].direction_id)
@@ -675,39 +639,12 @@ void logic_gamelist()
                     case RIGHT:
                         break;
                     case UP:
-                            if(selectedDirEntry > 0)
-                            {
-                                selectedDirEntry--;
-                                if(selectedDirEntry - listOffset  < 0)
-                                    listOffset--;
-                                
-                            } else
-                            {
-                                selectedDirEntry = dirEntyCount - 1;
-                                listOffset = dirEntyCount - maxlistItems;
-                                if(listOffset < 0)
-                                    listOffset = 0;
-                            }
-                            playSfx(SFX_MOVE, false);
-                            updateSelectionSprite(selectedDirEntry - listOffset + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
-                            draw_sprites();
-                            slSynch();
+                        listScrolldelay = 0;
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
                         break;
                     case DOWN:
-                            if(selectedDirEntry < dirEntyCount - 1)
-                            {
-                                selectedDirEntry ++;
-                                if(selectedDirEntry - listOffset >= maxlistItems)
-                                    listOffset++;
-                            } else
-                            {
-                                selectedDirEntry = 0;
-                                listOffset = 0;
-                            }
-                            playSfx(SFX_MOVE, false);
-                            updateSelectionSprite(selectedDirEntry - listOffset + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
-                            draw_sprites();
-                            slSynch();
+                        listScrolldelay = 0;
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
                         break;
                 }
                 displayGameList(triggersHeld);

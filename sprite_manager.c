@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "main.h"
+#include "satiator_functions.h"
 
 spriteType sprites[MAX_SPRITES];
 spriteTexType spriteTex[MAX_SPRITE_TEXTURES];
@@ -19,7 +20,6 @@ void init_sprites()
         spriteTex[i].used = false;
     }
 }
-
 int get_free_sprite()
 {
     int i;
@@ -33,7 +33,6 @@ int get_free_sprite()
     }
     return -1;
 }
-
 int create_sprite(int sprite_tex_id, float x, float y, unsigned short z, float scale_x, float scale_y, float rot_angle)
 {
     int spriteId = get_free_sprite();
@@ -57,7 +56,6 @@ int create_sprite(int sprite_tex_id, float x, float y, unsigned short z, float s
 
     return spriteId;
 }
-
 int get_free_texture()
 {
     int i;
@@ -71,7 +69,6 @@ int get_free_texture()
     }
     return -1;
 }
-
 bool cdFileExists(const char *directory,const char *filename)
 {
     // check the file exists
@@ -105,7 +102,38 @@ int load_sprite_texture(const char *directory,const char *filename)
     spriteTex[textureId].texture_id = tex;
     return textureId;
 }
+int load_sprite_texture_satiator(const char *directory, const char *filename)
+{
+    // if(directory != NULL)
+    //     s_chdir(directory);
 
+    // // try stat the file
+    
+    // s_stat_t *st = (s_stat_t*)statbuf;
+    // int fr = s_stat(fn, st, sizeof(statbuf));
+    // if (fr >=0)
+    // {
+    //     fr = s_open(fn, FA_READ | FA_OPEN_EXISTING);
+
+    // int textureId = get_free_texture();
+    // if(textureId < 0)
+    // {
+    //     return -1;
+    // }
+    // // load the texture into joengine
+    // int tex = jo_sprite_add_tga(directory, filename, JO_COLOR_Transparent);
+    // if(tex < 0)
+    // {
+    //     spriteTex[textureId].used = false;
+    //     return -1;
+    // }
+    // spriteTex[textureId].texture_id = tex;
+
+    
+    // if(directory != NULL)
+    //     s_chdir(currentDirectory);
+    // return textureId;
+}
 void draw_sprites()
 {
     int i;

@@ -21,7 +21,7 @@ void logic_menu()
             createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO, OPTION_PROGRAM_STATE, 10);
             createMenuOption("Options", PROG_STATE_OPTIONS, OPTION_PROGRAM_STATE, 11);
             createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE, 13);
-            createMenuOption("Exit To Multiplayer", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 14);
+            createMenuOption("Reboot Console", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 14);
             displayVersion();
             loadSelectionSprite();
             create_sprite(load_sprite_texture("TEX", "MENU.TGA"), 0, 4, 1, 1, 1, 0);

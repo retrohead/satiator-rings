@@ -11,7 +11,7 @@ int options[OPTIONS_COUNT];
 
 void initOptions()
 {
-    for(int i=0;i<OPTIONS_COUNT;i++)
+    for(enum optionsType i=0;i<OPTIONS_COUNT;i++)
     {
         switch(i)
         {
@@ -21,11 +21,13 @@ void initOptions()
             case OPTIONS_AUTO_PATCH:
                 options[i] = 0;
                 break;
+            case OPTIONS_DESC_CACHE:
+                options[i] = 0;
+                break;
             case OPTIONS_SOUND_VOLUME:
                 options[i] = JO_DEFAULT_AUDIO_VOLUME;
                 break;
             case OPTIONS_COUNT:
-            default:
                 break;
         }
     }
@@ -63,6 +65,10 @@ void initOptions()
                 sscanf(oneline, "autopatch=%d", &options[OPTIONS_AUTO_PATCH]);
             if(!strncmp(oneline, "listmode", 8))
                 sscanf(oneline, "listmode=%d", &options[OPTIONS_LIST_MODE]);
+            if(!strncmp(oneline, "volume", 6))
+                sscanf(oneline, "volume=%d", &options[OPTIONS_SOUND_VOLUME]);
+            if(!strncmp(oneline, "desccache", 9))
+                sscanf(oneline, "desccache=%d", &options[OPTIONS_DESC_CACHE]);
             oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
         }        
         s_close(fr);
@@ -107,6 +113,12 @@ bool saveOptions()
     
     sprintf(line, "listmode=%d\r\n", options[OPTIONS_LIST_MODE]);
     s_write(fw, line, strlen(line));
+    
+    sprintf(line, "volume=%d\r\n", options[OPTIONS_SOUND_VOLUME]);
+    s_write(fw, line, strlen(line));
+    
+    sprintf(line, "desccache=%d\r\n", options[OPTIONS_DESC_CACHE]);
+    s_write(fw, line, strlen(line));
 
     s_write(fw, "[END]", 5);
     s_close(fw);
@@ -120,9 +132,9 @@ char * getListTypeName(int value)
     switch(value)
     {
         case GAME_VIEW_TEXT_AND_IMAGE:
-            return "List Type <Text and Image>";
+            return "       Game List Type    <Text/Image>";
         case GAME_VIEW_TEXT_ONLY:
-            return "List Type <Text Only>     ";
+            return "       Game List Type    <Text Only> ";
     }
     return "list type err";
 }
@@ -138,11 +150,15 @@ static char * getOptionName(enum optionsType option, int value)
                 return "Auto Region Patch <Off>";
             else
                 return "Auto Region Patch <On> ";
+        case OPTIONS_DESC_CACHE:
+            if(value == 0)
+                return "Desc File Caching <Off>";
+            else
+                return "Desc File Caching <On> ";
         case OPTIONS_SOUND_VOLUME:
-            sprintf(optionName, "Audio Volume <%d>", options[option]); 
+            sprintf(optionName, "Audio Volume      <%d>", options[option]); 
             return (char *)optionName;
         case OPTIONS_COUNT:
-        default:
             break;
     }
     return "err";
@@ -176,7 +192,7 @@ void logic_options()
             int changed = controlMenuOptions(&selectedMenuOption, &options_state, &exit_state);  
             if((changed != 0) && (selectedMenuOption < OPTIONS_COUNT))
             {
-                switch(selectedMenuOption)
+                switch((enum optionsType)selectedMenuOption)
                 {
                     case OPTIONS_LIST_MODE:
                         options[selectedMenuOption] += changed;
@@ -186,6 +202,7 @@ void logic_options()
                             options[selectedMenuOption] = GAME_VIEW_MAX_COUNT - 1;
                         break;
                     case OPTIONS_AUTO_PATCH:
+                    case OPTIONS_DESC_CACHE:
                         options[selectedMenuOption] += changed;
                         if(options[selectedMenuOption] < 0)
                             options[selectedMenuOption] = 1;
@@ -199,6 +216,8 @@ void logic_options()
                         if(options[selectedMenuOption] > JO_MAX_AUDIO_VOLUME)
                             options[selectedMenuOption] = JO_MAX_AUDIO_VOLUME;
                         jo_audio_set_volume(options[selectedMenuOption]);
+                        break;
+                    case OPTIONS_COUNT:
                         break;
                 }
                 menuOptions[selectedMenuOption].txt = getOptionName(selectedMenuOption, options[selectedMenuOption]);

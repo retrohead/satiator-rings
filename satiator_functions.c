@@ -6,8 +6,8 @@
 #include "satiator/disc_format/cdparse.h"
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
+#include "states/options.h" // needed for desc file caching
 #include "debug.h"
-#include "ar.h"
 
 enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
 extern void addItemToRecentHistory();
@@ -78,7 +78,7 @@ enum SATIATOR_ERROR_CODE satiatorWriteU8(int fd, uint8_t val)
 }
 
 enum SATIATOR_ERROR_CODE satiatorWriteU16(int fd, uint16_t val)
-{
+{   
     // byte flipped
     char data[1];
     data[0] = (val >> 8);
@@ -88,6 +88,42 @@ enum SATIATOR_ERROR_CODE satiatorWriteU16(int fd, uint16_t val)
     if(satiatorWriteData(fd, &data, 1) < 0)
         return SATIATOR_WRITE_ERR;
     return 2;
+}
+
+uint16_t satiatorReadU16(int fd)
+{
+    uint16_t val = 0;
+
+    // byte flipped
+    uint8_t data[2];
+    s_read(fd, (char *)data, 2);
+    val = data[0] | (data[1] << 8);
+    return val;
+}
+
+bool satiatorLoadFirstFileInDesc(const char * filename)
+{
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int stret = s_stat(filename, st, sizeof(statbuf)-1);
+    if (stret < 0) {
+        cdparse_set_error("Could not stat desc file");
+        return false;
+    }
+    int fr = s_open(filename, FA_READ|FA_OPEN_EXISTING);
+    if (fr < 0) {
+        cdparse_set_error("Could not open specified file");
+        s_close(fr);
+        return false;
+    }
+    uint16_t nseg = satiatorReadU16(fr);
+    uint32_t bytesRead = 2 + nseg * sizeof(seg_desc_t);
+    s_seek(fr, bytesRead, SEEK_SET);
+    uint8_t namelen;
+    s_read(fr, &namelen, 1);
+    s_read(fr, filenames[0], namelen);
+    filenames[0][namelen] = '\0';
+    s_close(fr);
+    return true;
 }
 
 enum SATIATOR_ERROR_CODE satiatorWriteU32(int fd, uint32_t val)
@@ -268,6 +304,7 @@ bool satiatorPatchDescFileImage(const char * curRegion)
 // launch the orignal menu
 int satiatorLaunchOriginalMenu()
 {
+    s_chdir("/");
     s_mode(s_api);
     for (volatile int i=0; i<2000; i++)
         ;
@@ -277,26 +314,12 @@ int satiatorLaunchOriginalMenu()
     return ret;
 }
 
-// try launching a file, return an error if it fails
-enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
+// try launching a file, return an error if it fails, make sure filename[0] contains the file with the region data before running this
+enum SATIATOR_ERROR_CODE satiatorLaunchDescFile(char * fn)
 {
-    if (!strncmp(fn, "origmenu", 8))
-    {
-        centerTextVblank(20, "Booting Menu");
-        return satiatorLaunchOriginalMenu();
-    }
-    if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
-    {
-        centerTextVblank(20, "Booting Disc");
-        return satiatorEmulateDesc(fn);
-    }
-    int ret = image2desc(fn, "emu.desc");
-    if (ret != SATIATOR_SUCCESS) {
-        return SATIATOR_CREATE_DESC_ERR;
-    }
     #if BIOS_BOOT
     centerTextVblank(20, "Verifying Region");
-    ret = satiatorVerifyPatchDescFileImage(getRegionString());
+    int ret = satiatorVerifyPatchDescFileImage(getRegionString());
     if(ret < 0)
     {
         return SATIATOR_PATCH_FAILURE;
@@ -307,7 +330,45 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
     }
     #endif
     centerTextVblank(20, "Booting Disc");
-    return satiatorEmulateDesc("emu.desc");
+    return satiatorEmulateDesc(fn);
+}
+enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
+{
+    if (!strncmp(fn, "origmenu", 8))
+    {
+        centerTextVblank(20, "Booting Menu");
+        return satiatorLaunchOriginalMenu();
+    }
+    if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
+    {
+        if(satiatorLoadFirstFileInDesc(fn))
+            return satiatorLaunchDescFile(fn);
+        else
+            return SATIATOR_LAUNCH_ERR;
+    } else
+    {
+        if(options[OPTIONS_DESC_CACHE] == 1)
+        {
+            // see if a desc file exists in this directory already
+                s_stat_t *st = (s_stat_t*)statbuf;
+                int stret = s_stat("emu.desc", st, sizeof(statbuf)-1);
+                if (stret < 0)
+                {
+                    cdparse_set_error("no desc file present");
+                } else
+                {
+                    enum SATIATOR_ERROR_CODE launchCode = satiatorTryLaunchFile("emu.desc");
+                    if(launchCode != SATIATOR_LAUNCH_ERR)
+                        return launchCode;
+                    cdparse_set_error("defaulting to image");
+                }
+        }
+        int ret = image2desc(fn, "emu.desc");
+        if (ret != SATIATOR_SUCCESS) {
+            return SATIATOR_CREATE_DESC_ERR;
+        }
+    }
+    return satiatorLaunchDescFile("emu.desc");
 }
 
 int satiatorExecutableFilter(dirEntry *entry) {

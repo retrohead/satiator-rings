@@ -87,8 +87,10 @@ void application_logic(void)
             logic_satiator_info();
             break;
         case PROG_STATE_EXIT:
+            s_chdir("/");
             s_mode(s_cdrom);
-            jo_core_exit_to_multiplayer();
+            jo_core_restart_saturn();
+            //jo_core_exit_to_multiplayer();
             break;
         case PROG_STATE_EXIT_TO_MENU:
             dirEntyCount = 1;

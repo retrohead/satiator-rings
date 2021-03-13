@@ -2,7 +2,6 @@
 #include "routine_states.h"
 #include <string.h>
 
-int selectionSprite;
 int logosprites[3];
 
 void displayTime()
@@ -33,26 +32,5 @@ void displayStatusText(char * text, bool vblank)
     {
         draw_sprites();
         slSynch();
-    }
-}
-void loadSelectionSprite()
-{
-    // load the sprite off screen
-    selectionSprite = create_sprite(load_sprite_texture("TEX", "SELECT.TGA"), 320, 250, 0, 2, 1, 0);
-}
-void updateSelectionSprite(int row, bool shortStyle)
-{
-    sprites[selectionSprite].y = (row * 8);
-    sprites[selectionSprite].rot_angle = 0;
-    if(shortStyle)
-    {
-        sprites[selectionSprite].scale_x = 0.67;
-        sprites[selectionSprite].scale_y = 1.1;
-        sprites[selectionSprite].x = -46;
-    } else
-    {
-        sprites[selectionSprite].scale_x = 0.95;
-        sprites[selectionSprite].scale_y = 1.05;
-        sprites[selectionSprite].x = -1;
     }
 }

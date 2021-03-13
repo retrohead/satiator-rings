@@ -3,6 +3,7 @@ enum optionsType
     OPTIONS_LIST_MODE,
     OPTIONS_AUTO_PATCH,
     OPTIONS_SOUND_VOLUME,
+    OPTIONS_DESC_CACHE,
     /* end */
     OPTIONS_COUNT
 };

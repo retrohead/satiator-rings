@@ -129,8 +129,6 @@ void animateLogo(int *frame)
             break;
     }
 }
-
-extern void loadFileList(char * directory, int (*filter)(dirEntry *entry));
 bool bootLastGameDir(char * dir)
 {
     if(strcmp(currentDirectory, "/"))

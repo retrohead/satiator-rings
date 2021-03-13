@@ -50,3 +50,13 @@ void printCenterProcessText(int row, char * text)
     draw_sprites();
     slSynch();
 }
+void outputTextWaitForController(char *text)
+{
+    while(1)
+    {
+        centerTextVblank(27, text);
+        updateControllers();
+        if(pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS)
+            break;
+    } 
+}

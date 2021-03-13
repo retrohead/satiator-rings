@@ -1,5 +1,6 @@
 #include <string.h>
 #include "menu_options.h"
+#include "../direntry.h"
 #define MAX_MENU_OPTIONS 10
 
 
@@ -97,7 +98,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
                 }
                 break;
             case UP:
-                if(pad_controllers[0].direction_status != BUTTON_STATE_HELD)
+                if((pad_controllers[0].direction_status != BUTTON_STATE_HELD) && (usedMenuOptions > 0))
                 {
                     playSfx(SFX_MOVE, false);
                     *selectedOption = *selectedOption - 1;
@@ -106,7 +107,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
                 }
                 break;
             case DOWN:
-                if(pad_controllers[0].direction_status != BUTTON_STATE_HELD)
+                if((pad_controllers[0].direction_status != BUTTON_STATE_HELD) && (usedMenuOptions > 0))
                 {
                     playSfx(SFX_MOVE, false);
                     *selectedOption = *selectedOption + 1;

@@ -190,6 +190,9 @@ static cue2desc_error_t write_desc_file(const char *filename) {
         }
         desc.flags = htole16(0);
 
+        s_write(out, &desc, sizeof(seg_desc_t));
+
+        /*
         // 23 bytes for each sector
         satiatorWriteU32(out, desc.start);                                      // [u32] desc.start;
         satiatorWriteU32(out, desc.length);                                  // [u32] desc.length;
@@ -201,6 +204,7 @@ static cue2desc_error_t write_desc_file(const char *filename) {
         satiatorWriteU8(out, desc.track);                                             // [u8] desc.track;
         satiatorWriteU8(out, desc.index);                                             // [u8] desc.index;
         satiatorWriteU8(out, desc.q_mode);                                            // [u8] desc.q_mode;
+        */
     }
 
     s_close(out);

@@ -42,7 +42,13 @@ void logic_bootscreen()
 
                 if(strcmp(dirEntries[selectedDirEntry].name, "origmenu"))
                 {
-                    centerText(18, "%s", dirEntries[selectedDirEntry].name);
+                    char bootname[256];
+                    strcpy(bootname, dirEntries[selectedDirEntry].name);
+                    const char * dot = strrchr(bootname, '.');
+                    if(dot)
+                        bootname[strlen(bootname) - strlen(dot)] = '\0'; // strip the file extension
+                    bootname[38] = '\0'; // make sure the name doesnt go off screen
+                    centerText(18, "%s", bootname);
                     // load the game boxart from the current directory
                     int tex = -1;
                     int id = getGameIdFromDirectory(currentDirectory);
