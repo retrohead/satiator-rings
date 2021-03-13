@@ -168,18 +168,8 @@ void displayGameBox(int id, bool bounce, float x, float y, float scale_x, float 
     if(gameBox.id >= 0)
     {
         char fn[20];
-        int boxFolderID = 0;
-        while(id >= 100)
-        {
-            id -= 100;
-            boxFolderID++;
-        }
-        sprintf(fn, "%dS.TGA", id);
         char dir[50];
-        if(boxFolderID > 0)
-            sprintf(dir, "BOX%d", boxFolderID);
-        else
-            strcpy(dir, "BOX");
+        boxartIdToTexturePath(gameBox.id, dir, fn);
         gameBox.tex = load_sprite_texture(dir, fn);
     }
 
@@ -221,20 +211,9 @@ void displayDirEntryItemGameBox(int entryId, bool bounce, float x, float y, floa
 {
     if((dirEntries[entryId].type == DIR_DIRECTORY) || (dirEntries[entryId].type == DIR_SHORTCUT_FOLDER))
     {
-        const char *brckt = strrchr(dirEntries[entryId].name, '[');
-        if (brckt) {
-            const char *gameidpos = brckt + 1;
-            char gameId[10];
-            strcpy(gameId, gameidpos);
-            gameId[strlen(gameId) - 1] = '\0'; // strip ending bracket
-            int id;
-            sscanf(gameId, "%d", &id);
-            if(id != gameBox.id)
-                displayGameBox(id, bounce, x, y, scale_x, scale_y, singleView);
-        } else
-        {
-            displayGameBox(-1, bounce, x, y, scale_x, scale_y, singleView);
-        }
+        int id = getGameIdFromDirectory(dirEntries[entryId].name);
+        if(id != gameBox.id)
+            displayGameBox(id, bounce, x, y, scale_x, scale_y, singleView);
     } else
     {
         displayGameBox(-1, bounce, x, y, scale_x, scale_y, singleView);
@@ -345,6 +324,8 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         displayTime();
         *display_type = GAME_LIST_FAVOURITES;
         clearGameBoxSprite();
+        sprites[selectionSprite].x = 640;
+        sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
         loadIniList("favs.ini", true, "", false);
@@ -641,8 +622,8 @@ void logic_gamelist()
             create_sprite(load_sprite_texture("TEX", "GAME.TGA"), 0, 4, 1, 1, 1, 0);
             shadowSprite = create_sprite(load_sprite_texture("TEX", "SHDW.TGA"), 320, 240, 1, 1, 1, 0);
             loadSelectionSprite();
-            displayStatus("Press start for options");
             displayGameList(triggersHeld);
+            displayStatus("Press start for options");
             game_list_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_SPLASH;
             break;
@@ -704,6 +685,8 @@ void logic_gamelist()
                             {
                                 selectedDirEntry = dirEntyCount - 1;
                                 listOffset = dirEntyCount - maxlistItems;
+                                if(listOffset < 0)
+                                    listOffset = 0;
                             }
                             playSfx(SFX_MOVE, false);
                             updateSelectionSprite(selectedDirEntry - listOffset + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
@@ -741,6 +724,8 @@ void logic_gamelist()
                 {
                     selectedDirEntry = dirEntyCount - 1;
                     listOffset = dirEntyCount - maxlistItems;
+                    if(listOffset < 0)
+                        listOffset = 0;
                 }
                 triggersHeld = true;
                 displayGameList(triggersHeld);

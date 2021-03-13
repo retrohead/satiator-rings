@@ -39,11 +39,45 @@ void logic_bootscreen()
                 create_sprite(load_sprite_texture("TEX", "BLANK.TGA"), 160, 120, 3, 50.0, 50.0, 0);
                 draw_sprites();
                 slSynch();
-                
+
+                if(strcmp(dirEntries[selectedDirEntry].name, "origmenu"))
+                {
+                    centerText(18, "%s", dirEntries[selectedDirEntry].name);
+                    // load the game boxart from the current directory
+                    int tex = -1;
+                    int id = getGameIdFromDirectory(currentDirectory);
+                    if(id >= 0)
+                    {
+                        // load the texture
+                        char fn[20];
+                        char dir[50];
+                        boxartIdToTexturePath(id, dir, fn);
+                        tex = load_sprite_texture(dir, fn);
+                    } else
+                    {
+                        tex = load_sprite_texture("TEX", "SBOX.TGA");
+                    }
+                    int boxSprite = create_sprite(tex, 160 - (getTextureWidth(tex) / 2), 120 - getTextureHeight(tex), 1, 1, 1, 0);
+                    int shadowSprite = create_sprite(load_sprite_texture("TEX", "SHDW.TGA"), 0, sprites[boxSprite].y + getTextureHeight(tex) + 5 , 1, 1, 1, 0);
+                    
+                    sprites[shadowSprite].x = sprites[boxSprite].x + 2;
+                    sprites[shadowSprite].y = sprites[boxSprite].y + getTextureHeight(tex) + 5;
+                    sprites[shadowSprite].scale_x = 1;
+                    sprites[shadowSprite].scale_y = 0.9;
+                    if(getTextureWidth(tex) != 80)
+                    {
+                        sprites[shadowSprite].scale_x = 0.8;
+                        sprites[shadowSprite].x -= 7;
+                    }
+                } else
+                {
+                    centerText(20, "Loading");
+                    logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 2, 1.0, 1.0, 0);
+                    logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 1, 1.0, 1.0, 0);
+                    logosprites[2] = create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[logosprites[0]].x, sprites[logosprites[1]].y + getSpriteHeight(logosprites[1]) + 5, 1, 1.0, 1.0, 0);
+                }
             }
             bootscreen_state = ROUTINE_STATE_RUN;
-            centerText(20, "Loading");
-            centerText(21, "%s", dirEntries[selectedDirEntry].name);
             break;
         case ROUTINE_STATE_RUN:
             switch(routine_scene)

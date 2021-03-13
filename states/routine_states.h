@@ -16,6 +16,7 @@ enum routine_state_types
     ROUTINE_STATE_END
 };
 extern int selectionSprite;
+extern int logosprites[3];
 
 extern int routine_scene;
 extern void displayTime();

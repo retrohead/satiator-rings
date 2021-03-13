@@ -67,6 +67,7 @@
         "system_error": "cpp",
         "thread": "cpp",
         "tuple": "cpp",
-        "ini.h": "c"
+        "ini.h": "c",
+        "sound.h": "c"
     }
 }

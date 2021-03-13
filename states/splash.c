@@ -10,7 +10,6 @@
 
 enum routine_state_types splash_state = ROUTINE_STATE_INITIALIZE;
 
-int logosprites[3];
 jo_sound     introsound;
 char name[512];
 

@@ -1,7 +1,10 @@
 enum optionsType
 {
     OPTIONS_LIST_MODE,
-    OPTIONS_AUTO_PATCH
+    OPTIONS_AUTO_PATCH,
+    OPTIONS_SOUND_VOLUME,
+    /* end */
+    OPTIONS_COUNT
 };
 
 enum game_list_view_types
@@ -10,8 +13,6 @@ enum game_list_view_types
     GAME_VIEW_TEXT_ONLY,
     GAME_VIEW_MAX_COUNT,
 };
-
-#define OPTIONS_COUNT 2
 
 extern int options[OPTIONS_COUNT];
 extern void initOptions();

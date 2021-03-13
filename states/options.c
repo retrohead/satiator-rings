@@ -7,13 +7,27 @@
 #include "../satiator_functions.h"
 
 enum routine_state_types options_state = ROUTINE_STATE_INITIALIZE;
-int options[2];
+int options[OPTIONS_COUNT];
 
 void initOptions()
 {
     for(int i=0;i<OPTIONS_COUNT;i++)
     {
-        options[i] = 0;
+        switch(i)
+        {
+            case OPTIONS_LIST_MODE:
+                options[i] = 0;
+                break;
+            case OPTIONS_AUTO_PATCH:
+                options[i] = 0;
+                break;
+            case OPTIONS_SOUND_VOLUME:
+                options[i] = JO_DEFAULT_AUDIO_VOLUME;
+                break;
+            case OPTIONS_COUNT:
+            default:
+                break;
+        }
     }
     
     char * ini = "options.ini";
@@ -56,6 +70,9 @@ void initOptions()
     }
     // change back to the current dir
     s_chdir(currentDirectory);
+
+    // set the option values where needed
+    jo_audio_set_volume(options[OPTIONS_SOUND_VOLUME]);
 }
 
 bool saveOptions()
@@ -109,8 +126,9 @@ char * getListTypeName(int value)
     }
     return "list type err";
 }
-char * getOptionName(enum optionsType option, int value)
+static char * getOptionName(enum optionsType option, int value)
 {
+    static char optionName[40];
     switch(option)
     {
         case OPTIONS_LIST_MODE:
@@ -120,6 +138,12 @@ char * getOptionName(enum optionsType option, int value)
                 return "Auto Region Patch <Off>";
             else
                 return "Auto Region Patch <On> ";
+        case OPTIONS_SOUND_VOLUME:
+            sprintf(optionName, "Audio Volume <%d>", options[option]); 
+            return (char *)optionName;
+        case OPTIONS_COUNT:
+        default:
+            break;
     }
     return "err";
 }
@@ -152,20 +176,29 @@ void logic_options()
             int changed = controlMenuOptions(&selectedMenuOption, &options_state, &exit_state);  
             if((changed != 0) && (selectedMenuOption < OPTIONS_COUNT))
             {
-                options[selectedMenuOption] += changed;
                 switch(selectedMenuOption)
                 {
                     case OPTIONS_LIST_MODE:
+                        options[selectedMenuOption] += changed;
                         if(options[selectedMenuOption] >= GAME_VIEW_MAX_COUNT)
                             options[selectedMenuOption] = 0;
                         if(options[selectedMenuOption] < 0)
                             options[selectedMenuOption] = GAME_VIEW_MAX_COUNT - 1;
                         break;
                     case OPTIONS_AUTO_PATCH:
+                        options[selectedMenuOption] += changed;
                         if(options[selectedMenuOption] < 0)
                             options[selectedMenuOption] = 1;
                         if(options[selectedMenuOption] > 1)
                             options[selectedMenuOption] = 0;
+                        break;
+                    case OPTIONS_SOUND_VOLUME:
+                        options[selectedMenuOption] += changed;
+                        if(options[selectedMenuOption] < JO_MIN_AUDIO_VOLUME)
+                            options[selectedMenuOption] = JO_MIN_AUDIO_VOLUME;
+                        if(options[selectedMenuOption] > JO_MAX_AUDIO_VOLUME)
+                            options[selectedMenuOption] = JO_MAX_AUDIO_VOLUME;
+                        jo_audio_set_volume(options[selectedMenuOption]);
                         break;
                 }
                 menuOptions[selectedMenuOption].txt = getOptionName(selectedMenuOption, options[selectedMenuOption]);

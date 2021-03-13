@@ -26,3 +26,5 @@ extern bool truncatedList;
 extern void initDirEntries();
 extern int compareDirEntry(const void *pa, const void *pb);
 extern void sortDirEntries();
+extern int getGameIdFromDirectory(char * dir);
+extern void boxartIdToTexturePath(int id, char * dir, char * fn);

@@ -3,6 +3,7 @@
 #include <string.h>
 
 int selectionSprite;
+int logosprites[3];
 
 void displayTime()
 {

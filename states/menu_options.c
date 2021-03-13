@@ -49,13 +49,14 @@ void displayMenuOptions(int selectedOption)
 
 int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state, enum prog_state_types * exit_state)
 {
+    static int delay = 0;
     if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         *menu_state = ROUTINE_STATE_END;
         return 0;
     }
-    if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+    if((pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS) || ((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (*selectedOption == OPTIONS_SOUND_VOLUME)))
     {
         switch(pad_controllers[0].direction_id)
         {
@@ -64,6 +65,15 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
             case DOWN_LEFT:
                 if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
                 {
+                    if((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (delay < 10))
+                    {
+                        if(*selectedOption != OPTIONS_SOUND_VOLUME)
+                            break;
+                        delay++;
+                        break;
+                    }
+                    if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+                        delay = 0;
                     playSfx(SFX_MOVE, false);
                     return -1;
                 }
@@ -73,21 +83,36 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
             case UP_RIGHT:
                 if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
                 {
+                    if((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (delay < 10))
+                    {
+                        if(*selectedOption != OPTIONS_SOUND_VOLUME)
+                            break;
+                        delay++;
+                        break;
+                    }
+                    if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+                        delay = 0;
                     playSfx(SFX_MOVE, false);
                     return 1;
                 }
                 break;
             case UP:
-                playSfx(SFX_MOVE, false);
-                *selectedOption = *selectedOption - 1;
-                if(*selectedOption < 0)
-                    *selectedOption += usedMenuOptions;
+                if(pad_controllers[0].direction_status != BUTTON_STATE_HELD)
+                {
+                    playSfx(SFX_MOVE, false);
+                    *selectedOption = *selectedOption - 1;
+                    if(*selectedOption < 0)
+                        *selectedOption += usedMenuOptions;
+                }
                 break;
             case DOWN:
-                playSfx(SFX_MOVE, false);
-                *selectedOption = *selectedOption + 1;
-                if(*selectedOption >= usedMenuOptions)
-                    *selectedOption -= usedMenuOptions;
+                if(pad_controllers[0].direction_status != BUTTON_STATE_HELD)
+                {
+                    playSfx(SFX_MOVE, false);
+                    *selectedOption = *selectedOption + 1;
+                    if(*selectedOption >= usedMenuOptions)
+                        *selectedOption -= usedMenuOptions;
+                }
                 break;
         }
         displayMenuOptions(*selectedOption);

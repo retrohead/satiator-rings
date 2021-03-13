@@ -1,6 +1,7 @@
 #include <jo/jo.h>
 #include "satiator_functions.h"
 #include "sound.h"
+#include "states/options.h"
 
 #define MAX_SFX 5
 #define SFX_FRAME_DELAY 6
