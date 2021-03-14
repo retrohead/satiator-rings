@@ -30,7 +30,7 @@
 #pragma once
 
 // program version, keep this length to avoid having to resize strings
-#define VERSION "1.0a"
+#define VERSION "2.0"
 #define _GNU_SOURCE
 #define DEBUG
 

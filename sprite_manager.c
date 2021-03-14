@@ -110,13 +110,21 @@ int load_sprite_texture_satiator(const char *directory, const char *filename)
     s_stat_t *st = (s_stat_t*)statbuf;
     int fr = s_stat(filename, st, sizeof(statbuf));
     if (fr < 0)
+    {
+        if(directory != NULL)
+            s_chdir(currentDirectory);
         return -1;
+    }
     // allocate a buffer for the texture
     char * buf = (char *)jo_malloc_with_behaviour((st->size + 1) * sizeof(*buf), JO_MALLOC_TRY_REUSE_BLOCK);
     // try open the file
     fr = s_open(filename, FA_READ | FA_OPEN_EXISTING);
     if (fr < 0)
+    {
+        if(directory != NULL)
+            s_chdir(currentDirectory);
         return -1;
+    }
 
     uint32_t readBytes = 0;
     while(readBytes < st->size)
@@ -129,6 +137,8 @@ int load_sprite_texture_satiator(const char *directory, const char *filename)
         {
             jo_free(buf);
             s_close(fr);
+            if(directory != NULL)
+                s_chdir(currentDirectory);
             return -1;
         }
         readBytes += readSize;
@@ -138,6 +148,8 @@ int load_sprite_texture_satiator(const char *directory, const char *filename)
     if(textureId < 0)
     {
         jo_free(buf);
+        if(directory != NULL)
+            s_chdir(currentDirectory);
         return -1;
     }
     // load the texture into joengine
@@ -146,6 +158,8 @@ int load_sprite_texture_satiator(const char *directory, const char *filename)
     if(tex < 0)
     {
         spriteTex[textureId].used = false;
+        if(directory != NULL)
+            s_chdir(currentDirectory);
         return -1;
     }
     spriteTex[textureId].texture_id = tex;

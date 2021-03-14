@@ -1,5 +1,5 @@
 #define MAX_LOADED_DIR_ENTRIES 5000
-#define LIST_SCROLL_DELAY 30
+#define LIST_SCROLL_DELAY 7
 
 enum dirEntryType
 {
@@ -29,10 +29,7 @@ extern int listScrolldelay;
 extern void initDirEntries();
 extern int compareDirEntry(const void *pa, const void *pb);
 extern void sortDirEntries();
-extern int getGameIdFromDirectory(char * dir);
-extern void boxartIdToTexturePath(int id, char * dir, char * fn);
 extern void loadFileList(char * directory, int (*filter)(dirEntry *entry));
-
 extern void loadSelectionSprite();
 extern void updateSelectionSprite(int row, bool shortStyle);
 extern void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem);

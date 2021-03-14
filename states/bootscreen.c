@@ -50,19 +50,9 @@ void logic_bootscreen()
                     bootname[38] = '\0'; // make sure the name doesnt go off screen
                     centerText(18, "%s", bootname);
                     // load the game boxart from the current directory
-                    int tex = -1;
-                    int id = getGameIdFromDirectory(currentDirectory);
-                    if(id >= 0)
-                    {
-                        // load the texture
-                        char fn[20];
-                        char dir[50];
-                        boxartIdToTexturePath(id, dir, fn);
-                        tex = load_sprite_texture(dir, fn);
-                    } else
-                    {
-                        tex = load_sprite_texture("TEX", "SBOX.TGA");
-                    }
+                    int tex = load_sprite_texture_satiator(JO_NULL, "BOX.TGA");
+                    if(tex < 0)
+                        tex = load_sprite_texture("TEX", "SBOX.TGA"); // no boxart found so using default
                     int boxSprite = create_sprite(tex, 160 - (getTextureWidth(tex) / 2), 120 - getTextureHeight(tex), 1, 1, 1, 0);
                     int shadowSprite = create_sprite(load_sprite_texture("TEX", "SHDW.TGA"), 0, sprites[boxSprite].y + getTextureHeight(tex) + 5 , 1, 1, 1, 0);
                     

@@ -38,36 +38,6 @@ int compareDirEntry(const void *pa, const void *pb) {
 void sortDirEntries() {
     qsort(dirEntries, dirEntyCount, sizeof(dirEntry), compareDirEntry);
 }
-int getGameIdFromDirectory(char * dir)
-{
-    const char *brckt = strrchr(dir, '[');
-    if (brckt) {
-        const char *gameidpos = brckt + 1;
-        char gameId[10];
-        strcpy(gameId, gameidpos);
-        gameId[strlen(gameId) - 1] = '\0'; // strip ending bracket
-        int id;
-        sscanf(gameId, "%d", &id);
-        return id; 
-    } else
-    {
-        return -1;
-    }
-}
-void boxartIdToTexturePath(int id, char * dir, char * fn)
-{
-    int boxFolderID = 0;
-    while(id >= 100)
-    {
-        id -= 100;
-        boxFolderID++;
-    }
-    sprintf(fn, "%dS.TGA", id);
-    if(boxFolderID > 0)
-        sprintf(dir, "BOX%d", boxFolderID);
-    else
-        strcpy(dir, "BOX");
-}
 void loadFileList(char * directory, int (*filter)(dirEntry *entry))
 {
     if(selectionSprite != -1)
@@ -174,7 +144,6 @@ void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionIte
     draw_sprites();
     slSynch();
 }
-
 void loadSelectionSprite()
 {
     // load the sprite off screen

@@ -21,7 +21,7 @@ enum game_list_display_types
 
 typedef struct
 {
-    int id;
+    char path[1024];
     int tex;
     int sprite;
 } gameBoxType;
@@ -96,10 +96,6 @@ void displayGameListItem(const char * name, int ypos, bool selected, enum dirEnt
         strcpy(nam,"");
     if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER) || (type == DIR_SHORTCUT_GAME))
     {
-        // trim the ID from the folder name
-        char * pos = strrchr(nam, '[');
-        if(pos != JO_NULL)
-            nam[pos - nam - 1] = '\0';
         // trim the leading directory
         const char * lastSlash = strrchr(nam, '/');
         if(lastSlash)
@@ -121,7 +117,7 @@ void clearGameBoxSprite()
     if(gameBox.sprite != -1)
         sprites[gameBox.sprite].used = false;
     gameBox.sprite = -1;
-    gameBox.id = -1;
+    strcpy(gameBox.path, "");
     sprites[shadowSprite].x = 320;
     sprites[shadowSprite].y = 240;
 }
@@ -156,22 +152,16 @@ void startBoxartBounce()
     sprites[gameBox.sprite].speed_y = BOX_BOUNCE_MAX_SPEED;
     sprites[gameBox.sprite].velocity_y = BOX_BOUNCE_VELOCITY;
 }
-void displayGameBox(int id, bool bounce, float x, float y, float scale_x, float scale_y, bool singleView)
+void displayGameBox(char * path, bool bounce, float x, float y, float scale_x, float scale_y, bool singleView)
 {
     clearGameBoxSprite();
     if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
         return;
-    gameBox.id = id;
-
-    if(gameBox.id >= 0)
-    {
-        char fn[20];
-        char dir[50];
-        boxartIdToTexturePath(gameBox.id, dir, fn);
-        listScrolldelay = LIST_SCROLL_DELAY; // make the list start scrolling if the direction is held by the time the box has finished loading for a better experience
-        gameBox.tex = load_sprite_texture(dir, fn);
-    }
-
+    if(!strcmp(path, ""))
+        gameBox.tex = -1;
+    else
+        gameBox.tex = load_sprite_texture_satiator(path, "BOX.TGA");
+    strcpy(gameBox.path, path);
     if(gameBox.tex >= 0)
     {
         if(singleView)
@@ -210,12 +200,11 @@ void displayDirEntryItemGameBox(int entryId, bool bounce, float x, float y, floa
 {
     if((dirEntries[entryId].type == DIR_DIRECTORY) || (dirEntries[entryId].type == DIR_SHORTCUT_FOLDER))
     {
-        int id = getGameIdFromDirectory(dirEntries[entryId].name);
-        if((id != gameBox.id) || (id == -1))
-            displayGameBox(id, bounce, x, y, scale_x, scale_y, singleView);
+        if(strcmp(dirEntries[entryId].name, gameBox.path))
+            displayGameBox(dirEntries[entryId].name, bounce, x, y, scale_x, scale_y, singleView);
     } else
     {
-        displayGameBox(-1, bounce, x, y, scale_x, scale_y, singleView);
+        displayGameBox("", bounce, x, y, scale_x, scale_y, singleView);
     }
 }
 void updateBoxarts()
@@ -537,7 +526,7 @@ void logic_gamelist()
             routine_scene = 0;
             gameBox.tex = -1;
             gameBox.sprite = -1;
-            gameBox.id = -1;
+            strcpy(gameBox.path, "");
             triggersHeld = false;
             switch(display_type)
             {
@@ -595,7 +584,7 @@ void logic_gamelist()
                     options[OPTIONS_LIST_MODE] = GAME_VIEW_TEXT_AND_IMAGE;
                 else
                     options[OPTIONS_LIST_MODE]++;
-                gameBox.id = -1;
+                strcpy(gameBox.path, "");
                 displayGameList(triggersHeld);
                 playSfx(SFX_SELECT, false);
             }
