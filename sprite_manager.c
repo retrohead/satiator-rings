@@ -104,35 +104,54 @@ int load_sprite_texture(const char *directory,const char *filename)
 }
 int load_sprite_texture_satiator(const char *directory, const char *filename)
 {
-    // if(directory != NULL)
-    //     s_chdir(directory);
+    if(directory != NULL)
+        s_chdir(directory);
+    // try stat the file
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat(filename, st, sizeof(statbuf));
+    if (fr < 0)
+        return -1;
+    // allocate a buffer for the texture
+    char * buf = (char *)jo_malloc_with_behaviour((st->size + 1) * sizeof(*buf), JO_MALLOC_TRY_REUSE_BLOCK);
+    // try open the file
+    fr = s_open(filename, FA_READ | FA_OPEN_EXISTING);
+    if (fr < 0)
+        return -1;
 
-    // // try stat the file
-    
-    // s_stat_t *st = (s_stat_t*)statbuf;
-    // int fr = s_stat(fn, st, sizeof(statbuf));
-    // if (fr >=0)
-    // {
-    //     fr = s_open(fn, FA_READ | FA_OPEN_EXISTING);
-
-    // int textureId = get_free_texture();
-    // if(textureId < 0)
-    // {
-    //     return -1;
-    // }
-    // // load the texture into joengine
-    // int tex = jo_sprite_add_tga(directory, filename, JO_COLOR_Transparent);
-    // if(tex < 0)
-    // {
-    //     spriteTex[textureId].used = false;
-    //     return -1;
-    // }
-    // spriteTex[textureId].texture_id = tex;
-
-    
-    // if(directory != NULL)
-    //     s_chdir(currentDirectory);
-    // return textureId;
+    uint32_t readBytes = 0;
+    while(readBytes < st->size)
+    {
+        uint32_t readSize = S_MAXBUF;
+        if(st->size - readBytes < readSize)
+            readSize = st->size - readBytes;
+        int ret = s_read(fr, buf + readBytes, readSize);
+        if(ret != (int)readSize)
+        {
+            jo_free(buf);
+            s_close(fr);
+            return -1;
+        }
+        readBytes += readSize;
+    }
+    s_close(fr);
+    int textureId = get_free_texture();
+    if(textureId < 0)
+    {
+        jo_free(buf);
+        return -1;
+    }
+    // load the texture into joengine
+    int tex = jo_sprite_add_tga_from_stream(buf, JO_COLOR_Transparent);
+    jo_free(buf);
+    if(tex < 0)
+    {
+        spriteTex[textureId].used = false;
+        return -1;
+    }
+    spriteTex[textureId].texture_id = tex;
+    if(directory != NULL)
+        s_chdir(currentDirectory);
+    return textureId;
 }
 void draw_sprites()
 {

@@ -54,7 +54,7 @@ void outputTextWaitForController(char *text)
 {
     while(1)
     {
-        centerTextVblank(27, text);
+        centerTextVblank(26, text);
         updateControllers();
         if(pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS)
             break;

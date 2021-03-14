@@ -29,5 +29,6 @@ extern spriteTexType spriteTex[MAX_SPRITE_TEXTURES];
 
 extern void init_sprites();
 extern int load_sprite_texture(const char *directory,const char *filename);
+extern int load_sprite_texture_satiator(const char *directory, const char *filename);
 extern int create_sprite(int sprite_tex_id, float x, float y, unsigned short z, float scale_x, float scale_y, float rot_angle);
 extern void draw_sprites();

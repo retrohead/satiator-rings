@@ -211,7 +211,7 @@ void displayDirEntryItemGameBox(int entryId, bool bounce, float x, float y, floa
     if((dirEntries[entryId].type == DIR_DIRECTORY) || (dirEntries[entryId].type == DIR_SHORTCUT_FOLDER))
     {
         int id = getGameIdFromDirectory(dirEntries[entryId].name);
-        if(id != gameBox.id)
+        if((id != gameBox.id) || (id == -1))
             displayGameBox(id, bounce, x, y, scale_x, scale_y, singleView);
     } else
     {
