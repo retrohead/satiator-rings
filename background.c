@@ -2,6 +2,7 @@
 #include <jo/jo.h>
 #include "satiator/iapetus/iapetus.h"
 #include "background.h"
+#include "sprite_manager.h"
 
 jo_img      bg;
 void load_background(const char *sub_dir, const char *fn)

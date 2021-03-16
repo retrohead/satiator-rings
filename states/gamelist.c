@@ -523,6 +523,9 @@ void logic_gamelist()
     switch(game_list_state)
     {
         case ROUTINE_STATE_INITIALIZE:
+            createGuiBoxes("GAME.TGA", true);
+            defaultBoxTex = load_sprite_texture_satiator("/satiator-rings/gfx", "SBOX.TGA");
+            shadowSprite = create_sprite(load_sprite_texture_satiator("/satiator-rings/gfx", "SHDW.TGA"), 320, 240, 0, 1, 1, 0);
             routine_scene = 0;
             gameBox.tex = -1;
             gameBox.sprite = -1;
@@ -540,10 +543,6 @@ void logic_gamelist()
                     loadIniList("recent.ini", false, "", false);
                     break;
             }
-            defaultBoxTex = load_sprite_texture("TEX", "SBOX.TGA");
-            create_sprite(load_sprite_texture("TEX", "GAME.TGA"), 0, 4, 1, 1, 1, 0);
-            shadowSprite = create_sprite(load_sprite_texture("TEX", "SHDW.TGA"), 320, 240, 1, 1, 1, 0);
-            loadSelectionSprite();
             displayGameList(triggersHeld);
             displayStatus("Press start for options");
             game_list_state = ROUTINE_STATE_RUN;
@@ -632,6 +631,7 @@ void logic_gamelist()
                         moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
                         break;
                     case DOWN:
+                        sprites[selectionSprite].scale_y -= 0.1f;
                         listScrolldelay = 0;
                         moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
                         break;

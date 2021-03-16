@@ -27,7 +27,7 @@ void createMenuOption(const char * txt, enum prog_state_types state, enum menu_o
         if(menuOptions[i].prog_state == PROG_STATE_INITIALIZE)
         {
             menuOptions[i].prog_state = state;
-            menuOptions[i].txt = txt;
+            strcpy(menuOptions[i].txt, txt);
             menuOptions[i].type = type;
             menuOptions[i].row = row;
             usedMenuOptions++;

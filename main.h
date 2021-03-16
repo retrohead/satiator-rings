@@ -43,6 +43,8 @@
 #include "background.h"
 #include "font.h"
 #include "sound.h"
+#include "gui.h"
+#include "options_file.h"
 
 // program states
 enum prog_state_types

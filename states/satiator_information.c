@@ -21,7 +21,7 @@ void logic_satiator_info()
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
             clearMenuOptions();
-            create_sprite(load_sprite_texture("TEX", "SIATOR.TGA"), 0, 4, 1, 1, 1, 0);
+            createGuiBoxes("SIATOR.TGA", false);
             displayVersion();
             displayStatus("Press any button to continue");
 

@@ -36,7 +36,7 @@ void logic_bootscreen()
             routine_scene = 0;
             if(prog_state != PROG_STATE_QUICKBOOT)
             {
-                create_sprite(load_sprite_texture("TEX", "BLANK.TGA"), 160, 120, 3, 50.0, 50.0, 0);
+                create_sprite(load_gui_texture(PAL_COL_WHITE), 160, 120, 3, 50.0, 50.0, 0);
                 draw_sprites();
                 slSynch();
 

@@ -11,10 +11,7 @@
 
 bool loadIniListFirstLine(char * fn, char * destbuf)
 {
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
-    strcpy(currentDirectory, "/satiator-rings");
+    s_chdir("/satiator-rings");
     truncatedList = false;
     dirEntyCount = 0;
     selectedDirEntry = 0;
@@ -37,16 +34,16 @@ bool loadIniListFirstLine(char * fn, char * destbuf)
             strcpy(destbuf, oneline);
             jo_free(oneline);
             s_close(fp);
+            s_chdir(currentDirectory);
             return true;
         }
     }
+    s_chdir(currentDirectory);
     return false;
 }
 void writeIniList(char * fn, char * deleteEntry)
 {
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
+    s_chdir("/satiator-rings");
     s_stat_t *st = (s_stat_t*)statbuf;
     int fp = s_stat(fn, st, sizeof(statbuf));
     if (fp >=0)
@@ -102,9 +99,7 @@ void addDirEntryItem(char * fn)
 bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
 {
     bool ret = true;
-    if(strcmp("/", currentDirectory))
-        s_chdir("/");
-    s_chdir("satiator-rings");
+    s_chdir("/satiator-rings");
     truncatedList = false;
     dirEntyCount = 0;
     selectedDirEntry = 0;
@@ -149,8 +144,8 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
             s_close(fp);
             jo_free(oneline);
         }
-        s_chdir(currentDirectory);
     }
+    s_chdir(currentDirectory);
     if(addItem && !addAtStart && ret)
         addDirEntryItem(addItemStr);
     for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)

@@ -1,0 +1,148 @@
+#include <jo/jo.h>
+#include <string.h>
+#include <stdio.h>
+#include "satiator_functions.h"
+#include "options_file.h"
+#include "debug.h"
+#include "theme.h"
+#include "states/routine_states.h"
+
+int options[OPTIONS_COUNT];
+
+void initOptions()
+{
+    for(enum optionsType i=0;i<OPTIONS_COUNT;i++)
+    {
+        switch(i)
+        {
+            case OPTIONS_LIST_MODE:
+                options[i] = 0;
+                break;
+            case OPTIONS_AUTO_PATCH:
+                options[i] = 0;
+                break;
+            case OPTIONS_DESC_CACHE:
+                options[i] = 0;
+                break;
+            case OPTIONS_SOUND_VOLUME:
+                options[i] = JO_DEFAULT_AUDIO_VOLUME;
+                break;
+            case OPTIONS_COUNT:
+                break;
+        }
+    }
+    
+    char * ini = "options.ini";
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+    s_chdir("satiator-rings");
+
+    // stat the file
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat(ini, st, sizeof(statbuf));
+    if(fr >= 0)
+    {
+        centerTextVblank(25, "Loading Options");
+        // open options ini for reading
+        fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
+        if (fr < 0)
+        {
+            // change back to the current dir
+            s_chdir(currentDirectory);
+            return;
+        }
+        char * oneline = jo_malloc(1024);
+        strcpy(oneline, "");
+        uint32_t bytes;
+        while(strncmp(oneline, "[START]", 7))
+        {
+            oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+        }
+        oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+        while(strncmp(oneline, "[THEME]", 7))
+        {
+            if(!strncmp(oneline, "autopatch", 9))
+                sscanf(oneline, "autopatch=%d", &options[OPTIONS_AUTO_PATCH]);
+            if(!strncmp(oneline, "listmode", 8))
+                sscanf(oneline, "listmode=%d", &options[OPTIONS_LIST_MODE]);
+            if(!strncmp(oneline, "volume", 6))
+                sscanf(oneline, "volume=%d", &options[OPTIONS_SOUND_VOLUME]);
+            if(!strncmp(oneline, "desccache", 9))
+                sscanf(oneline, "desccache=%d", &options[OPTIONS_DESC_CACHE]);
+            oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+        }
+        
+        while(strncmp(oneline, "[END]", 5))
+        {
+            if(!strncmp(oneline, "font", 4))
+                sscanf(oneline, "font=%d,%d,%d", &loadedTheme.colours[PAL_COL_FONT].r, &loadedTheme.colours[PAL_COL_FONT].g, &loadedTheme.colours[PAL_COL_FONT].b);
+            if(!strncmp(oneline, "bg", 2))
+                sscanf(oneline, "bg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BG].r, &loadedTheme.colours[PAL_COL_BG].g, &loadedTheme.colours[PAL_COL_BG].b);
+            if(!strncmp(oneline, "selector", 8))
+                sscanf(oneline, "selector=%d,%d,%d", &loadedTheme.colours[PAL_COL_SELECTOR].r, &loadedTheme.colours[PAL_COL_SELECTOR].g, &loadedTheme.colours[PAL_COL_SELECTOR].b);
+            oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+        }             
+        s_close(fr);
+        jo_free(oneline);
+    }
+    // change back to the current dir
+    s_chdir(currentDirectory);
+
+    // set the option values where needed
+    jo_audio_set_volume(options[OPTIONS_SOUND_VOLUME]);
+    applyTheme();
+}
+
+bool saveOptions()
+{
+    char * ini = "options.ini";
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+    s_chdir("satiator-rings");
+
+    // stat the file
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat(ini, st, sizeof(statbuf));
+    if(fr >= 0)
+    {
+        // file already exists, delete
+        s_unlink(ini);
+    }
+
+    // open new favs ini for writing
+    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    if (fw < 0)
+    {
+        // change back to the current dir
+        s_chdir(currentDirectory);
+        return false;
+    }
+    s_write(fw, "[START]\r\n", 9);
+    char * line = jo_malloc(256);
+
+    sprintf(line, "autopatch=%d\r\n", options[OPTIONS_AUTO_PATCH]);
+    s_write(fw, line, strlen(line));
+    
+    sprintf(line, "listmode=%d\r\n", options[OPTIONS_LIST_MODE]);
+    s_write(fw, line, strlen(line));
+    
+    sprintf(line, "volume=%d\r\n", options[OPTIONS_SOUND_VOLUME]);
+    s_write(fw, line, strlen(line));
+    
+    sprintf(line, "desccache=%d\r\n", options[OPTIONS_DESC_CACHE]);
+    s_write(fw, line, strlen(line));
+
+    s_write(fw, "[THEME]", 7);
+    sprintf(line, "font=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_FONT].r, loadedTheme.colours[PAL_COL_FONT].g, loadedTheme.colours[PAL_COL_FONT].b);
+    s_write(fw, line, strlen(line));
+    sprintf(line, "bg=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_BG].r, loadedTheme.colours[PAL_COL_BG].g, loadedTheme.colours[PAL_COL_BG].b);
+    s_write(fw, line, strlen(line));
+    sprintf(line, "selector=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_SELECTOR].r, loadedTheme.colours[PAL_COL_SELECTOR].g, loadedTheme.colours[PAL_COL_SELECTOR].b);
+    s_write(fw, line, strlen(line));
+
+    s_write(fw, "[END]", 5);
+    s_close(fw);
+    jo_free(line);
+    s_chdir(currentDirectory);
+    return true;
+}

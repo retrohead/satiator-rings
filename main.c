@@ -39,7 +39,6 @@ enum prog_state_types prog_state = PROG_STATE_INITIALIZE;
 enum prog_state_types prog_previous_state = PROG_STATE_INITIALIZE;
 int routine_scene = 0;
 jo_datetime dt;
-
 void application_logic(void)
 {
     jo_getdate(&dt);

@@ -17,10 +17,12 @@ void logic_console_info()
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
             clearMenuOptions();
-            create_sprite(load_sprite_texture("TEX", "CONSOLE.TGA"), 0, 4, 1, 1, 1, 0);
             displayVersion();
             displayStatus("Press any button to continue");
             displayMenuOptions(selectedMenuOption);
+            createGuiBoxes("CONSOLE.TGA", false);
+            draw_sprites();
+            slSynch();
             jo_nbg2_printf(1, 10, "Cartridge     : %s", getCartridgeString());
             console_info_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_MENU;

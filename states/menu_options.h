@@ -9,7 +9,7 @@ enum menu_option_types
 
 typedef struct 
 {
-    const char * txt;
+    char txt[40];
     enum prog_state_types prog_state;
     enum menu_option_types type;
     int row;

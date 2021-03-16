@@ -6,8 +6,8 @@
 #include "satiator/disc_format/cdparse.h"
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
-#include "states/options.h" // needed for desc file caching
 #include "debug.h"
+#include "options_file.h" // needed for desc file caching
 
 enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
 extern void addItemToRecentHistory();

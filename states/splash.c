@@ -198,17 +198,11 @@ void logic_splash()
     switch(splash_state)
     {
         case ROUTINE_STATE_INITIALIZE:
-            changeFontCol(&font_palettes[0], JO_COLOR_Red);
-            create_sprite(load_sprite_texture("TEX", "BLANK.TGA"), 160, 120, 3, 50.0, 50.0, 0);
-            draw_sprites();
-            slSynch();
-            load_background("TEX","BG.TGA");
-
+            create_sprite(load_gui_texture(PAL_COL_WHITE), 160, 120, 3, 50.0, 50.0, 0);
             routine_scene = 0;
             logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 2, 1.0, 1.0, 0);
             logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 1, 1.0, 1.0, 0);
             logosprites[2] = create_sprite(load_sprite_texture("TEX", "S2.TGA"), sprites[logosprites[0]].x, sprites[logosprites[1]].y + getSpriteHeight(logosprites[1]) + 5, 1, 1.0, 1.0, 0);
-
 
             loadSfx(SFX_INTRO);
             loadSfx(SFX_THUD);
@@ -234,11 +228,13 @@ void logic_splash()
             break;
         case ROUTINE_STATE_RUN:
             animateLogo(&routine_scene);
-            if(routine_scene > 4)
+            if(routine_scene == 5)
             {
+                playSfx(SFX_SANSHIRO, false);
                 initSatiator();
-                if(routine_scene == 5)
-                    playSfx(SFX_SANSHIRO, false);
+            }
+            if(routine_scene > 5)
+            {
                 switch(satiatorState)
                 {
                     case SATIATOR_STATE_NOT_FOUND:
@@ -300,6 +296,10 @@ void logic_splash()
         case ROUTINE_STATE_END:
             routine_scene = 0;
             finishLogo();
+            draw_sprites();
+            slSynch();
+
+            // prepare the shared resources for the main app
             initOptions();
             freeSfx();
             loadSfx(SFX_SELECT);

@@ -68,6 +68,9 @@
         "thread": "cpp",
         "tuple": "cpp",
         "ini.h": "c",
-        "sound.h": "c"
+        "sound.h": "c",
+        "direntry.h": "c",
+        "options_file.h": "c",
+        "theme.h": "c"
     }
 }

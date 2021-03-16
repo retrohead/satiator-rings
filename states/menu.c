@@ -15,6 +15,7 @@ void logic_menu()
     {
         case ROUTINE_STATE_INITIALIZE:
             routine_scene = 0;
+            createGuiBoxes("MENU.TGA", true);
             clearMenuOptions();
             createMenuOption("Game List", PROG_STATE_GAMELIST, OPTION_PROGRAM_STATE, 8);
             createMenuOption("Console Information", PROG_STATE_CONSOLE_INFO, OPTION_PROGRAM_STATE, 9);
@@ -23,8 +24,6 @@ void logic_menu()
             createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE, 13);
             createMenuOption("Reboot Console", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 14);
             displayVersion();
-            loadSelectionSprite();
-            create_sprite(load_sprite_texture("TEX", "MENU.TGA"), 0, 4, 1, 1, 1, 0);
             displayMenuOptions(selectedMenuOption);
             menu_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_GAMELIST;

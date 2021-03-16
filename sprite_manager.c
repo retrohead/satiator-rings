@@ -7,6 +7,8 @@
 spriteType sprites[MAX_SPRITES];
 spriteTexType spriteTex[MAX_SPRITE_TEXTURES];
 
+int currentTextureId = 0;
+
 void init_sprites()
 {
     jo_sprite_free_all();
@@ -15,6 +17,7 @@ void init_sprites()
     {
         sprites[i].used = false;
     }
+    currentTextureId = 0;
     for(i=0;i<MAX_SPRITE_TEXTURES;i++)
     {
         spriteTex[i].used = false;
@@ -63,6 +66,7 @@ int get_free_texture()
     {
         if(!spriteTex[i].used)
         {
+            currentTextureId = i;
             spriteTex[i].used = true;
             return i;
         }
@@ -171,6 +175,7 @@ void draw_sprites()
 {
     int i;
     jo_sprite_enable_gouraud_shading();
+    jo_sprite_set_palette(main_palette.id); // used for 8 bits
     for(i=0;i<MAX_SPRITES;i++)
     {
         if(sprites[i].used && sprites[i].sprite_tex_id != -1)
