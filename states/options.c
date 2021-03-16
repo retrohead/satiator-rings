@@ -59,8 +59,9 @@ void logic_options()
             {
                 createMenuOption(getOptionName(i, options[i]), PROG_STATE_OPTIONS, OPTION_CHANGE_VARIABLE, 8 + i);
             }
-            createMenuOption("Save", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 1);
-            createMenuOption("Cancel", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 2);
+            createMenuOption("Theme Selection", PROG_STATE_THEME, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT);
+            createMenuOption("Save", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 2);
+            createMenuOption("Cancel", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 3);
             displayMenuOptions(selectedMenuOption);
             displayVersion();
             options_state = ROUTINE_STATE_RUN;
@@ -102,7 +103,7 @@ void logic_options()
                 strcpy(menuOptions[selectedMenuOption].txt, getOptionName(selectedMenuOption, options[selectedMenuOption]));
                 displayMenuOptions(selectedMenuOption);
             }
-            if((selectedMenuOption == OPTIONS_COUNT) && (options_state == ROUTINE_STATE_END))
+            if((selectedMenuOption == OPTIONS_COUNT + 1) && (options_state == ROUTINE_STATE_END))
             {
                 if(!saveOptions())
                 {
@@ -113,7 +114,7 @@ void logic_options()
                     displayStatus("Options Saved!");
                 }
             }
-            if((selectedMenuOption == OPTIONS_COUNT + 1) && (options_state == ROUTINE_STATE_END))
+            if((selectedMenuOption == OPTIONS_COUNT + 2) && (options_state == ROUTINE_STATE_END))
                 initOptions();
             break;
         case ROUTINE_STATE_END:

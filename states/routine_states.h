@@ -2,7 +2,6 @@
 
 #define GAME_LIST_MAX_ITEMS 22
 #define GAME_LIST_MAX_ITEM_LEN 27
-#define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
 #define MAX_FAVOURITES 100
 
 extern void displayStatusText(char * text, bool vblank);
@@ -27,4 +26,5 @@ extern void logic_menu();
 extern void logic_exit_menu();
 extern void logic_console_info();
 extern void logic_satiator_info();
+extern void logic_themelist();
 extern bool bootLastGame();

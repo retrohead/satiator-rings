@@ -13,8 +13,23 @@ int dirEntyCount = 0;
 int listOffset = 0;
 bool truncatedList = true;
 int listScrolldelay = 0;
-dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
 
+bool textLeft = false;
+int textScrollX = 0;
+uint8_t textScrollDelay = 0;
+dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
+int maxListLen = 38;
+
+void setMaxListLength(int maxlength)
+{
+    maxListLen = maxlength;
+}
+void resetTextScroll()
+{
+    textScrollX = 0;
+    textScrollDelay = TEXT_SCROLL_DELAY;
+    textLeft = false;
+}
 void initDirEntries()
 {
     for(int i=0;i<MAX_LOADED_DIR_ENTRIES;i++)
@@ -143,4 +158,73 @@ void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionIte
     updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
     draw_sprites();
     slSynch();
+}
+
+void displayDirListItemText(char * nam, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
+{
+    if(selected)
+    {
+        int len = strlen(nam);
+        if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
+            len++;
+        if(!triggersHeld)
+        {
+            if(len >= maxListLen)
+            {
+                textScrollDelay--;
+                if(textScrollDelay == 0)
+                {
+                    if(textLeft)
+                        textScrollX--;
+                    else
+                        textScrollX++;
+                    textScrollDelay = TEXT_SCROLL_DELAY;
+                    if(textLeft)
+                    {
+                        if(textScrollX == 0)
+                            textLeft = false;
+                    } else
+                    {
+                        if(maxListLen + textScrollX >= len)
+                            textLeft = true;
+                    }
+                }
+                char * scrollPos = &nam[textScrollX];
+                strcpy(nam, scrollPos);
+            }
+        }
+    }
+    if((nam[0] != '\0') && (nam[1] == '\0'))
+        strcpy(nam, "/");
+    nam[maxListLen] = '\0'; // truncate to the max length
+    if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
+    {
+        if((int)strlen(nam) >= maxListLen - 1)
+            nam[maxListLen - 1] = '\0';
+    }
+    int len = strlen(nam);
+    while(len < 39) // clear the rest of the list
+    {
+        strcat(nam, " ");
+        len++;
+    }
+    jo_nbg2_printf(1, ypos, nam);
+}
+void displayDirListItem(const char * name, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
+{
+    char nam[1024];
+    strcpy(nam, name);
+    if(type == DIR_NULL)
+        strcpy(nam,"");
+    if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER) || (type == DIR_SHORTCUT_GAME))
+    {
+        // trim the leading directory
+        const char * lastSlash = strrchr(nam, '/');
+        if(lastSlash)
+        {
+            const char * fileName = lastSlash + 1;
+            strcpy(nam, fileName);
+        }
+    }
+    displayDirListItemText(nam, ypos, selected, type, triggersHeld);
 }

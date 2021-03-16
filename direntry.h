@@ -1,5 +1,6 @@
 #define MAX_LOADED_DIR_ENTRIES 5000
 #define LIST_SCROLL_DELAY 7
+#define TEXT_SCROLL_DELAY 15 // higher = slower, max 255
 
 enum dirEntryType
 {
@@ -32,3 +33,7 @@ extern void loadFileList(char * directory, int (*filter)(dirEntry *entry));
 extern void loadSelectionSprite();
 extern void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem);
 extern void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionItem);
+extern void displayDirListItem(const char * name, int ypos, bool selected, enum dirEntryType type, bool triggersHeld);
+extern void displayDirListItemText(char * nam, int ypos, bool selected, enum dirEntryType type, bool triggersHeld);
+extern void setMaxListLength(int maxlength);
+extern void resetTextScroll();

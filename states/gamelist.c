@@ -26,86 +26,12 @@ typedef struct
     int sprite;
 } gameBoxType;
 
-bool textLeft = false;
 
 gameBoxType gameBox;
 int defaultBoxTex = -1;
-uint8_t textScrollDelay = 0;
 int selectedGameBoxSprite = 0;
-int textScrollX = 0;
 int shadowSprite = 0;
 
-void displayGameListItemText(char * nam, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
-{
-    int maxLen = GAME_LIST_MAX_ITEM_LEN;
-    if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
-        maxLen = 38;
-    if(selected)
-    {
-        int len = strlen(nam);
-        if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
-            len++;
-        if(!triggersHeld)
-        {
-            if(len >= maxLen)
-            {
-                textScrollDelay--;
-                if(textScrollDelay == 0)
-                {
-                    if(textLeft)
-                        textScrollX--;
-                    else
-                        textScrollX++;
-                    textScrollDelay = TEXT_SCROLL_DELAY;
-                    if(textLeft)
-                    {
-                        if(textScrollX == 0)
-                            textLeft = false;
-                    } else
-                    {
-                        if(maxLen + textScrollX >= len)
-                            textLeft = true;
-                    }
-                }
-                char * scrollPos = &nam[textScrollX];
-                strcpy(nam, scrollPos);
-            }
-        }
-    }
-    if((nam[0] != '\0') && (nam[1] == '\0'))
-        strcpy(nam, "/");
-    nam[maxLen] = '\0'; // truncate to the max length
-    if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
-    {
-        if((int)strlen(nam) >= maxLen - 1)
-            nam[maxLen - 1] = '\0';
-    }
-    int len = strlen(nam);
-    while(len < 39) // clear the rest of the list
-    {
-        strcat(nam, " ");
-        len++;
-    }
-    jo_nbg2_printf(1, ypos, nam);
-}
-void displayGameListItem(const char * name, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
-{
-    char nam[1024];
-    strcpy(nam, name);
-    if(type == DIR_NULL)
-        strcpy(nam,"");
-    if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER) || (type == DIR_SHORTCUT_GAME))
-    {
-        // trim the leading directory
-        const char * lastSlash = strrchr(nam, '/');
-        if(lastSlash)
-        {
-            const char * fileName = lastSlash + 1;
-            strcpy(nam, fileName);
-        }
-    }
-    displayGameListItemText(nam, ypos, selected, type, triggersHeld);
-}
 void clearGameBoxSprite()
 {
     if(gameBox.tex != -1)
@@ -211,25 +137,23 @@ void updateBoxarts()
 {
     displayDirEntryItemGameBox(selectedDirEntry, true, 310, 200, 1.0, 1.0, true);
 }
-void clearMessage()
-{
-    displayStatus(" ");
-}
 void displayGameList(bool triggersHeld)
 {
     clearMessage();
-    textScrollX = 0;
-    textScrollDelay = TEXT_SCROLL_DELAY;
-    textLeft = false;
+    resetTextScroll();
+
+    setMaxListLength(GAME_LIST_MAX_ITEM_LEN);
+    if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
+        setMaxListLength(38);
 
     for(int i=listOffset;i < listOffset + GAME_LIST_MAX_ITEMS;i++)
     {
         if(i >= dirEntyCount)
         {
-            displayGameListItem("", (i - listOffset) + 5, false, dirEntries[i].type, triggersHeld);
+            displayDirListItem("", (i - listOffset) + 5, false, dirEntries[i].type, triggersHeld);
             continue;
         }
-        displayGameListItem(dirEntries[i].name, (i - listOffset) + 5, i==selectedDirEntry, dirEntries[i].type, triggersHeld);
+        displayDirListItem(dirEntries[i].name, (i - listOffset) + 5, i==selectedDirEntry, dirEntries[i].type, triggersHeld);
     }
     updateSelectionSprite((selectedDirEntry- listOffset) + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
     if(!triggersHeld)
@@ -518,7 +442,7 @@ void logic_gamelist()
     static enum prog_state_types exit_state = PROG_STATE_SPLASH;
     static int depth = 0;
     static bool triggersHeld = false;
-    static enum game_list_display_types display_type = GAME_LIST_STANDARD;
+    static enum game_list_display_types display_type = GAME_VIEW_TEXT_AND_IMAGE;
     int maxlistItems = GAME_LIST_MAX_ITEMS;
     switch(game_list_state)
     {
@@ -529,6 +453,7 @@ void logic_gamelist()
             routine_scene = 0;
             gameBox.tex = -1;
             gameBox.sprite = -1;
+            display_type = options[OPTIONS_LIST_MODE];
             strcpy(gameBox.path, "");
             triggersHeld = false;
             switch(display_type)
@@ -543,6 +468,9 @@ void logic_gamelist()
                     loadIniList("recent.ini", false, "", false);
                     break;
             }
+            setMaxListLength(GAME_LIST_MAX_ITEM_LEN);
+            if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
+                setMaxListLength(38);
             displayGameList(triggersHeld);
             displayStatus("Press start for options");
             game_list_state = ROUTINE_STATE_RUN;
@@ -568,7 +496,7 @@ void logic_gamelist()
             if(dirEntyCount > 0)
             {
                 // scroll the selected item text every frame
-                displayGameListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
+                displayDirListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
             }
             if(pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS)
             {
@@ -600,7 +528,6 @@ void logic_gamelist()
                         }
                         listScrolldelay = 0;
                         moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
-                        triggersHeld = true;
                         displayGameList(triggersHeld);
                         clearGameBoxSprite();
                         break;
@@ -612,7 +539,6 @@ void logic_gamelist()
                         }
                         listScrolldelay = 0;
                         moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
-                        triggersHeld = true;
                         displayGameList(triggersHeld);
                         clearGameBoxSprite();
                         break;

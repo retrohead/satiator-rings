@@ -1,5 +1,3 @@
-#define ONE_LINE_MAX_LEN 1024
-
 #include <jo/jo.h>
 #include <stdlib.h>
 #include <string.h>

@@ -5,11 +5,13 @@
 #include "options_file.h"
 #include "debug.h"
 #include "theme.h"
+#include "ini.h"
 #include "states/routine_states.h"
 
 int options[OPTIONS_COUNT];
+char loadedThemeName[32];
 
-void initOptions()
+void defaultOptions()
 {
     for(enum optionsType i=0;i<OPTIONS_COUNT;i++)
     {
@@ -31,7 +33,12 @@ void initOptions()
                 break;
         }
     }
-    
+    strcpy(loadedThemeName, "default");
+    initTheme();
+}
+void initOptions()
+{
+    defaultOptions();
     char * ini = "options.ini";
     if(strcmp("/", currentDirectory))
         s_chdir("/");
@@ -51,14 +58,14 @@ void initOptions()
             s_chdir(currentDirectory);
             return;
         }
-        char * oneline = jo_malloc(1024);
+        char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
         strcpy(oneline, "");
         uint32_t bytes;
         while(strncmp(oneline, "[START]", 7))
         {
-            oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         }
-        oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+        oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
         while(strncmp(oneline, "[THEME]", 7))
         {
             if(!strncmp(oneline, "autopatch", 9))
@@ -69,18 +76,22 @@ void initOptions()
                 sscanf(oneline, "volume=%d", &options[OPTIONS_SOUND_VOLUME]);
             if(!strncmp(oneline, "desccache", 9))
                 sscanf(oneline, "desccache=%d", &options[OPTIONS_DESC_CACHE]);
-            oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
+            if(!strncmp(oneline, "[END]", 5))
+                break;
         }
-        
         while(strncmp(oneline, "[END]", 5))
         {
+            if(!strncmp(oneline, "name", 4))
+                sscanf(oneline, "name=%s", loadedThemeName);
             if(!strncmp(oneline, "font", 4))
                 sscanf(oneline, "font=%d,%d,%d", &loadedTheme.colours[PAL_COL_FONT].r, &loadedTheme.colours[PAL_COL_FONT].g, &loadedTheme.colours[PAL_COL_FONT].b);
             if(!strncmp(oneline, "bg", 2))
                 sscanf(oneline, "bg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BG].r, &loadedTheme.colours[PAL_COL_BG].g, &loadedTheme.colours[PAL_COL_BG].b);
             if(!strncmp(oneline, "selector", 8))
                 sscanf(oneline, "selector=%d,%d,%d", &loadedTheme.colours[PAL_COL_SELECTOR].r, &loadedTheme.colours[PAL_COL_SELECTOR].g, &loadedTheme.colours[PAL_COL_SELECTOR].b);
-            oneline = s_gets(oneline, 1024, fr, &bytes, st->size);
+            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
+            themeLoaded = true;
         }             
         s_close(fr);
         jo_free(oneline);
@@ -133,6 +144,8 @@ bool saveOptions()
     s_write(fw, line, strlen(line));
 
     s_write(fw, "[THEME]", 7);
+    sprintf(line, "name=%s\r\n", loadedThemeName);
+    s_write(fw, line, strlen(line));
     sprintf(line, "font=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_FONT].r, loadedTheme.colours[PAL_COL_FONT].g, loadedTheme.colours[PAL_COL_FONT].b);
     s_write(fw, line, strlen(line));
     sprintf(line, "bg=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_BG].r, loadedTheme.colours[PAL_COL_BG].g, loadedTheme.colours[PAL_COL_BG].b);

@@ -34,3 +34,8 @@ void displayStatusText(char * text, bool vblank)
         slSynch();
     }
 }
+
+void clearMessage()
+{
+    displayStatus(" ");
+}

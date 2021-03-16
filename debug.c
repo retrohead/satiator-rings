@@ -22,7 +22,6 @@ void debug_print(char * txt)
     s_close(fp);
 }
 #endif
-
 void printCenterText(int row, char * text)
 {
     int x = ((320 / 8) / 2) - 1;

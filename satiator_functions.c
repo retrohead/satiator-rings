@@ -305,15 +305,37 @@ bool satiatorPatchDescFileImage(const char * curRegion)
 int satiatorLaunchOriginalMenu()
 {
     s_chdir("/");
-    s_mode(s_api);
-    for (volatile int i=0; i<2000; i++)
-        ;
-    int (**bios_get_satiator_rom)(uint32_t index, uint32_t size, uint32_t addr) = (void*)0x06000298;
-    int ret = (*bios_get_satiator_rom)(2, 2, 0x200000);
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat("menu.bin", st, sizeof(statbuf)-1);
+    if (fr < 0)
+        return -1;
+    char * data = (char *)0x200000;
+    // try open the file
+    fr = s_open("menu.bin", FA_READ | FA_OPEN_EXISTING);
+    if (fr < 0)
+    {
+        s_chdir(currentDirectory);
+        return -1;
+    }
+    s_seek(fr, 0x1000, SEEK_SET);
+    uint32_t readBytes = 0x1000;
+    while(readBytes < st->size)
+    {
+        uint32_t readSize = S_MAXBUF;
+        if(st->size - readBytes < readSize)
+            readSize = st->size - readBytes;
+        int ret = s_read(fr, data + (readBytes - 0x1000), readSize);
+        if(ret != (int)readSize)
+        {
+            s_close(fr);
+            return -1;
+        }
+        readBytes += readSize;
+    }
+    s_close(fr);
     ((void(*)(void))0x200000)();
-    return ret;
+    return 1; // should never get here
 }
-
 // try launching a file, return an error if it fails, make sure filename[0] contains the file with the region data before running this
 enum SATIATOR_ERROR_CODE satiatorLaunchDescFile(char * fn)
 {

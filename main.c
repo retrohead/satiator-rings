@@ -79,6 +79,9 @@ void application_logic(void)
         case PROG_STATE_OPTIONS:
             logic_options();
             break;
+        case PROG_STATE_THEME:
+            logic_themelist();
+            break;
         case PROG_STATE_CONSOLE_INFO:
             logic_console_info();
             break;

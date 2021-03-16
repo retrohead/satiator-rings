@@ -20,13 +20,15 @@ static unsigned char gui_texture_image[] =
 void createGuiBoxes(char * headerTexture, bool withSelectionSprite)
 {
     create_sprite(load_gui_texture(PAL_COL_BG), 160, 120, 3, 50.0, 50.0, 0);
-    
+    char * dir = jo_malloc(512);
+    sprintf(dir, "/satiator-rings/themes/%s", loadedThemeName);
+
     //boxTexture = load_sprite_texture("TEX", "BLANK.TGA");
     boxTexture = load_gui_texture(PAL_COL_WHITE);
-    boxCornerTexture = load_sprite_texture_satiator("/satiator-rings/themes/default", "CORNER.TGA");
+    boxCornerTexture = load_sprite_texture_satiator(dir, "CORNER.TGA");
 
-    create_sprite(load_sprite_texture_satiator("/satiator-rings/themes/default", headerTexture), 0, 4, 1, 1, 1, 0);
-    create_sprite(load_sprite_texture_satiator("/satiator-rings/themes/default", "RINGS.TGA"), 192, 4, 1, 1, 1, 0);
+    create_sprite(load_sprite_texture_satiator(dir, headerTexture), 0, 4, 1, 1, 1, 0);
+    create_sprite(load_sprite_texture_satiator(dir, "RINGS.TGA"), 192, 4, 1, 1, 1, 0);
     
     // top text strip
     create_sprite(boxTexture, 156, 24, 0, 38.9, 1.35, 0);
@@ -60,6 +62,8 @@ void createGuiBoxes(char * headerTexture, bool withSelectionSprite)
         selectionSprite = create_sprite(load_gui_texture(PAL_COL_SELECTOR), 320, 250, 0, 2, 1, 0);
     else
         selectionSprite = -1;
+    
+    jo_free(dir);
     draw_sprites();
     slSynch();
 }
@@ -87,7 +91,7 @@ void updateGuiPalette()
     if(themeLoaded)
     {
         for(int i=0;i <PAL_COL_COUNT; i++)
-            main_palette.data[2 + i] = JO_COLOR_SATURN_RGB(loadedTheme.colours[i].r, loadedTheme.colours[i].g, loadedTheme.colours[i].b);
+            main_palette.data[2 + i] = JO_COLOR_RGB(loadedTheme.colours[i].r, loadedTheme.colours[i].g, loadedTheme.colours[i].b);
     } else
     {
         // default colours

@@ -16,5 +16,6 @@ enum game_list_view_types
 };
 
 extern int options[OPTIONS_COUNT];
+extern char loadedThemeName[32];
 extern void initOptions();
 extern bool saveOptions();

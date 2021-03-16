@@ -32,3 +32,5 @@ extern themeType loadedTheme;
 extern bool themeLoaded;
 
 extern void applyTheme();
+extern void initTheme();
+extern bool loadThemeFile(char * theme);

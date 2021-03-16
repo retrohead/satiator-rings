@@ -1,4 +1,4 @@
-#define MAX_SPLASH_FRAME 10
+#define MAX_SPLASH_FRAME 20
 
 #include <jo/jo.h>
 #include "../main.h"
@@ -230,8 +230,8 @@ void logic_splash()
             animateLogo(&routine_scene);
             if(routine_scene == 5)
             {
-                playSfx(SFX_SANSHIRO, false);
                 initSatiator();
+                playSfx(SFX_SANSHIRO, false);
             }
             if(routine_scene > 5)
             {
@@ -296,6 +296,7 @@ void logic_splash()
         case ROUTINE_STATE_END:
             routine_scene = 0;
             finishLogo();
+            jo_nbg2_clear();
             draw_sprites();
             slSynch();
 
