@@ -2,8 +2,6 @@
 #include "satiator_functions.h"
 #include "sound.h"
 #include "states/options.h"
-
-#define MAX_SFX 5
 #define SFX_FRAME_DELAY 6
 
 typedef struct 
@@ -55,6 +53,18 @@ void loadSfx(enum sfxType type)
             break;
         case SFX_SANSHIRO:
             jo_audio_load_pcm("SANSH.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            break;
+        case SFX_SLIDE:
+            jo_audio_load_pcm("SLIDE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            break;
+        case SFX_CHANGE:
+            jo_audio_load_pcm("CHANGE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            break;
+        case SFX_BACK:
+            jo_audio_load_pcm("BACK.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            break;
+        case SFX_OPTION:
+            jo_audio_load_pcm("OPTION.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
     }
 }

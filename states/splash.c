@@ -305,6 +305,10 @@ void logic_splash()
             freeSfx();
             loadSfx(SFX_SELECT);
             loadSfx(SFX_MOVE);
+            loadSfx(SFX_SLIDE);
+            loadSfx(SFX_CHANGE);
+            loadSfx(SFX_BACK);
+            loadSfx(SFX_OPTION);
             splash_state = ROUTINE_STATE_INITIALIZE;
             prog_state = exit_state;
             break;

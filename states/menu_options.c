@@ -51,12 +51,6 @@ void displayMenuOptions(int selectedOption)
 int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state, enum prog_state_types * exit_state)
 {
     static int delay = 0;
-    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
-    {
-        playSfx(SFX_SELECT, false);
-        *menu_state = ROUTINE_STATE_END;
-        return 0;
-    }
     if((pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS) || ((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (*selectedOption == OPTIONS_SOUND_VOLUME)))
     {
         switch(pad_controllers[0].direction_id)
@@ -75,7 +69,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
                     }
                     if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
                         delay = 0;
-                    playSfx(SFX_MOVE, false);
+                    playSfx(SFX_OPTION, false);
                     return -1;
                 }
                 break;
@@ -93,7 +87,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
                     }
                     if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
                         delay = 0;
-                    playSfx(SFX_MOVE, false);
+                    playSfx(SFX_OPTION, false);
                     return 1;
                 }
                 break;
@@ -120,9 +114,15 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
     }
     if(menuOptions[*selectedOption].type == OPTION_PROGRAM_STATE)
     {
+        if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+        {
+            playSfx(SFX_CHANGE, false);
+            *menu_state = ROUTINE_STATE_END;
+            return 0;
+        }
         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
         {
-            playSfx(SFX_SELECT, false);
+            playSfx(SFX_CHANGE, false);
             *menu_state = ROUTINE_STATE_END;
             if(usedMenuOptions > 0)
                 *exit_state = menuOptions[*selectedOption].prog_state;
