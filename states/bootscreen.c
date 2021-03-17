@@ -18,7 +18,7 @@ void addItemToRecentHistory()
     char * fullpath = jo_malloc(1024);
     // add item to recent history
     strcpy(fullpath, currentDirectory);
-    if(!((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME)))
+    if(!((dirEntryCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME)))
     {
         // write the full path, else auto load was used so use the directory name
         strcat(fullpath, "/");
@@ -67,6 +67,7 @@ void logic_bootscreen()
                     }
                 } else
                 {
+                    main_palette.data[2] = JO_COLOR_Red;
                     centerText(20, "Loading");
                     logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 2, 1.0, 1.0, 0);
                     logosprites[1] = create_sprite(load_sprite_texture("TEX", "S1.TGA"), sprites[logosprites[0]].x, sprites[logosprites[0]].y + getSpriteHeight(logosprites[0]) + 15, 1, 1.0, 1.0, 0);

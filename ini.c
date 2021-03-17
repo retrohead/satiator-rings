@@ -11,7 +11,7 @@ bool loadIniListFirstLine(char * fn, char * destbuf)
 {
     s_chdir("/satiator-rings");
     truncatedList = false;
-    dirEntyCount = 0;
+    dirEntryCount = 0;
     selectedDirEntry = 0;
     listOffset = 0;
 
@@ -48,7 +48,7 @@ void writeIniList(char * fn, char * deleteEntry)
         s_unlink(fn);
     fp = s_open(fn, FA_WRITE | FA_CREATE_NEW);
     s_write(fp, "[START]\r\n",9);
-    for(int i=0;i<dirEntyCount;i++)
+    for(int i=0;i<dirEntryCount;i++)
     {
         if((dirEntries[i].type == DIR_SHORTCUT_FOLDER) || (dirEntries[i].type == DIR_SHORTCUT_GAME))
         {
@@ -83,23 +83,23 @@ bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort
 }
 void addDirEntryItem(char * fn)
 {
-    if(dirEntries[dirEntyCount].name)
-        jo_free(dirEntries[dirEntyCount].name);
-    dirEntries[dirEntyCount].name = NULL;
-    dirEntries[dirEntyCount].name = jo_malloc(strlen(fn) + 5);
-    strcpy(dirEntries[dirEntyCount].name, fn);
+    if(dirEntries[dirEntryCount].name)
+        jo_free(dirEntries[dirEntryCount].name);
+    dirEntries[dirEntryCount].name = NULL;
+    dirEntries[dirEntryCount].name = jo_malloc(strlen(fn) + 5);
+    strcpy(dirEntries[dirEntryCount].name, fn);
     if (fn[strlen(fn) - 4] == '.')
-        dirEntries[dirEntyCount].type = DIR_SHORTCUT_GAME;
+        dirEntries[dirEntryCount].type = DIR_SHORTCUT_GAME;
     else
-        dirEntries[dirEntyCount].type = DIR_SHORTCUT_FOLDER;
-    dirEntyCount++;
+        dirEntries[dirEntryCount].type = DIR_SHORTCUT_FOLDER;
+    dirEntryCount++;
 }
 bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
 {
     bool ret = true;
     s_chdir("/satiator-rings");
     truncatedList = false;
-    dirEntyCount = 0;
+    dirEntryCount = 0;
     selectedDirEntry = 0;
     listOffset = 0;
 
@@ -132,7 +132,7 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
                     continue;
                 }
                 addDirEntryItem(oneline);
-                if(dirEntyCount == MAX_LOADED_DIR_ENTRIES / 4) // using a shorter list as shortcuts could be much longer
+                if(dirEntryCount == MAX_LOADED_DIR_ENTRIES / 4) // using a shorter list as shortcuts could be much longer
                 {
                     truncatedList = true;
                     break;
@@ -146,7 +146,7 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
     s_chdir(currentDirectory);
     if(addItem && !addAtStart && ret)
         addDirEntryItem(addItemStr);
-    for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
+    for(int i=dirEntryCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
         if(dirEntries[i].name)
             jo_free(dirEntries[i].name);

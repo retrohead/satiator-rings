@@ -9,7 +9,7 @@
 
 int selectedDirEntry = 0;
 char currentDirectory[1024];
-int dirEntyCount = 0;
+int dirEntryCount = 0;
 int listOffset = 0;
 bool truncatedList = true;
 int listScrolldelay = 0;
@@ -51,7 +51,7 @@ int compareDirEntry(const void *pa, const void *pb) {
     return strcmp(a->name, b->name);
 }
 void sortDirEntries() {
-    qsort(dirEntries, dirEntyCount, sizeof(dirEntry), compareDirEntry);
+    qsort(dirEntries, dirEntryCount, sizeof(dirEntry), compareDirEntry);
 }
 void loadFileList(char * directory, int (*filter)(dirEntry *entry))
 {
@@ -61,7 +61,7 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
         sprites[selectionSprite].y = 250;
     }
     truncatedList = false;
-    dirEntyCount = 0;
+    dirEntryCount = 0;
     selectedDirEntry = 0;
     listOffset = 0;
     if (s_opendir(directory) != 0)
@@ -81,39 +81,39 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
         // thanks Windows
         if (!strncmp(st->name, "System Volume Information", 25))
             continue;
-        if(dirEntries[dirEntyCount].name != NULL)
-            jo_free(dirEntries[dirEntyCount].name);
-        dirEntries[dirEntyCount].name = NULL;
-        dirEntries[dirEntyCount].name = jo_malloc(strlen(st->name) + 5);
-        strcpy(dirEntries[dirEntyCount].name, st->name);
+        if(dirEntries[dirEntryCount].name != NULL)
+            jo_free(dirEntries[dirEntryCount].name);
+        dirEntries[dirEntryCount].name = NULL;
+        dirEntries[dirEntryCount].name = jo_malloc(strlen(st->name) + 5);
+        strcpy(dirEntries[dirEntryCount].name, st->name);
         if (st->attrib & AM_DIR) {
-            dirEntries[dirEntyCount].type = DIR_DIRECTORY;
+            dirEntries[dirEntryCount].type = DIR_DIRECTORY;
         } else {
-            strcpy(dirEntries[dirEntyCount].name, st->name);
-            const char *dot = strrchr(dirEntries[dirEntyCount].name, '.');
+            strcpy(dirEntries[dirEntryCount].name, st->name);
+            const char *dot = strrchr(dirEntries[dirEntryCount].name, '.');
             const char *extension = dot + 1;
             if (strncmp(extension, "cue", 3) && strncmp(extension, "iso", 3))
-                dirEntries[dirEntyCount].type = DIR_FILE;
+                dirEntries[dirEntryCount].type = DIR_FILE;
             else
-                dirEntries[dirEntyCount].type = DIR_GAME;
+                dirEntries[dirEntryCount].type = DIR_GAME;
         }
 
-        if (filter && !filter(&dirEntries[dirEntyCount]))
+        if (filter && !filter(&dirEntries[dirEntryCount]))
             continue;
 
-        if (!dirEntries[dirEntyCount].name)
+        if (!dirEntries[dirEntryCount].name)
         {
             return;
         }
 
-        dirEntyCount++;
-        if(dirEntyCount == MAX_LOADED_DIR_ENTRIES)
+        dirEntryCount++;
+        if(dirEntryCount == MAX_LOADED_DIR_ENTRIES)
         {
             truncatedList = true;
             break;
         }
     }
-    for(int i=dirEntyCount; i < MAX_LOADED_DIR_ENTRIES; i++)
+    for(int i=dirEntryCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
         if(dirEntries[i].name != NULL)
             jo_free(dirEntries[i].name);
@@ -132,8 +132,8 @@ void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem)
         
     } else
     {
-        selectedDirEntry = dirEntyCount - 1;
-        listOffset = dirEntyCount - maxlistItems;
+        selectedDirEntry = dirEntryCount - 1;
+        listOffset = dirEntryCount - maxlistItems;
         if(listOffset < 0)
             listOffset = 0;
     }
@@ -144,7 +144,7 @@ void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem)
 }
 void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionItem)
 {
-    if(selectedDirEntry < dirEntyCount - 1)
+    if(selectedDirEntry < dirEntryCount - 1)
     {
         selectedDirEntry ++;
         if(selectedDirEntry - listOffset >= maxlistItems)

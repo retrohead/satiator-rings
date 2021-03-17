@@ -148,7 +148,7 @@ void displayGameList(bool triggersHeld)
 
     for(int i=listOffset;i < listOffset + GAME_LIST_MAX_ITEMS;i++)
     {
-        if(i >= dirEntyCount)
+        if(i >= dirEntryCount)
         {
             displayDirListItem("", (i - listOffset) + 5, false, dirEntries[i].type, triggersHeld);
             continue;
@@ -206,7 +206,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     }
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
-        if(dirEntyCount > 0)
+        if(dirEntryCount > 0)
         {
             playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
@@ -229,7 +229,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
                     slSynch();
                     loadFileList(".", satiatorExecutableFilter);
                     displayGameList(triggersHeld);
-                    if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+                    if((dirEntryCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
                     {
                         game_list_state = ROUTINE_STATE_END;
                         *exit_state = PROG_STATE_BOOT;
@@ -289,7 +289,7 @@ void launchDirShortcut(enum game_list_display_types * display_type, enum prog_st
                 *depth = *depth + 1;
         loadFileList(".", satiatorExecutableFilter);
         displayGameList(false);
-        if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+        if((dirEntryCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
         {
             game_list_state = ROUTINE_STATE_END;
             *exit_state = PROG_STATE_BOOT;
@@ -348,18 +348,18 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         playSfx(SFX_SELECT, false);
         writeIniList("favs.ini", dirEntries[selectedDirEntry].name);
         dirEntries[selectedDirEntry].type = DIR_NULL;
-        for(int i=selectedDirEntry; i < dirEntyCount;i++)
+        for(int i=selectedDirEntry; i < dirEntryCount;i++)
             dirEntries[i] = dirEntries[i + 1];
         if(selectedDirEntry > 0)
             selectedDirEntry--;
-        dirEntyCount--;
+        dirEntryCount--;
         displayGameList(triggersHeld);
         displayStatus("Item deleted from favourites");
     }
     
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
-        if(dirEntyCount > 0)
+        if(dirEntryCount > 0)
         {
             playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
@@ -397,17 +397,17 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
         playSfx(SFX_SELECT, false);
         writeIniList("recent.ini", dirEntries[selectedDirEntry].name);
         dirEntries[selectedDirEntry].type = DIR_NULL;
-        for(int i=selectedDirEntry; i < dirEntyCount;i++)
+        for(int i=selectedDirEntry; i < dirEntryCount;i++)
             dirEntries[i] = dirEntries[i + 1];
         if(selectedDirEntry > 0)
             selectedDirEntry--;
-        dirEntyCount--;
+        dirEntryCount--;
         displayGameList(triggersHeld);
         displayStatus("Item deleted from recents");
     }
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
-        if(dirEntyCount > 0)
+        if(dirEntryCount > 0)
         {
             playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_SHORTCUT_FOLDER)
@@ -447,6 +447,7 @@ void logic_gamelist()
     switch(game_list_state)
     {
         case ROUTINE_STATE_INITIALIZE:
+            applyTheme();
             createGuiBoxes("GAME.TGA", true);
             defaultBoxTex = load_sprite_texture_satiator("/satiator-rings/gfx", "SBOX.TGA");
             shadowSprite = create_sprite(load_sprite_texture_satiator("/satiator-rings/gfx", "SHDW.TGA"), 320, 240, 0, 1, 1, 0);
@@ -493,7 +494,7 @@ void logic_gamelist()
             }
 
             // all list controls
-            if(dirEntyCount > 0)
+            if(dirEntryCount > 0)
             {
                 // scroll the selected item text every frame
                 displayDirListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
@@ -574,8 +575,8 @@ void logic_gamelist()
                         listOffset--;
                 } else
                 {
-                    selectedDirEntry = dirEntyCount - 1;
-                    listOffset = dirEntyCount - maxlistItems;
+                    selectedDirEntry = dirEntryCount - 1;
+                    listOffset = dirEntryCount - maxlistItems;
                     if(listOffset < 0)
                         listOffset = 0;
                 }
@@ -586,7 +587,7 @@ void logic_gamelist()
             if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
             {
                 playSfx(SFX_MOVE, true);
-                if(selectedDirEntry < dirEntyCount - 1)
+                if(selectedDirEntry < dirEntryCount - 1)
                 {
                     selectedDirEntry ++;
                     if(selectedDirEntry - listOffset >= maxlistItems)

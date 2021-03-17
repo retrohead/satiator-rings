@@ -49,7 +49,6 @@ void initOptions()
     int fr = s_stat(ini, st, sizeof(statbuf));
     if(fr >= 0)
     {
-        centerTextVblank(25, "Loading Options");
         // open options ini for reading
         fr = s_open(ini, FA_READ | FA_OPEN_EXISTING);
         if (fr < 0)
@@ -101,7 +100,6 @@ void initOptions()
 
     // set the option values where needed
     jo_audio_set_volume(options[OPTIONS_SOUND_VOLUME]);
-    applyTheme();
 }
 
 bool saveOptions()

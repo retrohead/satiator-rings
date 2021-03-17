@@ -21,7 +21,7 @@ typedef struct
 extern dirEntry dirEntries[MAX_LOADED_DIR_ENTRIES];
 extern int selectedDirEntry;
 extern char currentDirectory[1024];
-extern int dirEntyCount;
+extern int dirEntryCount;
 extern int listOffset;
 extern bool truncatedList;
 extern int listScrolldelay;

@@ -115,7 +115,11 @@ void logic_options()
                 }
             }
             if((selectedMenuOption == OPTIONS_COUNT + 2) && (options_state == ROUTINE_STATE_END))
+            {
+                displayStatus("Reloading Options");
                 initOptions();
+                applyTheme();
+            }
             break;
         case ROUTINE_STATE_END:
             routine_scene = 0;

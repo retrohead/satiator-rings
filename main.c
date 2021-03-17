@@ -95,7 +95,7 @@ void application_logic(void)
             //jo_core_exit_to_multiplayer();
             break;
         case PROG_STATE_EXIT_TO_MENU:
-            dirEntyCount = 1;
+            dirEntryCount = 1;
             selectedDirEntry = 0;
             if(dirEntries[0].name != NULL)
                 jo_free(dirEntries[0].name);

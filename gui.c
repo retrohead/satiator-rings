@@ -1,4 +1,5 @@
 #include "main.h"
+#include "direntry.h"
 
 int boxTexture = -1;
 int boxCornerTexture = -1;
@@ -73,6 +74,14 @@ void updateSelectionSprite(int row, bool shortStyle)
         return;
     sprites[selectionSprite].y = (row * 8);
     sprites[selectionSprite].rot_angle = 0;
+    if(dirEntryCount == 0)
+    {
+        sprites[selectionSprite].scale_x = 0.01;
+        sprites[selectionSprite].scale_y = 0.01;
+        sprites[selectionSprite].x = 640;
+        sprites[selectionSprite].y = 480;
+        return;
+    }
     if(shortStyle)
     {
         sprites[selectionSprite].scale_x = 0.68 * 40;

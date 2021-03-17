@@ -141,7 +141,7 @@ bool bootLastGameDir(char * dir)
     {
         strcpy(currentDirectory, dir);
         loadFileList(".", satiatorExecutableFilter);
-        if((dirEntyCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
+        if((dirEntryCount == 1) && (dirEntries[selectedDirEntry].type == DIR_GAME))
         {
             return true;
         }
@@ -175,7 +175,7 @@ bool bootLastGame()
     static bool failed = false; // we only ever want to run this once on boot
     if(failed)
         return false;
-    dirEntyCount = 0;
+    dirEntryCount = 0;
 
     if(loadIniListFirstLine("recent.ini", name))
     {
@@ -296,11 +296,11 @@ void logic_splash()
         case ROUTINE_STATE_END:
             routine_scene = 0;
             finishLogo();
-            jo_nbg2_clear();
             draw_sprites();
             slSynch();
 
             // prepare the shared resources for the main app
+            centerTextVblank(25, "Loading Options");
             initOptions();
             freeSfx();
             loadSfx(SFX_SELECT);

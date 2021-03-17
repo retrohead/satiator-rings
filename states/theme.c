@@ -28,7 +28,7 @@ void displayThemeList(bool triggersHeld)
 
     for(int i=listOffset;i < listOffset + GAME_LIST_MAX_ITEMS;i++)
     {
-        if(i >= dirEntyCount)
+        if(i >= dirEntryCount)
         {
             displayDirListItem("", (i - listOffset) + 5, false, dirEntries[i].type, triggersHeld);
             continue;
@@ -39,11 +39,11 @@ void displayThemeList(bool triggersHeld)
 }
 void logic_standard(enum prog_state_types * exit_state)
 {
-    jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
+    jo_nbg2_printf(1, 3, "Loaded Theme: %s                              ", loadedThemeName);
 
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
-        if(dirEntyCount > 0)
+        if(dirEntryCount > 0)
         {
             playSfx(SFX_SELECT, false);
             if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
@@ -81,7 +81,7 @@ void logic_themelist()
             if(options[OPTIONS_LIST_MODE] == GAME_VIEW_TEXT_ONLY)
                 setMaxListLength(38);
             displayThemeList(triggersHeld);
-            displayStatus("Press start for options");
+            displayStatus("Select A Theme To Load");
             theme_list_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_SPLASH;
             break;
@@ -90,7 +90,7 @@ void logic_themelist()
             logic_standard(&exit_state);
 
             // all list controls
-            if(dirEntyCount > 0)
+            if(dirEntryCount > 0)
             {
                 // scroll the selected item text every frame
                 displayDirListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
