@@ -45,7 +45,7 @@ void logic_standard(enum prog_state_types * exit_state)
     {
         if(dirEntryCount > 0)
         {
-            playSfx(SFX_SELECT, false);
+            playSfx(SFX_SLIDE, false);
             if(dirEntries[selectedDirEntry].type == DIR_DIRECTORY)
             {
                 if(!loadThemeFile(dirEntries[selectedDirEntry].name))
@@ -53,12 +53,14 @@ void logic_standard(enum prog_state_types * exit_state)
 
                 // change back to the theme directory
                 s_chdir("/satiator-rings/themes");
+                theme_list_state = ROUTINE_STATE_END;
+                *exit_state = PROG_STATE_THEME_RELOAD;
             }
         }
     }
     if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_SELECT, false);
+        playSfx(SFX_CHANGE, false);
         theme_list_state = ROUTINE_STATE_END;
         *exit_state = PROG_STATE_OPTIONS;
     }

@@ -113,8 +113,7 @@ void logic_options()
                 {
                     displayStatus("Options Saved!");
                 }
-            }
-            if((selectedMenuOption == OPTIONS_COUNT + 2) && (options_state == ROUTINE_STATE_END))
+            } else if((exit_state == PROG_STATE_MENU) && (options_state == ROUTINE_STATE_END))
             {
                 displayStatus("Reloading Options");
                 initOptions();

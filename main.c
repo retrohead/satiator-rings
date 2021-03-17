@@ -82,6 +82,9 @@ void application_logic(void)
         case PROG_STATE_THEME:
             logic_themelist();
             break;
+        case PROG_STATE_THEME_RELOAD:
+            prog_state = PROG_STATE_THEME;
+            break;
         case PROG_STATE_CONSOLE_INFO:
             logic_console_info();
             break;

@@ -164,7 +164,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_SLIDE, false);
+        playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
         jo_nbg2_printf(1, 3, "Favourites                                         ");
         displayTime();
@@ -330,7 +330,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     jo_nbg2_printf(1, 3, "Favourites                                         ");
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_SLIDE, false);
+        playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
         displayTime();
         jo_nbg2_printf(1, 3, "Recent Play History                                ");
@@ -373,10 +373,9 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     }
     if (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_SLIDE, false);
+        playSfx(SFX_SELECT, false);
         *display_type = GAME_LIST_STANDARD;
-        s_chdir("/");
-        strcpy(currentDirectory, "/");
+        s_chdir(currentDirectory);
         jo_nbg2_clear();
         displayTime();
         jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
@@ -421,7 +420,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
     }
     if((pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS))
     {
-        playSfx(SFX_SLIDE, false);
+        playSfx(SFX_SELECT, false);
         *display_type = GAME_LIST_STANDARD;
         s_chdir("/");
         strcpy(currentDirectory, "/");
