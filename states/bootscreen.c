@@ -54,7 +54,7 @@ void logic_bootscreen()
                     if(tex < 0)
                         tex = load_sprite_texture("TEX", "SBOX.TGA"); // no boxart found so using default
                     int boxSprite = create_sprite(tex, 160 - (getTextureWidth(tex) / 2), 120 - getTextureHeight(tex), 1, 1, 1, 0);
-                    int shadowSprite = create_sprite(load_sprite_texture("TEX", "SHDW.TGA"), 0, sprites[boxSprite].y + getTextureHeight(tex) + 5 , 1, 1, 1, 0);
+                    int shadowSprite = create_sprite(load_sprite_texture_satiator("/satiator-rings/gfx", "SHDW.TGA"), 0, sprites[boxSprite].y + getTextureHeight(tex) + 5 , 1, 1, 1, 0);
                     
                     sprites[shadowSprite].x = sprites[boxSprite].x + 2;
                     sprites[shadowSprite].y = sprites[boxSprite].y + getTextureHeight(tex) + 5;

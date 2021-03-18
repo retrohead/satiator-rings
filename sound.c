@@ -66,6 +66,8 @@ void loadSfx(enum sfxType type)
         case SFX_OPTION:
             jo_audio_load_pcm("OPTION.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
+        case MAX_SFX:
+            break;
     }
 }
 void processSfxDelays()
