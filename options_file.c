@@ -20,6 +20,9 @@ void defaultOptions()
             case OPTIONS_LIST_MODE:
                 options[i] = 0;
                 break;
+            case OPTIONS_LIST_CATEGORY:
+                options[i] = 0;
+                break;
             case OPTIONS_AUTO_PATCH:
                 options[i] = 0;
                 break;
@@ -71,6 +74,8 @@ void initOptions()
                 sscanf(oneline, "autopatch=%d", &options[OPTIONS_AUTO_PATCH]);
             if(!strncmp(oneline, "listmode", 8))
                 sscanf(oneline, "listmode=%d", &options[OPTIONS_LIST_MODE]);
+            if(!strncmp(oneline, "listcat", 7))
+                sscanf(oneline, "listcat=%d", &options[OPTIONS_LIST_CATEGORY]);
             if(!strncmp(oneline, "volume", 6))
                 sscanf(oneline, "volume=%d", &options[OPTIONS_SOUND_VOLUME]);
             if(!strncmp(oneline, "desccache", 9))
@@ -133,6 +138,9 @@ bool saveOptions()
     s_write(fw, line, strlen(line));
     
     sprintf(line, "listmode=%d\r\n", options[OPTIONS_LIST_MODE]);
+    s_write(fw, line, strlen(line));
+    
+    sprintf(line, "listcat=%d\r\n", options[OPTIONS_LIST_CATEGORY]);
     s_write(fw, line, strlen(line));
     
     sprintf(line, "volume=%d\r\n", options[OPTIONS_SOUND_VOLUME]);

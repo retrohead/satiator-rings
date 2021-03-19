@@ -48,9 +48,15 @@ int compareDirEntry(const void *pa, const void *pb) {
         return 1;
     if (a->type != DIR_NULL && b->type == DIR_NULL)
         return -1;
-    return strcmp(a->name, b->name);
+    char * fn_a = strrchr(a->name, '/');
+    if(!fn_a)
+        fn_a = a->name;
+    char * fn_b = strrchr(b->name, '/');
+    if(!fn_b)
+        fn_b = b->name;
+    return strcmp(fn_a, fn_b);
 }
-void sortDirEntries() {
+void sortDirEntries(){
     qsort(dirEntries, dirEntryCount, sizeof(dirEntry), compareDirEntry);
 }
 void loadFileList(char * directory, int (*filter)(dirEntry *entry))
@@ -122,7 +128,7 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
     }
     sortDirEntries();
 }
-void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem)
+void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem, bool drawSprites)
 {
     if(selectedDirEntry > 0)
     {
@@ -137,12 +143,15 @@ void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem)
         if(listOffset < 0)
             listOffset = 0;
     }
-    playSfx(sfx, false);
-    updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
-    draw_sprites();
-    slSynch();
+    if(drawSprites)
+    {
+        playSfx(sfx, false);
+        updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
+        draw_sprites();
+        slSynch();
+    }
 }
-void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionItem)
+void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionItem, bool drawSprites)
 {
     if(selectedDirEntry < dirEntryCount - 1)
     {
@@ -154,10 +163,13 @@ void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionIte
         selectedDirEntry = 0;
         listOffset = 0;
     }
-    playSfx(sfx, false);
-    updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
-    draw_sprites();
-    slSynch();
+    if(drawSprites)
+    {
+        playSfx(sfx, false);
+        updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
+        draw_sprites();
+        slSynch();
+    }
 }
 
 void displayDirListItemText(char * nam, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)

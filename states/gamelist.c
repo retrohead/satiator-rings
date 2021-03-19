@@ -12,13 +12,6 @@ float BOX_BOUNCE_VELOCITY = 0.02f;
 
 enum routine_state_types game_list_state = ROUTINE_STATE_INITIALIZE;
 
-enum game_list_display_types
-{
-    GAME_LIST_STANDARD,
-    GAME_LIST_FAVOURITES,
-    GAME_LIST_RECENT_HISTORY,
-};
-
 typedef struct
 {
     char path[1024];
@@ -441,7 +434,8 @@ void logic_gamelist()
     static enum prog_state_types exit_state = PROG_STATE_SPLASH;
     static int depth = 0;
     static bool triggersHeld = false;
-    static enum game_list_display_types display_type = GAME_VIEW_TEXT_AND_IMAGE;
+    static enum game_list_display_types display_type = GAME_LIST_STANDARD;
+    static bool firstrun = true;
     int maxlistItems = GAME_LIST_MAX_ITEMS;
     switch(game_list_state)
     {
@@ -453,7 +447,9 @@ void logic_gamelist()
             routine_scene = 0;
             gameBox.tex = -1;
             gameBox.sprite = -1;
-            display_type = options[OPTIONS_LIST_MODE];
+            if(firstrun)
+                display_type = options[OPTIONS_LIST_CATEGORY];
+            firstrun = false;
             strcpy(gameBox.path, "");
             triggersHeld = false;
             switch(display_type)
@@ -466,6 +462,8 @@ void logic_gamelist()
                     break;
                 case GAME_LIST_RECENT_HISTORY:
                     loadIniList("recent.ini", false, "", false);
+                    break;
+                case GAME_LIST_DISPLAY_MAX_COUNT:
                     break;
             }
             setMaxListLength(GAME_LIST_MAX_ITEM_LEN);
@@ -489,6 +487,8 @@ void logic_gamelist()
                     break;
                 case GAME_LIST_RECENT_HISTORY:
                     logic_gamelist_recents(&display_type, &exit_state, triggersHeld, &depth);
+                    break;
+                case GAME_LIST_DISPLAY_MAX_COUNT:
                     break;
             }
 
@@ -527,7 +527,7 @@ void logic_gamelist()
                             break;
                         }
                         listScrolldelay = 0;
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
                         displayGameList(triggersHeld);
                         break;
                     case DOWN:
@@ -537,7 +537,7 @@ void logic_gamelist()
                             break;
                         }
                         listScrolldelay = 0;
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
                         displayGameList(triggersHeld);
                         break;
                 }
@@ -547,17 +547,42 @@ void logic_gamelist()
                 switch(pad_controllers[0].direction_id)
                 {
                     case LEFT:
+                    case DOWN_LEFT:
+                    case UP_LEFT:
+                        listScrolldelay = 0;
+                        if(dirEntryCount > GAME_LIST_MAX_ITEMS)
+                        {
+                            for(int i=0;i< GAME_LIST_MAX_ITEMS - 1;i++)
+                            {
+                                moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), false);
+                                if(selectedDirEntry == 1)
+                                    break;
+                            }
+                        }
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
                         break;
                     case RIGHT:
-                        break;
+                    case DOWN_RIGHT:
+                    case UP_RIGHT:
+                        listScrolldelay = 0;
+                        if(dirEntryCount > GAME_LIST_MAX_ITEMS)
+                        {
+                            for(int i=0;i< GAME_LIST_MAX_ITEMS - 1;i++)
+                            {
+                                moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), false);
+                                if(selectedDirEntry == dirEntryCount - 2)
+                                    break;
+                            }
+                        }
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                         break;
                     case UP:
                         listScrolldelay = 0;
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
                         break;
                     case DOWN:
-                        sprites[selectionSprite].scale_y -= 0.1f;
                         listScrolldelay = 0;
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
                         break;
                 }
                 displayGameList(triggersHeld);

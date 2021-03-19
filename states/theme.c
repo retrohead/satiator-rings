@@ -109,7 +109,7 @@ void logic_themelist()
                             break;
                         }
                         listScrolldelay = 0;
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, false);
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, false, true);
                         displayThemeList(triggersHeld);
                         break;
                     case DOWN:
@@ -119,7 +119,7 @@ void logic_themelist()
                             break;
                         }
                         listScrolldelay = 0;
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, false);
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, false, true);
                         displayThemeList(triggersHeld);
                         break;
                 }
@@ -134,12 +134,12 @@ void logic_themelist()
                         break;
                     case UP:
                         listScrolldelay = 0;
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, false);
+                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, false, true);
                         break;
                     case DOWN:
                         sprites[selectionSprite].scale_y -= 0.1f;
                         listScrolldelay = 0;
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, false);
+                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, false, true);
                         break;
                 }
                 displayThemeList(triggersHeld);

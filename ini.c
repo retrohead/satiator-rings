@@ -67,7 +67,7 @@ void writeIniList(char * fn, char * deleteEntry)
 }
 bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort)
 {
-    bool ret = loadIniList(ini, false, fn, addStart);
+    bool ret = loadIniList(ini, sort, fn, addStart);
     writeIniList(ini, NULL);
     if(!keepList)
     {
@@ -76,9 +76,11 @@ bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort
             if(dirEntries[i].name != NULL)
                 jo_free(dirEntries[i].name);
         }
-    }
-    if(sort)
+        dirEntryCount = 0;
+    } else if(sort)
+    {
         sortDirEntries();
+    }
     return ret;
 }
 void addDirEntryItem(char * fn)

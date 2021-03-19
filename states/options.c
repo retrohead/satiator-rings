@@ -19,6 +19,19 @@ char * getListTypeName(int value)
     }
     return "list type err";
 }
+char * getListCategoryName(int value)
+{
+    switch(value)
+    {
+        case GAME_LIST_STANDARD:
+            return "      Default Category  <Standard>";
+        case GAME_LIST_FAVOURITES:
+            return "      Default Category  <Favourite>";
+        case GAME_LIST_RECENT_HISTORY:
+            return "     Default Category  <History>";
+    }
+    return "list cat err";
+}
 static char * getOptionName(enum optionsType option, int value)
 {
     static char optionName[40];
@@ -26,6 +39,8 @@ static char * getOptionName(enum optionsType option, int value)
     {
         case OPTIONS_LIST_MODE:
             return getListTypeName(value);
+        case OPTIONS_LIST_CATEGORY:
+            return getListCategoryName(value);
         case OPTIONS_AUTO_PATCH:
             if(value == 0)
                 return "Auto Region Patch <Off>";
@@ -80,6 +95,13 @@ void logic_options()
                             options[selectedMenuOption] = 0;
                         if(options[selectedMenuOption] < 0)
                             options[selectedMenuOption] = GAME_VIEW_MAX_COUNT - 1;
+                        break;
+                    case OPTIONS_LIST_CATEGORY:
+                        options[selectedMenuOption] += changed;
+                        if(options[selectedMenuOption] >= GAME_LIST_DISPLAY_MAX_COUNT)
+                            options[selectedMenuOption] = 0;
+                        if(options[selectedMenuOption] < 0)
+                            options[selectedMenuOption] = GAME_LIST_DISPLAY_MAX_COUNT - 1;
                         break;
                     case OPTIONS_AUTO_PATCH:
                     case OPTIONS_DESC_CACHE:
