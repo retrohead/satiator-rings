@@ -441,16 +441,18 @@ void logic_gamelist()
     {
         case ROUTINE_STATE_INITIALIZE:
             applyTheme();
+            gameBox.tex = -1;
             createGuiBoxes("GAME.TGA", true);
             defaultBoxTex = load_sprite_texture_satiator("/satiator-rings/gfx", "SBOX.TGA");
-            shadowSprite = create_sprite(load_sprite_texture_satiator("/satiator-rings/gfx", "SHDW.TGA"), 320, 240, 0, 1, 1, 0);
+            strcpy(gameBox.path, "/satiator-rings/themes/");
+            strcat(gameBox.path, loadedThemeName);
+            shadowSprite = create_sprite(load_sprite_texture_satiator(gameBox.path, "SHDW.TGA"), 320, 240, 0, 1, 1, 0);
+            strcpy(gameBox.path, "");
             routine_scene = 0;
-            gameBox.tex = -1;
             gameBox.sprite = -1;
             if(firstrun)
                 display_type = options[OPTIONS_LIST_CATEGORY];
             firstrun = false;
-            strcpy(gameBox.path, "");
             triggersHeld = false;
             switch(display_type)
             {

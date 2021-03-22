@@ -72,11 +72,11 @@ void logic_options()
             clearMenuOptions();
             for(int i=0;i<OPTIONS_COUNT;i++)
             {
-                createMenuOption(getOptionName(i, options[i]), PROG_STATE_OPTIONS, OPTION_CHANGE_VARIABLE, 8 + i);
+                createMenuOption(getOptionName(i, options[i]), PROG_STATE_OPTIONS, OPTION_CHANGE_VARIABLE, 8 + i, SFX_BACK);
             }
-            createMenuOption("Theme Selection", PROG_STATE_THEME, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT);
-            createMenuOption("Save", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 2);
-            createMenuOption("Cancel", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 3);
+            createMenuOption("Theme Selection", PROG_STATE_THEME, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 1, SFX_SLIDE);
+            createMenuOption("Save", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 3, SFX_OPTION);
+            createMenuOption("Cancel", PROG_STATE_MENU, OPTION_PROGRAM_STATE, 8 + OPTIONS_COUNT + 4, SFX_CHANGE);
             displayMenuOptions(selectedMenuOption);
             displayVersion();
             options_state = ROUTINE_STATE_RUN;

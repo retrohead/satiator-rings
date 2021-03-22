@@ -10,7 +10,7 @@ enum themePalEntryTypes
     PAL_COL_FONT,
     PAL_COL_SELECTOR,
     PAL_COL_WHITE,
-    PAL_COL_RANDOM_BLUE,
+    PAL_COL_BOX_BG,
     PAL_COL_BG,
 
     /* end */

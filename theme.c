@@ -54,7 +54,7 @@ void defaultThemeColour(enum themePalEntryTypes type)
             loadedTheme.colours[type].g = 255;
             loadedTheme.colours[type].b = 255;
             break;
-        case PAL_COL_RANDOM_BLUE: // not used anywhere yet
+        case PAL_COL_BOX_BG:
             loadedTheme.colours[type].r = 255;
             loadedTheme.colours[type].g = 255;
             loadedTheme.colours[type].b = 255;
@@ -74,6 +74,7 @@ jo_palette          *theme_palette_handling(void)
     jo_create_palette(&main_palette);
     main_palette.data[2 + PAL_COL_FONT] = JO_COLOR_Red;
     main_palette.data[2 + PAL_COL_BG] = JO_COLOR_Red;
+    main_palette.data[2 + PAL_COL_BOX_BG] = JO_COLOR_White;
     main_palette.data[2 + PAL_COL_WHITE] = JO_COLOR_White;
     main_palette.data[2 + PAL_COL_SELECTOR] = JO_COLOR_RGB(251, 221, 221);
     return (&main_palette);
@@ -105,6 +106,8 @@ bool loadThemeFile(char * theme)
                     sscanf(oneline, "bg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BG].r, &loadedTheme.colours[PAL_COL_BG].g, &loadedTheme.colours[PAL_COL_BG].b);
                 if(!strncmp(oneline, "selector", 8))
                     sscanf(oneline, "selector=%d,%d,%d", &loadedTheme.colours[PAL_COL_SELECTOR].r, &loadedTheme.colours[PAL_COL_SELECTOR].g, &loadedTheme.colours[PAL_COL_SELECTOR].b);
+                if(!strncmp(oneline, "boxbg", 5))
+                    sscanf(oneline, "boxbg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BOX_BG].r, &loadedTheme.colours[PAL_COL_BOX_BG].g, &loadedTheme.colours[PAL_COL_BOX_BG].b);
                 oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
                 themeLoaded = true;
             }

@@ -17,12 +17,12 @@ void logic_menu()
             routine_scene = 0;
             createGuiBoxes("MENU.TGA", true);
             clearMenuOptions();
-            createMenuOption("Game List", PROG_STATE_GAMELIST, OPTION_PROGRAM_STATE, 8);
-            createMenuOption("Console Information", PROG_STATE_CONSOLE_INFO, OPTION_PROGRAM_STATE, 9);
-            createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO, OPTION_PROGRAM_STATE, 10);
-            createMenuOption("Options", PROG_STATE_OPTIONS, OPTION_PROGRAM_STATE, 11);
-            createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE, 13);
-            createMenuOption("Reboot Console", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 14);
+            createMenuOption("Game List", PROG_STATE_GAMELIST, OPTION_PROGRAM_STATE, 8, SFX_CHANGE);
+            createMenuOption("Console Information", PROG_STATE_CONSOLE_INFO, OPTION_PROGRAM_STATE, 9, SFX_SELECT);
+            createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO, OPTION_PROGRAM_STATE, 10, SFX_SELECT);
+            createMenuOption("Options", PROG_STATE_OPTIONS, OPTION_PROGRAM_STATE, 11, SFX_CHANGE);
+            createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE, 13, SFX_SELECT);
+            createMenuOption("Reboot Console", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 14, SFX_SELECT);
             displayVersion();
             displayMenuOptions(selectedMenuOption);
             menu_state = ROUTINE_STATE_RUN;

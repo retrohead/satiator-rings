@@ -18,7 +18,7 @@ void clearMenuOptions()
     }
 }
 
-void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type, int row)
+void createMenuOption(const char * txt, enum prog_state_types state, enum menu_option_types type, int row, int sfx)
 {
     if(usedMenuOptions >= MAX_MENU_OPTIONS)
         return;
@@ -30,6 +30,7 @@ void createMenuOption(const char * txt, enum prog_state_types state, enum menu_o
             strcpy(menuOptions[i].txt, txt);
             menuOptions[i].type = type;
             menuOptions[i].row = row;
+            menuOptions[i].sfx = sfx;
             usedMenuOptions++;
             return;
         }
@@ -112,17 +113,17 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
         }
         displayMenuOptions(*selectedOption);
     }
+    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    {
+        playSfx(SFX_CHANGE, false);
+        *menu_state = ROUTINE_STATE_END;
+        return 0;
+    }
     if(menuOptions[*selectedOption].type == OPTION_PROGRAM_STATE)
     {
-        if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
-        {
-            playSfx(SFX_CHANGE, false);
-            *menu_state = ROUTINE_STATE_END;
-            return 0;
-        }
         if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
         {
-            playSfx(SFX_SLIDE, false);
+            playSfx(menuOptions[*selectedOption].sfx, false);
             *menu_state = ROUTINE_STATE_END;
             if(usedMenuOptions > 0)
                 *exit_state = menuOptions[*selectedOption].prog_state;

@@ -94,6 +94,8 @@ void initOptions()
                 sscanf(oneline, "bg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BG].r, &loadedTheme.colours[PAL_COL_BG].g, &loadedTheme.colours[PAL_COL_BG].b);
             if(!strncmp(oneline, "selector", 8))
                 sscanf(oneline, "selector=%d,%d,%d", &loadedTheme.colours[PAL_COL_SELECTOR].r, &loadedTheme.colours[PAL_COL_SELECTOR].g, &loadedTheme.colours[PAL_COL_SELECTOR].b);
+            if(!strncmp(oneline, "boxbg", 5))
+                sscanf(oneline, "boxbg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BOX_BG].r, &loadedTheme.colours[PAL_COL_BOX_BG].g, &loadedTheme.colours[PAL_COL_BOX_BG].b);
             oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
             themeLoaded = true;
         }             
@@ -149,7 +151,7 @@ bool saveOptions()
     sprintf(line, "desccache=%d\r\n", options[OPTIONS_DESC_CACHE]);
     s_write(fw, line, strlen(line));
 
-    s_write(fw, "[THEME]", 7);
+    s_write(fw, "[THEME]\r\n", 9);
     sprintf(line, "name=%s\r\n", loadedThemeName);
     s_write(fw, line, strlen(line));
     sprintf(line, "font=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_FONT].r, loadedTheme.colours[PAL_COL_FONT].g, loadedTheme.colours[PAL_COL_FONT].b);
@@ -157,6 +159,8 @@ bool saveOptions()
     sprintf(line, "bg=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_BG].r, loadedTheme.colours[PAL_COL_BG].g, loadedTheme.colours[PAL_COL_BG].b);
     s_write(fw, line, strlen(line));
     sprintf(line, "selector=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_SELECTOR].r, loadedTheme.colours[PAL_COL_SELECTOR].g, loadedTheme.colours[PAL_COL_SELECTOR].b);
+    s_write(fw, line, strlen(line));
+    sprintf(line, "boxbg=%d,%d,%d\r\n", loadedTheme.colours[PAL_COL_BOX_BG].r, loadedTheme.colours[PAL_COL_BOX_BG].g, loadedTheme.colours[PAL_COL_BOX_BG].b);
     s_write(fw, line, strlen(line));
 
     s_write(fw, "[END]", 5);

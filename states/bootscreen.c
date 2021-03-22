@@ -36,12 +36,12 @@ void logic_bootscreen()
             routine_scene = 0;
             if(prog_state != PROG_STATE_QUICKBOOT)
             {
-                create_sprite(load_gui_texture(PAL_COL_WHITE), 160, 120, 3, 50.0, 50.0, 0);
-                draw_sprites();
-                slSynch();
 
                 if(strcmp(dirEntries[selectedDirEntry].name, "origmenu"))
                 {
+                    create_sprite(load_gui_texture(PAL_COL_BOX_BG), 160, 120, 3, 50.0, 50.0, 0);
+                    draw_sprites();
+                    slSynch();
                     char bootname[256];
                     strcpy(bootname, dirEntries[selectedDirEntry].name);
                     const char * dot = strrchr(bootname, '.');
@@ -54,7 +54,9 @@ void logic_bootscreen()
                     if(tex < 0)
                         tex = load_sprite_texture("TEX", "SBOX.TGA"); // no boxart found so using default
                     int boxSprite = create_sprite(tex, 160 - (getTextureWidth(tex) / 2), 120 - getTextureHeight(tex), 1, 1, 1, 0);
-                    int shadowSprite = create_sprite(load_sprite_texture_satiator("/satiator-rings/gfx", "SHDW.TGA"), 0, sprites[boxSprite].y + getTextureHeight(tex) + 5 , 1, 1, 1, 0);
+                    strcpy(bootname, "/satiator-rings/themes/");
+                    strcat(bootname, loadedThemeName);
+                    int shadowSprite = create_sprite(load_sprite_texture_satiator(bootname, "SHDW.TGA"), 0, sprites[boxSprite].y + getTextureHeight(tex) + 5 , 1, 1, 1, 0);
                     
                     sprites[shadowSprite].x = sprites[boxSprite].x + 2;
                     sprites[shadowSprite].y = sprites[boxSprite].y + getTextureHeight(tex) + 5;
@@ -67,6 +69,9 @@ void logic_bootscreen()
                     }
                 } else
                 {
+                    create_sprite(load_gui_texture(PAL_COL_WHITE), 160, 120, 3, 50.0, 50.0, 0);
+                    draw_sprites();
+                    slSynch();
                     main_palette.data[2] = JO_COLOR_Red;
                     centerText(20, "Loading");
                     logosprites[0] = create_sprite(load_sprite_texture("TEX", "S.TGA"), 80, 20, 2, 1.0, 1.0, 0);

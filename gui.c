@@ -24,10 +24,8 @@ void createGuiBoxes(char * headerTexture, bool withSelectionSprite)
     char * dir = jo_malloc(512);
     sprintf(dir, "/satiator-rings/themes/%s", loadedThemeName);
 
-    //boxTexture = load_sprite_texture("TEX", "BLANK.TGA");
-    boxTexture = load_gui_texture(PAL_COL_WHITE);
+    boxTexture = load_gui_texture(PAL_COL_BOX_BG);
     boxCornerTexture = load_sprite_texture_satiator(dir, "CORNER.TGA");
-
     create_sprite(load_sprite_texture_satiator(dir, headerTexture), 0, 4, 1, 1, 1, 0);
     create_sprite(load_sprite_texture_satiator(dir, "RINGS.TGA"), 192, 4, 1, 1, 1, 0);
     
@@ -108,6 +106,7 @@ void updateGuiPalette()
         main_palette.data[2 + PAL_COL_SELECTOR] = JO_COLOR_RGB(251, 221, 221);
         main_palette.data[2 + PAL_COL_WHITE] = JO_COLOR_White;
         main_palette.data[2 + PAL_COL_BG] = JO_COLOR_Red;
+        main_palette.data[2 + PAL_COL_BOX_BG] = JO_COLOR_White;
     }
 }
 int load_gui_texture(enum themePalEntryTypes palId)

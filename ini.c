@@ -130,6 +130,7 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
                 if(addItem && !strcmp(addItemStr, oneline))
                 {
                     ret = false;
+                    addDirEntryItem(oneline);
                     oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
                     continue;
                 }
