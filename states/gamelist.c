@@ -174,10 +174,9 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
     {
         playSfx(SFX_OPTION, false);
         char * addFav = jo_malloc(1024);
-        strcpy(addFav, "");
+        strcpy(addFav, currentDirectory);
         if(strcmp(currentDirectory, "/"))
         {
-            strcpy(addFav, currentDirectory);
             strcat(addFav, "/");
         }
         strcat(addFav, dirEntries[selectedDirEntry].name);

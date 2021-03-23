@@ -206,8 +206,6 @@ void displayDirListItemText(char * nam, int ypos, bool selected, enum dirEntryTy
             }
         }
     }
-    if((nam[0] != '\0') && (nam[1] == '\0'))
-        strcpy(nam, "/");
     nam[maxListLen] = '\0'; // truncate to the max length
     if((type == DIR_DIRECTORY) || (type == DIR_SHORTCUT_FOLDER))
     {
@@ -220,7 +218,7 @@ void displayDirListItemText(char * nam, int ypos, bool selected, enum dirEntryTy
         strcat(nam, " ");
         len++;
     }
-    jo_nbg2_printf(1, ypos, nam);
+    jo_nbg2_printf(1, ypos, "%s", nam);
 }
 void displayDirListItem(const char * name, int ypos, bool selected, enum dirEntryType type, bool triggersHeld)
 {
