@@ -5,6 +5,7 @@ SET PATH=%COMPILER_DIR%\WINDOWS\Other Utilities;%PATH%
 
 rm -f ./cd/0.bin
 rm -f *.o
+rm -f ./libsatiator/*.o
 rm -f ./satiator/*.o
 rm -f ./satiator/iapetus/disc_format*.o
 rm -f ./satiator/iapetus/*.o
