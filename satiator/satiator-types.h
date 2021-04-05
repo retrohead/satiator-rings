@@ -68,35 +68,6 @@ typedef enum {
 #define C_SEEK_CUR  1
 #define C_SEEK_END  2
 
-// CD image descriptor
-typedef struct {
-    uint32_t start;             // FAD
-    uint32_t length;            // sectors
-
-    uint32_t file_offset;       // byte offset within file where segment data starts
-    uint32_t filename_offset;   // byte offset within descfile where filename is. zero for no data
-
-    uint16_t flags;             // future proofing
-    uint16_t secsize;           // 2048 or 2352
-
-    uint8_t track;              // 1-99 for disc tracks.
-    uint8_t index;              // typically 0 for pregap, 1 for track, others not used. track MSF counts backwards in pregap
-    uint8_t q_mode;             // typically 0x41 (data) or 0x01 (audio)
-
-} __attribute__((packed)) seg_desc_t;
-
-// Satiator cart descriptor header, version 1
-// This is written somewhere on a top slot Flash cart (eg. Action Replay) on a 0x100 byte boundary
-// All offsets are relative to the start of this header
-typedef struct {
-    uint8_t signature[12];  // ASCII: "SatiatorCart"
-    int32_t header_version; // 1 for this struct
-    uint8_t version_str[32];// ASCII
-
-    // Jumping to this address should be equivalent to booting the cart directly
-    void (*bootcode)(void);
-
-    void (*install_soft_reset_hook)(void);
-} __attribute__((packed)) satiator_cart_header_t;
+static char statBuf[280]
 
 #endif // _SATISFIER_H

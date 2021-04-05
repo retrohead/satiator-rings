@@ -22,7 +22,8 @@ void logic_menu()
             createMenuOption("Satiator Information", PROG_STATE_SATIATOR_INFO, OPTION_PROGRAM_STATE, 10, SFX_SELECT);
             createMenuOption("Options", PROG_STATE_OPTIONS, OPTION_PROGRAM_STATE, 11, SFX_CHANGE);
             createMenuOption("Launch Satiator Menu", PROG_STATE_EXIT_TO_MENU, OPTION_PROGRAM_STATE, 13, SFX_SELECT);
-            createMenuOption("Reboot Console", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 14, SFX_SELECT);
+            createMenuOption("Launch Multiplayer", PROG_STATE_EXIT_TO_MULIPLAYER, OPTION_PROGRAM_STATE, 14, SFX_SELECT);
+            createMenuOption("Reboot Console", PROG_STATE_EXIT, OPTION_PROGRAM_STATE, 15, SFX_SELECT);
             displayVersion();
             displayMenuOptions(selectedMenuOption);
             menu_state = ROUTINE_STATE_RUN;

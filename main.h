@@ -30,7 +30,7 @@
 #pragma once
 
 // program version, keep this length to avoid having to resize strings
-#define VERSION "4.1"
+#define VERSION "4.2"
 #define _GNU_SOURCE
 #define DEBUG
 
@@ -61,6 +61,7 @@ enum prog_state_types
     PROG_STATE_CONSOLE_INFO,
     PROG_STATE_SATIATOR_INFO,
     PROG_STATE_EXIT,
+    PROG_STATE_EXIT_TO_MULIPLAYER,
     PROG_STATE_EXIT_TO_MENU
 };
 

@@ -155,7 +155,7 @@ void displayGameList(bool triggersHeld)
 void logic_gamelist_standard(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
     jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
-    if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
+    if (pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
@@ -170,7 +170,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         loadIniList("favs.ini", true, "", false);
         displayGameList(triggersHeld);
     }
-    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    if (pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_OPTION, false);
         char * addFav = jo_malloc(1024);

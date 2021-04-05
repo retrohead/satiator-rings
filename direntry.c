@@ -82,7 +82,9 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
         // UNIX hidden files, except .. when present
         if (st->name[0] == '.' && strcmp(st->name, ".."))
             continue;
-        if(!strncmp(st->name, "satiator-rings", 14))
+        if(!strncmp(st->name, "satiator-rings", 14) && !strcmp(currentDirectory, "/"))
+            continue;
+        if(!strncmp(st->name, "autoboot", 8) && !strcmp(currentDirectory, "/"))
             continue;
         // thanks Windows
         if (!strncmp(st->name, "System Volume Information", 25))
@@ -98,7 +100,7 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
             strcpy(dirEntries[dirEntryCount].name, st->name);
             const char *dot = strrchr(dirEntries[dirEntryCount].name, '.');
             const char *extension = dot + 1;
-            if (strncmp(extension, "cue", 3) && strncmp(extension, "iso", 3))
+            if (strncmp(extension, "cue", 3) && strncmp(extension, "iso", 3) && strncmp(extension, "elf", 3))
                 dirEntries[dirEntryCount].type = DIR_FILE;
             else
                 dirEntries[dirEntryCount].type = DIR_GAME;

@@ -1,7 +1,6 @@
 #include <jo/jo.h>
-#include "../satiator-types.h"
-#include "bios.h"
 #include "types.h"
+#include "bios.h"
 #include "cd/cd.h"
 #include "cd/cdsect.h"
 #include "peripherals/smpc.h"

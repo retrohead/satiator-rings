@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include "satiator/satiator.h"
-#include "satiator/satiator-types.h"
+#include "libsatiator/satiator.h"
 #include "satiator/disc_format/cdparse.h"
 #include "direntry.h"
 
@@ -25,6 +24,7 @@ enum SATIATOR_STATE
     SATIATOR_STATE_NOT_FOUND,
     SATIATOR_STATE_NOT_WORKING
 };
+extern char statbuf[280];
 
 extern enum SATIATOR_STATE satiatorState;
 extern int satiatorExecutableFilter(dirEntry *entry);

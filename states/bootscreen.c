@@ -52,7 +52,7 @@ void logic_bootscreen()
                     // load the game boxart from the current directory
                     int tex = load_sprite_texture_satiator(JO_NULL, "BOX.TGA");
                     if(tex < 0)
-                        tex = load_sprite_texture("TEX", "SBOX.TGA"); // no boxart found so using default
+                        tex = load_sprite_texture_satiator("/satiator-rings/gfx", "SBOX.TGA"); // no boxart found so using default
                     int boxSprite = create_sprite(tex, 160 - (getTextureWidth(tex) / 2), 120 - getTextureHeight(tex), 1, 1, 1, 0);
                     strcpy(bootname, "/satiator-rings/themes/");
                     strcat(bootname, loadedThemeName);

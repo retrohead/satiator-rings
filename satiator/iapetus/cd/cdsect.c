@@ -19,7 +19,7 @@
 
 #include <jo/jo.h>
 #include "cd.h"
-#include "../../satiator-types.h"
+#include "../types.h"
 
 int cd_put_sector_data(u8 sel_num, u16 num_sectors)
 {

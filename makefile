@@ -14,6 +14,7 @@ JO_COMPILE_USING_SGL=1
 SRCS=$(wildcard *.c)
 SRCS+=$(wildcard states/*.c)
 SRCS+=$(wildcard satiator/*.c)
+SRCS+=$(wildcard libsatiator/*.c)
 SRCS+=$(wildcard satiator/disc_format/cue2desc.c)
 SRCS+=$(wildcard satiator/disc_format/cdparse.c)
 SRCS+=$(wildcard satiator/iapetus/cd/*.c)

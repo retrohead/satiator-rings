@@ -1,5 +1,3 @@
-#include "satiator-types.h"
-
 static uint16_t htole16(uint16_t in) {
     return (in<<8) | (in>>8);
 }

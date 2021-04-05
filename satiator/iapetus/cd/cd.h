@@ -20,7 +20,7 @@
 #ifndef CD_H
 #define CD_H
 
-#include "../../satiator-types.h"
+#include "../types.h"
 
 enum IAPETUS_ERR
 {

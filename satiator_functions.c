@@ -1,6 +1,7 @@
 #include <jo/jo.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "bios.h"
 #include "satiator/iapetus/iapetus.h"
 #include "satiator/disc_format/cdparse.h"
@@ -12,6 +13,7 @@
 enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
 extern void addItemToRecentHistory();
 int patchModeRequired = 0;
+char statbuf[280];
 
 enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir)
 {
@@ -305,6 +307,8 @@ bool satiatorPatchDescFileImage(const char * curRegion)
 int satiatorLaunchOriginalMenu()
 {
     s_chdir("/");
+    //s_reset_to_satiator();
+        s_chdir("/");
     s_stat_t *st = (s_stat_t*)statbuf;
     int fr = s_stat("menu.bin", st, sizeof(statbuf)-1);
     if (fr < 0)
@@ -333,7 +337,9 @@ int satiatorLaunchOriginalMenu()
         readBytes += readSize;
     }
     s_close(fr);
-    ((void(*)(void))0x200000)();
+    //((void(*)(void))0x200000)();
+    void (*entry)(uint32_t) = (void*)0x200000;
+    entry(S_BOOT_NO_AUTOLOAD);
     return 1; // should never get here
 }
 // try launching a file, return an error if it fails, make sure filename[0] contains the file with the region data before running this
@@ -354,14 +360,29 @@ enum SATIATOR_ERROR_CODE satiatorLaunchDescFile(char * fn)
     centerTextVblank(20, "Booting Disc");
     return satiatorEmulateDesc(fn);
 }
+
+void elf_launch(const char *filename);
+extern const char *elf_error;
+enum SATIATOR_ERROR_CODE satiatorTryLaunchELF(char * fn)
+{
+    elf_launch(fn);
+    if(elf_error)
+    {
+        cdparse_set_error(elf_error);
+        return SATIATOR_LAUNCH_ERR;
+    }
+    return SATIATOR_SUCCESS; // should never get here
+}
 enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
 {
     if (!strncmp(fn, "origmenu", 8))
     {
         centerTextVblank(20, "Booting Menu");
         return satiatorLaunchOriginalMenu();
-    }
-    if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
+    }else if (!strncmp(&fn[strlen(fn) - 4], ".elf", 4))
+    {
+        return satiatorTryLaunchELF(fn);
+    } else if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
     {
         if(satiatorLoadFirstFileInDesc(fn))
             return satiatorLaunchDescFile(fn);
@@ -400,12 +421,10 @@ int satiatorExecutableFilter(dirEntry *entry) {
     int len = strlen(entry->name);
     if (!strncmp(&entry->name[len-4], ".cue", 4))
         return 1;
-    //if (!strncmp(&entry->name[len-4], ".bin", 4))
-    //    return 1;
     if (!strncmp(&entry->name[len-4], ".iso", 4))
         return 1;
-    //if (!strncmp(&entry->name[len-5], ".desc", 5))
-    //    return 1;
+    if (!strncmp(&entry->name[len-4], ".elf", 4))
+        return 1;
     return 0;
 }
 

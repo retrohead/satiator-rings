@@ -65,9 +65,8 @@ char *my_strdup(const char *str) {
 
 #ifdef TEST
     #define dbgprintf printf
-    #include "../satiator-types.h"
 #else
-    #include "../satiator.h"
+    #include "../../libsatiator/satiator.h"
     #ifdef assert
         #undef assert
     #endif

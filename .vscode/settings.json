@@ -71,6 +71,7 @@
         "sound.h": "c",
         "direntry.h": "c",
         "options_file.h": "c",
-        "theme.h": "c"
+        "theme.h": "c",
+        "types.h": "c"
     }
 }

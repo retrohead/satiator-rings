@@ -1,3 +1,4 @@
+#include <string.h>
 #include "main.h"
 #include "satiator_functions.h"
 

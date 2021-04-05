@@ -24,7 +24,7 @@
     #define dbgprintf printf
     #include "../satiator-types.h"
 #else
-    #include "../satiator.h"
+    #include "../../libsatiator/satiator.h"
 #endif
 
 char *cdparse_error_string = NULL;

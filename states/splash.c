@@ -1,11 +1,12 @@
 #define MAX_SPLASH_FRAME 20
 
 #include <jo/jo.h>
+#include <string.h>
 #include "../main.h"
 #include "../ini.h"
 #include "../debug.h"
 #include "routine_states.h"
-#include "../satiator/satiator.h"
+#include "../libsatiator/satiator.h"
 #include "../satiator_functions.h"
 
 enum routine_state_types splash_state = ROUTINE_STATE_INITIALIZE;
