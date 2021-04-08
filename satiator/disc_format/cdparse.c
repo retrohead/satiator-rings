@@ -6,6 +6,7 @@
 
 #include <jo/jo.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 // #include <sys/types.h>
 // #include <sys/stat.h>
@@ -94,10 +95,10 @@ enum SATIATOR_ERROR_CODE image2desc(const char *infile, const char *outfile) {
 
    const char *extension = dot + 1;
 
-   if (!strncmp(extension, "cue", 3))
+   if (!strncasecmp(extension, "cue", 3))
       return cue2desc(infile, outfile);
 
-   if (!strncmp(extension, "iso", 3))
+   if (!strncasecmp(extension, "iso", 3))
    {
       strcpy(filenames[0], infile);
       return iso2desc(infile, outfile);

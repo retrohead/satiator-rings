@@ -121,6 +121,7 @@ int load_sprite_texture_satiator(const char *directory, const char *filename)
     }
     // allocate a buffer for the texture
     char * buf = (char *)jo_malloc_with_behaviour((st->size + 1) * sizeof(*buf), JO_MALLOC_TRY_REUSE_BLOCK);
+
     // try open the file
     fr = s_open(filename, FA_READ | FA_OPEN_EXISTING);
     if (fr < 0)
@@ -156,6 +157,7 @@ int load_sprite_texture_satiator(const char *directory, const char *filename)
             s_chdir(currentDirectory);
         return -1;
     }
+    JO_ZERO(buf[st->size]);
     // load the texture into joengine
     int tex = jo_sprite_add_tga_from_stream(buf, JO_COLOR_Transparent);
     jo_free(buf);

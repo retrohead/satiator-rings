@@ -1,6 +1,7 @@
 #include <jo/jo.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <stdio.h>
 #include "satiator_functions.h"
 #include "sprite_manager.h"
@@ -100,7 +101,7 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
             strcpy(dirEntries[dirEntryCount].name, st->name);
             const char *dot = strrchr(dirEntries[dirEntryCount].name, '.');
             const char *extension = dot + 1;
-            if (strncmp(extension, "cue", 3) && strncmp(extension, "iso", 3) && strncmp(extension, "elf", 3))
+            if (strncasecmp(extension, "cue", 3) && strncasecmp(extension, "iso", 3) && strncasecmp(extension, "elf", 3))
                 dirEntries[dirEntryCount].type = DIR_FILE;
             else
                 dirEntries[dirEntryCount].type = DIR_GAME;
@@ -148,7 +149,7 @@ void moveDirEntrySelectionUp(int maxlistItems, int sfx, bool shortSelectionItem,
     if(drawSprites)
     {
         playSfx(sfx, false);
-        updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
+        updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem, (dirEntryCount == 0));
         draw_sprites();
         slSynch();
     }
@@ -168,7 +169,7 @@ void moveDirEntrySelectionDown(int maxlistItems, int sfx, bool shortSelectionIte
     if(drawSprites)
     {
         playSfx(sfx, false);
-        updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem);
+        updateSelectionSprite(selectedDirEntry - listOffset + 5, shortSelectionItem, (dirEntryCount == 0));
         draw_sprites();
         slSynch();
     }

@@ -35,7 +35,7 @@ void displayThemeList(bool triggersHeld)
         }
         displayDirListItem(dirEntries[i].name, (i - listOffset) + 5, i==selectedDirEntry, dirEntries[i].type, triggersHeld);
     }
-    updateSelectionSprite((selectedDirEntry- listOffset) + 5, false);
+    updateSelectionSprite((selectedDirEntry- listOffset) + 5, false, false);
 }
 void logic_standard(enum prog_state_types * exit_state)
 {

@@ -66,13 +66,13 @@ void createGuiBoxes(char * headerTexture, bool withSelectionSprite)
     draw_sprites();
     slSynch();
 }
-void updateSelectionSprite(int row, bool shortStyle)
+void updateSelectionSprite(int row, bool shortStyle, bool hidden)
 {
     if(selectionSprite < 0)
         return;
     sprites[selectionSprite].y = (row * 8);
     sprites[selectionSprite].rot_angle = 0;
-    if(dirEntryCount == 0)
+    if(hidden)
     {
         sprites[selectionSprite].scale_x = 0.01;
         sprites[selectionSprite].scale_y = 0.01;

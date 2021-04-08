@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include "bios.h"
 #include "satiator/iapetus/iapetus.h"
 #include "satiator/disc_format/cdparse.h"
@@ -307,8 +308,6 @@ bool satiatorPatchDescFileImage(const char * curRegion)
 int satiatorLaunchOriginalMenu()
 {
     s_chdir("/");
-    //s_reset_to_satiator();
-        s_chdir("/");
     s_stat_t *st = (s_stat_t*)statbuf;
     int fr = s_stat("menu.bin", st, sizeof(statbuf)-1);
     if (fr < 0)
@@ -379,10 +378,10 @@ enum SATIATOR_ERROR_CODE satiatorTryLaunchFile(char * fn)
     {
         centerTextVblank(20, "Booting Menu");
         return satiatorLaunchOriginalMenu();
-    }else if (!strncmp(&fn[strlen(fn) - 4], ".elf", 4))
+    }else if (!strncasecmp(&fn[strlen(fn) - 4], ".elf", 4))
     {
         return satiatorTryLaunchELF(fn);
-    } else if (!strncmp(&fn[strlen(fn) - 5], ".desc", 5))
+    } else if (!strncasecmp(&fn[strlen(fn) - 5], ".desc", 5))
     {
         if(satiatorLoadFirstFileInDesc(fn))
             return satiatorLaunchDescFile(fn);
@@ -419,11 +418,11 @@ int satiatorExecutableFilter(dirEntry *entry) {
         return 1;
 
     int len = strlen(entry->name);
-    if (!strncmp(&entry->name[len-4], ".cue", 4))
+    if (!strncasecmp(&entry->name[len-4], ".cue", 4))
         return 1;
-    if (!strncmp(&entry->name[len-4], ".iso", 4))
+    if (!strncasecmp(&entry->name[len-4], ".iso", 4))
         return 1;
-    if (!strncmp(&entry->name[len-4], ".elf", 4))
+    if (!strncasecmp(&entry->name[len-4], ".elf", 4))
         return 1;
     return 0;
 }

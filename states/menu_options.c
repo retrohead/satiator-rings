@@ -45,7 +45,7 @@ void displayMenuOptions(int selectedOption)
             return;
         centerText(menuOptions[i].row, menuOptions[i].txt);
         if(i == selectedOption)
-            updateSelectionSprite(menuOptions[i].row, false);
+            updateSelectionSprite(menuOptions[i].row, false, false);
     }
 }
 

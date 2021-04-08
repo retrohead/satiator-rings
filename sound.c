@@ -21,6 +21,63 @@ void initSfx()
         sfx[i].playDelay = 0;
     }
 }
+
+bool load_pcm_satiator(const char * directory, const char * filename, const jo_sound_mode mode, jo_sound *sound)
+{
+    if(directory != NULL)
+        s_chdir(directory);
+    // try stat the file
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat(filename, st, sizeof(statbuf));
+    if (fr < 0)
+    {
+        if(directory != NULL)
+            s_chdir(currentDirectory);
+        return -1;
+    }
+    // allocate a buffer for the texture
+    char * buf = (char *)jo_malloc_with_behaviour((st->size + 1) * sizeof(*buf), JO_MALLOC_TRY_REUSE_BLOCK);
+    
+    // try open the file
+    fr = s_open(filename, FA_READ | FA_OPEN_EXISTING);
+    if (fr < 0)
+    {
+        if(directory != NULL)
+            s_chdir(currentDirectory);
+        return -1;
+    }
+
+    uint32_t readBytes = 0;
+    while(readBytes < st->size)
+    {
+        uint32_t readSize = S_MAXBUF;
+        if(st->size - readBytes < readSize)
+            readSize = st->size - readBytes;
+        int ret = s_read(fr, buf + readBytes, readSize);
+        if(ret != (int)readSize)
+        {
+            jo_free(buf);
+            s_close(fr);
+            if(directory != NULL)
+                s_chdir(currentDirectory);
+            return -1;
+        }
+        readBytes += readSize;
+    }
+    s_close(fr);
+    if(directory != NULL)
+        s_chdir(currentDirectory);
+
+    if(buf == JO_NULL)
+        return false;
+    JO_ZERO(buf[st->size]);
+    sound->mode = mode;
+    sound->data_length = st->size;
+    sound->data = buf;
+    sound->volume = JO_MAX_AUDIO_VOLUME;
+    return true;
+}
+
 void loadSfx(enum sfxType type)
 {
     int sfxId = -1;
@@ -40,10 +97,10 @@ void loadSfx(enum sfxType type)
     switch(type)
     {
         case SFX_SELECT:
-            jo_audio_load_pcm("SELECT.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "SELECT.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_MOVE:
-            jo_audio_load_pcm("MOVE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "MOVE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_INTRO:
             jo_audio_load_pcm("INTRO.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
@@ -55,16 +112,16 @@ void loadSfx(enum sfxType type)
             jo_audio_load_pcm("SANSH.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_SLIDE:
-            jo_audio_load_pcm("SLIDE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "SLIDE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_CHANGE:
-            jo_audio_load_pcm("CHANGE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "CHANGE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_BACK:
-            jo_audio_load_pcm("BACK.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "BACK.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_OPTION:
-            jo_audio_load_pcm("OPTION.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "OPTION.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case MAX_SFX:
             break;

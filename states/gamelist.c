@@ -24,6 +24,7 @@ gameBoxType gameBox;
 int defaultBoxTex = -1;
 int selectedGameBoxSprite = 0;
 int shadowSprite = 0;
+bool awaitConfirmation = false;
 
 void clearGameBoxSprite()
 {
@@ -148,7 +149,7 @@ void displayGameList(bool triggersHeld)
         }
         displayDirListItem(dirEntries[i].name, (i - listOffset) + 5, i==selectedDirEntry, dirEntries[i].type, triggersHeld);
     }
-    updateSelectionSprite((selectedDirEntry- listOffset) + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY));
+    updateSelectionSprite((selectedDirEntry- listOffset) + 5, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), (dirEntryCount == 0));
     if(!triggersHeld)
         updateBoxarts();
 }
@@ -320,6 +321,33 @@ void launchGameShortcut(enum game_list_display_types * display_type, enum prog_s
 void logic_gamelist_favourites(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
     jo_nbg2_printf(1, 3, "Favourites                                         ");
+    if(awaitConfirmation)
+    {
+        displayStatus("Confirm Delete [A/C] Cancel [B]");
+        
+        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+        {
+            awaitConfirmation = false;
+            playSfx(SFX_SELECT, false);
+            writeIniList("favs.ini", dirEntries[selectedDirEntry].name);
+            dirEntries[selectedDirEntry].type = DIR_NULL;
+            for(int i=selectedDirEntry; i < dirEntryCount;i++)
+                dirEntries[i] = dirEntries[i + 1];
+            if(selectedDirEntry > 0)
+                selectedDirEntry--;
+            dirEntryCount--;
+
+            displayGameList(triggersHeld);
+            displayStatus("Item deleted from favourites");
+        }
+        if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+        {
+            awaitConfirmation = false;
+            playSfx(SFX_BACK, false);
+            clearMessage();
+        }
+        return;
+    }
     if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
@@ -337,16 +365,8 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_BACK, false);
-        writeIniList("favs.ini", dirEntries[selectedDirEntry].name);
-        dirEntries[selectedDirEntry].type = DIR_NULL;
-        for(int i=selectedDirEntry; i < dirEntryCount;i++)
-            dirEntries[i] = dirEntries[i + 1];
-        if(selectedDirEntry > 0)
-            selectedDirEntry--;
-        dirEntryCount--;
-        displayGameList(triggersHeld);
-        displayStatus("Item deleted from favourites");
+        playSfx(SFX_SELECT, false);
+        awaitConfirmation = true;
     }
     
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
@@ -383,18 +403,37 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
 void logic_gamelist_recents(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
     jo_nbg2_printf(1, 3, "Recent Play History                                ");
+    
+    if(awaitConfirmation)
+    {
+        displayStatus("Confirm Delete [A/C] Cancel [B]");
+        
+        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+        {
+            awaitConfirmation = false;
+            playSfx(SFX_SELECT, false);
+            writeIniList("recent.ini", dirEntries[selectedDirEntry].name);
+            dirEntries[selectedDirEntry].type = DIR_NULL;
+            for(int i=selectedDirEntry; i < dirEntryCount;i++)
+                dirEntries[i] = dirEntries[i + 1];
+            if(selectedDirEntry > 0)
+                selectedDirEntry--;
+            dirEntryCount--;
+            displayGameList(triggersHeld);
+            displayStatus("Item deleted from recents");
+        }
+        if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+        {
+            awaitConfirmation = false;
+            playSfx(SFX_BACK, false);
+            clearMessage();
+        }
+        return;
+    }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
     {
-        playSfx(SFX_BACK, false);
-        writeIniList("recent.ini", dirEntries[selectedDirEntry].name);
-        dirEntries[selectedDirEntry].type = DIR_NULL;
-        for(int i=selectedDirEntry; i < dirEntryCount;i++)
-            dirEntries[i] = dirEntries[i + 1];
-        if(selectedDirEntry > 0)
-            selectedDirEntry--;
-        dirEntryCount--;
-        displayGameList(triggersHeld);
-        displayStatus("Item deleted from recents");
+        awaitConfirmation = true;
+        playSfx(SFX_SELECT, false);
     }
     if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
     {
@@ -499,135 +538,139 @@ void logic_gamelist()
                 // scroll the selected item text every frame
                 displayDirListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
             }
-            if(pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS)
+
+            if(!awaitConfirmation)
             {
-                game_list_state = ROUTINE_STATE_END;
-                exit_state = PROG_STATE_MENU;
-                playSfx(SFX_CHANGE, false);
-            }
-            if(pad_controllers[0].btn_z == BUTTON_STATE_NEWPRESS)
-            {
-                // changing display mode
-                if(options[OPTIONS_LIST_MODE] == GAME_VIEW_MAX_COUNT - 1)
-                    options[OPTIONS_LIST_MODE] = GAME_VIEW_TEXT_AND_IMAGE;
-                else
-                    options[OPTIONS_LIST_MODE]++;
-                strcpy(gameBox.path, "");
-                displayGameList(triggersHeld);
-                playSfx(SFX_SLIDE, false);
-            }
-            
-            if(pad_controllers[0].direction_status == BUTTON_STATE_HELD)
-            {
-                switch(pad_controllers[0].direction_id)
-                {    
-                    case UP:
-                        if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
-                        {
-                            listScrolldelay++;
-                            break;
-                        }
-                        listScrolldelay = 0;
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
-                        displayGameList(triggersHeld);
-                        break;
-                    case DOWN:
-                        if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
-                        {
-                            listScrolldelay++;
-                            break;
-                        }
-                        listScrolldelay = 0;
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
-                        displayGameList(triggersHeld);
-                        break;
+                if(pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS)
+                {
+                    game_list_state = ROUTINE_STATE_END;
+                    exit_state = PROG_STATE_MENU;
+                    playSfx(SFX_CHANGE, false);
                 }
-            }
-            if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
-            {
-                switch(pad_controllers[0].direction_id)
+                if(pad_controllers[0].btn_z == BUTTON_STATE_NEWPRESS)
                 {
-                    case LEFT:
-                    case DOWN_LEFT:
-                    case UP_LEFT:
-                        listScrolldelay = 0;
-                        if(dirEntryCount > GAME_LIST_MAX_ITEMS)
-                        {
-                            for(int i=0;i< GAME_LIST_MAX_ITEMS - 1;i++)
-                            {
-                                moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), false);
-                                if(selectedDirEntry == 1)
-                                    break;
-                            }
-                        }
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
-                        break;
-                    case RIGHT:
-                    case DOWN_RIGHT:
-                    case UP_RIGHT:
-                        listScrolldelay = 0;
-                        if(dirEntryCount > GAME_LIST_MAX_ITEMS)
-                        {
-                            for(int i=0;i< GAME_LIST_MAX_ITEMS - 1;i++)
-                            {
-                                moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), false);
-                                if(selectedDirEntry == dirEntryCount - 2)
-                                    break;
-                            }
-                        }
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
-                         break;
-                    case UP:
-                        listScrolldelay = 0;
-                        moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
-                        break;
-                    case DOWN:
-                        listScrolldelay = 0;
-                        moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
-                        break;
+                    // changing display mode
+                    if(options[OPTIONS_LIST_MODE] == GAME_VIEW_MAX_COUNT - 1)
+                        options[OPTIONS_LIST_MODE] = GAME_VIEW_TEXT_AND_IMAGE;
+                    else
+                        options[OPTIONS_LIST_MODE]++;
+                    strcpy(gameBox.path, "");
+                    displayGameList(triggersHeld);
+                    playSfx(SFX_SLIDE, false);
                 }
-                displayGameList(triggersHeld);
-            }
-            if(pad_controllers[0].btn_l == BUTTON_STATE_HELD)
-            {
-                playSfx(SFX_MOVE, true);
-                if(selectedDirEntry > 0)
+                
+                if(pad_controllers[0].direction_status == BUTTON_STATE_HELD)
                 {
-                    selectedDirEntry--;
-                    if(selectedDirEntry - listOffset  < 0)
-                        listOffset--;
-                } else
+                    switch(pad_controllers[0].direction_id)
+                    {    
+                        case UP:
+                            if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
+                            {
+                                listScrolldelay++;
+                                break;
+                            }
+                            listScrolldelay = 0;
+                            moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                            displayGameList(triggersHeld);
+                            break;
+                        case DOWN:
+                            if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
+                            {
+                                listScrolldelay++;
+                                break;
+                            }
+                            listScrolldelay = 0;
+                            moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                            displayGameList(triggersHeld);
+                            break;
+                    }
+                }
+                if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
                 {
-                    selectedDirEntry = dirEntryCount - 1;
-                    listOffset = dirEntryCount - maxlistItems;
-                    if(listOffset < 0)
+                    switch(pad_controllers[0].direction_id)
+                    {
+                        case LEFT:
+                        case DOWN_LEFT:
+                        case UP_LEFT:
+                            listScrolldelay = 0;
+                            if(dirEntryCount > GAME_LIST_MAX_ITEMS)
+                            {
+                                for(int i=0;i< GAME_LIST_MAX_ITEMS - 1;i++)
+                                {
+                                    moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), false);
+                                    if(selectedDirEntry == 1)
+                                        break;
+                                }
+                            }
+                            moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                            break;
+                        case RIGHT:
+                        case DOWN_RIGHT:
+                        case UP_RIGHT:
+                            listScrolldelay = 0;
+                            if(dirEntryCount > GAME_LIST_MAX_ITEMS)
+                            {
+                                for(int i=0;i< GAME_LIST_MAX_ITEMS - 1;i++)
+                                {
+                                    moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), false);
+                                    if(selectedDirEntry == dirEntryCount - 2)
+                                        break;
+                                }
+                            }
+                            moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                            break;
+                        case UP:
+                            listScrolldelay = 0;
+                            moveDirEntrySelectionUp(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                            break;
+                        case DOWN:
+                            listScrolldelay = 0;
+                            moveDirEntrySelectionDown(maxlistItems, SFX_MOVE, (options[OPTIONS_LIST_MODE] != GAME_VIEW_TEXT_ONLY), true);
+                            break;
+                    }
+                    displayGameList(triggersHeld);
+                }
+                if(pad_controllers[0].btn_l == BUTTON_STATE_HELD)
+                {
+                    playSfx(SFX_MOVE, true);
+                    if(selectedDirEntry > 0)
+                    {
+                        selectedDirEntry--;
+                        if(selectedDirEntry - listOffset  < 0)
+                            listOffset--;
+                    } else
+                    {
+                        selectedDirEntry = dirEntryCount - 1;
+                        listOffset = dirEntryCount - maxlistItems;
+                        if(listOffset < 0)
+                            listOffset = 0;
+                    }
+                    triggersHeld = true;
+                    displayGameList(triggersHeld);
+                    clearGameBoxSprite();
+                }
+                if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
+                {
+                    playSfx(SFX_MOVE, true);
+                    if(selectedDirEntry < dirEntryCount - 1)
+                    {
+                        selectedDirEntry ++;
+                        if(selectedDirEntry - listOffset >= maxlistItems)
+                            listOffset++;
+                    } else
+                    {
+                        selectedDirEntry = 0;
                         listOffset = 0;
+                    }
+                    triggersHeld = true;
+                    displayGameList(triggersHeld);
+                    clearGameBoxSprite();
                 }
-                triggersHeld = true;
-                displayGameList(triggersHeld);
-                clearGameBoxSprite();
-            }
-            if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
-            {
-                playSfx(SFX_MOVE, true);
-                if(selectedDirEntry < dirEntryCount - 1)
+                if((pad_controllers[0].btn_r == BUTTON_STATE_IDLE) && (pad_controllers[0].btn_l == BUTTON_STATE_IDLE) && (triggersHeld))
                 {
-                    selectedDirEntry ++;
-                    if(selectedDirEntry - listOffset >= maxlistItems)
-                        listOffset++;
-                } else
-                {
-                    selectedDirEntry = 0;
-                    listOffset = 0;
+                    triggersHeld = false;
+                    updateBoxarts();
                 }
-                triggersHeld = true;
-                displayGameList(triggersHeld);
-                clearGameBoxSprite();
-            }
-            if((pad_controllers[0].btn_r == BUTTON_STATE_IDLE) && (pad_controllers[0].btn_l == BUTTON_STATE_IDLE) && (triggersHeld))
-            {
-                triggersHeld = false;
-                updateBoxarts();
             }
             break; 
         case ROUTINE_STATE_END:
