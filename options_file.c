@@ -11,7 +11,7 @@
 int options[OPTIONS_COUNT];
 char loadedThemeName[32];
 
-void defaultOptions()
+void initOptions()
 {
     for(enum optionsType i=0;i<OPTIONS_COUNT;i++)
     {
@@ -39,9 +39,9 @@ void defaultOptions()
     strcpy(loadedThemeName, "default");
     initTheme();
 }
-void initOptions()
+void loadOptions()
 {
-    defaultOptions();
+    initOptions();
     char * ini = "options.ini";
     if(strcmp("/", currentDirectory))
         s_chdir("/");

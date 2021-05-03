@@ -168,7 +168,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
-        loadIniList("favs.ini", true, "", false);
+        loadIniList("favs.ini", true, "", false, -1);
         displayGameList(triggersHeld);
     }
     if (pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
@@ -190,7 +190,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
-        int result = addItemToIni("favs.ini", addFav, false, true, true);
+        int result = addItemToIni("favs.ini", addFav, false, true, true, 1000);
         jo_free(addFav);
         displayGameList(triggersHeld);
         if(result)
@@ -360,7 +360,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         sprites[selectionSprite].y = 240;
         draw_sprites();
         slSynch();
-        loadIniList("recent.ini", false, "", false);
+        loadIniList("recent.ini", false, "", false, -1);
         displayGameList(triggersHeld);
     }
     if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
@@ -498,10 +498,10 @@ void logic_gamelist()
                     loadFileList(".", satiatorExecutableFilter);
                     break;
                 case GAME_LIST_FAVOURITES:
-                    loadIniList("favs.ini", true, "", false);
+                    loadIniList("favs.ini", true, "", false, -1);
                     break;
                 case GAME_LIST_RECENT_HISTORY:
-                    loadIniList("recent.ini", false, "", false);
+                    loadIniList("recent.ini", false, "", false, -1);
                     break;
                 case GAME_LIST_DISPLAY_MAX_COUNT:
                     break;
@@ -673,6 +673,7 @@ void logic_gamelist()
                 }
             }
             break; 
+        case ROUTINE_STATE_END_CANCEL:
         case ROUTINE_STATE_END:
             routine_scene = 0;
             game_list_state = ROUTINE_STATE_INITIALIZE;

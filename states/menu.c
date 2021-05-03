@@ -33,6 +33,7 @@ void logic_menu()
             displayTime();
             controlMenuOptions(&selectedMenuOption, &menu_state, &exit_state);
             break;
+        case ROUTINE_STATE_END_CANCEL:
         case ROUTINE_STATE_END:
             routine_scene = 0;
             menu_state = ROUTINE_STATE_INITIALIZE;

@@ -6,6 +6,7 @@
 
 #include <jo/jo.h>
 #include <string.h>
+#include <stdint.h>
 #include "iapetus/iapetus.h"
 #include "jhloader.h"
 #include "../bios.h"

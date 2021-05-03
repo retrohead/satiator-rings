@@ -42,6 +42,7 @@ void logic_satiator_info()
 
             controlMenuOptions(&selectedMenuOption, &satiator_info_state, &exit_state);
             break;
+        case ROUTINE_STATE_END_CANCEL:
         case ROUTINE_STATE_END:
             routine_scene = 0;
             satiator_info_state = ROUTINE_STATE_INITIALIZE;

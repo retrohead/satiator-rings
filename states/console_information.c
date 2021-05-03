@@ -33,6 +33,7 @@ void logic_console_info()
             jo_nbg2_printf(1, 9,  "Console Date  : %d-%02d-%02d %02d:%02d:%02d", dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second);
             controlMenuOptions(&selectedMenuOption, &console_info_state, &exit_state);
             break;
+        case ROUTINE_STATE_END_CANCEL:
         case ROUTINE_STATE_END:
             routine_scene = 0;
             console_info_state = ROUTINE_STATE_INITIALIZE;

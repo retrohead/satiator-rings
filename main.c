@@ -132,7 +132,6 @@ void			jo_main(void)
 {
 	jo_core_init(JO_COLOR_Black);
     initDirEntries();
-    load_fonts();
     initSfx();
     initControllers();
 	jo_core_add_callback(application_logic);

@@ -116,7 +116,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
     if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_CHANGE, false);
-        *menu_state = ROUTINE_STATE_END;
+        *menu_state = ROUTINE_STATE_END_CANCEL;
         return 0;
     }
     if(menuOptions[*selectedOption].type == OPTION_PROGRAM_STATE)

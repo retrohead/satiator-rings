@@ -65,9 +65,9 @@ void writeIniList(char * fn, char * deleteEntry)
     s_close(fp);
     s_chdir(currentDirectory);
 }
-bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort)
+bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort, int maxItems)
 {
-    bool ret = loadIniList(ini, sort, fn, addStart);
+    bool ret = loadIniList(ini, sort, fn, addStart, maxItems);
     writeIniList(ini, NULL);
     if(!keepList)
     {
@@ -96,7 +96,7 @@ void addDirEntryItem(char * fn)
         dirEntries[dirEntryCount].type = DIR_SHORTCUT_FOLDER;
     dirEntryCount++;
 }
-bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
+bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int maxItems)
 {
     bool ret = true;
     s_chdir("/satiator-rings");
@@ -108,8 +108,11 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
     bool addItem = false;
     if(strcmp(addItemStr, ""))
         addItem = true;
+    else
+        maxItems = MAX_LOADED_DIR_ENTRIES;
     if(addItem && addAtStart)
         addDirEntryItem(addItemStr);
+
 
     s_stat_t *st = (s_stat_t*)statbuf;
     int fp = s_stat(fn, st, sizeof(statbuf));
@@ -141,6 +144,10 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart)
                     truncatedList = true;
                     break;
                 }
+                if(dirEntryCount == maxItems)
+                    break;
+                if(addItem && !addAtStart && ret && (dirEntryCount == maxItems - 1))
+                    break;
                 oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
             }
             s_close(fp);

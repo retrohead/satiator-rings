@@ -145,6 +145,7 @@ void logic_themelist()
                 displayThemeList(triggersHeld);
             }
             break; 
+        case ROUTINE_STATE_END_CANCEL:
         case ROUTINE_STATE_END:
             s_chdir(currentDirectory);
             routine_scene = 0;
