@@ -58,9 +58,9 @@ static char * getOptionName(enum optionsType option, int value)
                 return "Desc File Caching  <On> ";
         case OPTIONS_SOUND_VOLUME:
             if(options[option] < 100)
-                sprintf(optionName, "Audio Volume        <%d> ", options[option]); 
+                sprintf(optionName, "Audio Volume       <%d> ", options[option]); 
             else
-                sprintf(optionName, "Audio Volume        <%d>", options[option]); 
+                sprintf(optionName, "Audio Volume       <%d>", options[option]); 
             return (char *)optionName;
         case OPTIONS_COUNT:
             break;
