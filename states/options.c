@@ -13,9 +13,9 @@ char * getListTypeName(int value)
     switch(value)
     {
         case GAME_VIEW_TEXT_AND_IMAGE:
-            return "       Game List Type    <Text/Image>";
+            return "      Game List Type     <Text/Image>";
         case GAME_VIEW_TEXT_ONLY:
-            return "       Game List Type    <Text Only> ";
+            return "      Game List Type     <Text Only> ";
     }
     return "list type err";
 }
@@ -24,11 +24,11 @@ char * getListCategoryName(int value)
     switch(value)
     {
         case GAME_LIST_STANDARD:
-            return "      Default Category  <Standard>";
+            return "     Default Category   <Standard>";
         case GAME_LIST_FAVOURITES:
-            return "      Default Category  <Favourite>";
+            return "     Default Category   <Favourite>";
         case GAME_LIST_RECENT_HISTORY:
-            return "     Default Category  <History>";
+            return "    Default Category   <History>";
     }
     return "list cat err";
 }
@@ -41,18 +41,26 @@ static char * getOptionName(enum optionsType option, int value)
             return getListTypeName(value);
         case OPTIONS_LIST_CATEGORY:
             return getListCategoryName(value);
+        case OPTIONS_SKIP_SPLASH:
+            if(value == 0)
+                return "Skip Splash Screen <Off>";
+            else
+                return "Skip Splash Screen <On> ";
         case OPTIONS_AUTO_PATCH:
             if(value == 0)
-                return "Auto Region Patch <Off>";
+                return "Auto Region Patch  <Off>";
             else
-                return "Auto Region Patch <On> ";
+                return "Auto Region Patch  <On> ";
         case OPTIONS_DESC_CACHE:
             if(value == 0)
-                return "Desc File Caching <Off>";
+                return "Desc File Caching  <Off>";
             else
-                return "Desc File Caching <On> ";
+                return "Desc File Caching  <On> ";
         case OPTIONS_SOUND_VOLUME:
-            sprintf(optionName, "Audio Volume      <%d>", options[option]); 
+            if(options[option] < 100)
+                sprintf(optionName, "Audio Volume        <%d>", options[option]); 
+            else
+                sprintf(optionName, "Audio Volume        <%d> ", options[option]); 
             return (char *)optionName;
         case OPTIONS_COUNT:
             break;
@@ -124,6 +132,7 @@ void logic_options()
                             if(options[selectedMenuOption] < 0)
                                 options[selectedMenuOption] = GAME_LIST_DISPLAY_MAX_COUNT - 1;
                             break;
+                        case OPTIONS_SKIP_SPLASH:
                         case OPTIONS_AUTO_PATCH:
                         case OPTIONS_DESC_CACHE:
                             options[selectedMenuOption] += changed;
@@ -164,7 +173,7 @@ void logic_options()
                 {
                     displayStatus("Reloading Options");
                     initOptions();
-                    loadOptions();
+                    loadOptions(false);
                     applyTheme();
                 }
             }

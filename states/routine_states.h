@@ -22,6 +22,7 @@ extern void displayTime();
 extern void displayVersion();
 extern void logic_gamelist();
 extern void logic_bootscreen();
+extern void logic_init();
 extern void logic_splash();
 extern void logic_menu();
 extern void logic_exit_menu();

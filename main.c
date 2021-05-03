@@ -31,6 +31,7 @@
 #include <stdlib.h>
 #include "main.h"
 #include "ini.h"
+#include "sci.h"
 #include "states/routine_states.h"
 #include "satiator_functions.h"
 #include "satiator/iapetus/video/vdp.h"
@@ -50,7 +51,10 @@ void application_logic(void)
         case PROG_STATE_INITIALIZE:
             init_background();
             init_sprites();
-            prog_state = PROG_STATE_SPLASH;
+            prog_state = PROG_STATE_INITIALIZE_SATIATOR;
+            break;
+        case PROG_STATE_INITIALIZE_SATIATOR:
+            logic_init();
             break;
         case PROG_STATE_SPLASH:
             logic_splash();
@@ -134,6 +138,7 @@ void			jo_main(void)
     initDirEntries();
     initSfx();
     initControllers();
+    sci_init();
 	jo_core_add_callback(application_logic);
 	jo_core_add_callback(draw_objects);
 	jo_core_run();

@@ -32,6 +32,9 @@ void initOptions()
             case OPTIONS_SOUND_VOLUME:
                 options[i] = JO_DEFAULT_AUDIO_VOLUME;
                 break;
+            case OPTIONS_SKIP_SPLASH:
+                options[i] = 0;
+                break;
             case OPTIONS_COUNT:
                 break;
         }
@@ -39,7 +42,7 @@ void initOptions()
     strcpy(loadedThemeName, "default");
     initTheme();
 }
-void loadOptions()
+void loadOptions(bool firstInit)
 {
     initOptions();
     char * ini = "options.ini";
@@ -80,25 +83,30 @@ void loadOptions()
                 sscanf(oneline, "volume=%d", &options[OPTIONS_SOUND_VOLUME]);
             if(!strncmp(oneline, "desccache", 9))
                 sscanf(oneline, "desccache=%d", &options[OPTIONS_DESC_CACHE]);
+            if(!strncmp(oneline, "skipsplash", 10))
+                sscanf(oneline, "skipsplash=%d", &options[OPTIONS_SKIP_SPLASH]);
             oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
             if(!strncmp(oneline, "[END]", 5))
                 break;
         }
-        while(strncmp(oneline, "[END]", 5))
+        if(!firstInit || (options[OPTIONS_SKIP_SPLASH] == 1))
         {
-            if(!strncmp(oneline, "name", 4))
-                sscanf(oneline, "name=%s", loadedThemeName);
-            if(!strncmp(oneline, "font", 4))
-                sscanf(oneline, "font=%d,%d,%d", &loadedTheme.colours[PAL_COL_FONT].r, &loadedTheme.colours[PAL_COL_FONT].g, &loadedTheme.colours[PAL_COL_FONT].b);
-            if(!strncmp(oneline, "bg", 2))
-                sscanf(oneline, "bg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BG].r, &loadedTheme.colours[PAL_COL_BG].g, &loadedTheme.colours[PAL_COL_BG].b);
-            if(!strncmp(oneline, "selector", 8))
-                sscanf(oneline, "selector=%d,%d,%d", &loadedTheme.colours[PAL_COL_SELECTOR].r, &loadedTheme.colours[PAL_COL_SELECTOR].g, &loadedTheme.colours[PAL_COL_SELECTOR].b);
-            if(!strncmp(oneline, "boxbg", 5))
-                sscanf(oneline, "boxbg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BOX_BG].r, &loadedTheme.colours[PAL_COL_BOX_BG].g, &loadedTheme.colours[PAL_COL_BOX_BG].b);
-            oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
-            themeLoaded = true;
-        }             
+            while(strncmp(oneline, "[END]", 5))
+            {
+                if(!strncmp(oneline, "name", 4))
+                    sscanf(oneline, "name=%s", loadedThemeName);
+                if(!strncmp(oneline, "font", 4))
+                    sscanf(oneline, "font=%d,%d,%d", &loadedTheme.colours[PAL_COL_FONT].r, &loadedTheme.colours[PAL_COL_FONT].g, &loadedTheme.colours[PAL_COL_FONT].b);
+                if(!strncmp(oneline, "bg", 2))
+                    sscanf(oneline, "bg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BG].r, &loadedTheme.colours[PAL_COL_BG].g, &loadedTheme.colours[PAL_COL_BG].b);
+                if(!strncmp(oneline, "selector", 8))
+                    sscanf(oneline, "selector=%d,%d,%d", &loadedTheme.colours[PAL_COL_SELECTOR].r, &loadedTheme.colours[PAL_COL_SELECTOR].g, &loadedTheme.colours[PAL_COL_SELECTOR].b);
+                if(!strncmp(oneline, "boxbg", 5))
+                    sscanf(oneline, "boxbg=%d,%d,%d", &loadedTheme.colours[PAL_COL_BOX_BG].r, &loadedTheme.colours[PAL_COL_BOX_BG].g, &loadedTheme.colours[PAL_COL_BOX_BG].b);
+                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
+                themeLoaded = true;
+            }            
+        } 
         s_close(fr);
         jo_free(oneline);
     }
@@ -149,6 +157,9 @@ bool saveOptions()
     s_write(fw, line, strlen(line));
     
     sprintf(line, "desccache=%d\r\n", options[OPTIONS_DESC_CACHE]);
+    s_write(fw, line, strlen(line));
+    
+    sprintf(line, "skipsplash=%d\r\n", options[OPTIONS_SKIP_SPLASH]);
     s_write(fw, line, strlen(line));
 
     s_write(fw, "[THEME]\r\n", 9);

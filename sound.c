@@ -103,13 +103,13 @@ void loadSfx(enum sfxType type)
             load_pcm_satiator("/satiator-rings/sfx", "MOVE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_INTRO:
-            jo_audio_load_pcm("INTRO.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "INTRO.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_THUD:
-            jo_audio_load_pcm("THUD.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "THUD.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_SANSHIRO:
-            jo_audio_load_pcm("SANSH.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
+            load_pcm_satiator("/satiator-rings/sfx", "SANSH.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);
             break;
         case SFX_SLIDE:
             load_pcm_satiator("/satiator-rings/sfx", "SLIDE.PCM", JoSoundMono8Bit, &sfx[sfxId].sfx);

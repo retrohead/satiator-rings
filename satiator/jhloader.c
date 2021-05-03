@@ -12,20 +12,28 @@
 #include "../bios.h"
 #include "../debug.h"
 #include "disc_format/cdparse.h"
+#include "../sci.h"
 
 #if !BIOS_BOOT
-static int emulate_bios_loadcd_init(void) {
+static int emulate_bios_loadcd_init(void)
+{
    *(uint32_t*)0x6000278 = 0;
    *(uint32_t*)0x600027c = 0;
    int ret;
+   
+   sciLog("cd_abort_file\r\n");
    if((ret = cd_abort_file()) != IAPETUS_ERR_OK)
       return ret;
+   sciLog("cd_end_transfer\r\n");
    if((ret = cd_end_transfer()) != IAPETUS_ERR_OK)
       return ret;
+   sciLog("cd_reset_selector_all\r\n");
    if((ret = cd_reset_selector_all()) != IAPETUS_ERR_OK)
       return ret;
+   sciLog("cd_set_sector_size\r\n");
    if((ret = cd_set_sector_size(SECT_2048)) != IAPETUS_ERR_OK)
       return ret;
+   sciLog("cd_auth\r\n");
    cd_auth();   // gotta make sure that's a real disc thar
    return 0;
 }
@@ -52,13 +60,21 @@ static int emulate_bios_loadcd_read(void)
 {
    int ret, i;
    // it doesn matter where
-   u8 *ptr = (u8*)jo_malloc(2048*16);
+   char *ptr = (char *)jo_malloc_with_behaviour(2048*16, JO_MALLOC_TRY_REUSE_BLOCK);
+   if (ptr == JO_NULL)
+   {
+      sciLog("out of memory!\r\n");
+      return -1;
+   }
+   sciLog("cd_read_sector\r\n");
    ret = cd_read_sector(ptr, 150, SECT_2048, 2048*16);
    if (ret < 0)
       return ret;
+   sciLog("set_image_region\r\n");
    ret = set_image_region(ptr);
    if (ret < 0)
       return ret;
+   sciLog("cd_put_sector_data\r\n");
    ret = cd_put_sector_data(0, 8);
    if (ret < 0)
       return ret;
@@ -66,10 +82,12 @@ static int emulate_bios_loadcd_read(void)
 
    for (i = 0; i < 2048 * 8; i+=4)
       CDB_REG_DATATRNS = *(uint32_t*)(ptr + i);
+   sciLog("cd_end_transfer\r\n");
    if ((ret = cd_end_transfer()) != 0)
       return ret;
    while (!(CDB_REG_HIRQ & HIRQ_EHST)) {}
 
+   sciLog("applying flags\r\n");
    // we need to set a flag, but it's in different places in different BIOS versions
    uint16_t *read_flag_a = (uint16_t*)0x06000380;
    uint16_t *read_flag_b = (uint16_t*)0x060003a0;
@@ -77,11 +95,20 @@ static int emulate_bios_loadcd_read(void)
    uint16_t **read_flag_ptr_b = (uint16_t**)0x2a04;
 
    if (read_flag_a == *read_flag_ptr_a)
+   {
       *read_flag_a = 1;
+      sciLog("bios type A\r\n");
+   }
    else if (read_flag_b == *read_flag_ptr_b)
+   {
       *read_flag_b = 1;
+      sciLog("bios type B\r\n");
+   }
    else
-       return BOOT_UNRECOGNISED_BIOS;
+   {
+      sciLog("bios not recognised\r\n");
+      return BOOT_UNRECOGNISED_BIOS;
+   }
    return 0;
 }
 #endif
@@ -108,6 +135,7 @@ int boot_disc(void)
    }
 #endif
    do {
+      sciLog("BOOTING DISC\r\n");
        ret = bios_loadcd_boot();
        vdp_wait_vblankin();
        vdp_wait_vblankout();

@@ -5,6 +5,7 @@ enum optionsType
     OPTIONS_SOUND_VOLUME,
     OPTIONS_AUTO_PATCH,
     OPTIONS_DESC_CACHE,
+    OPTIONS_SKIP_SPLASH,
     /* end */
     OPTIONS_COUNT
 };
@@ -30,4 +31,4 @@ extern int options[OPTIONS_COUNT];
 extern char loadedThemeName[32];
 extern void initOptions();
 extern bool saveOptions();
-extern void loadOptions();
+extern void loadOptions(bool firstInit);
