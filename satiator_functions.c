@@ -268,12 +268,7 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
         if(options[OPTIONS_PERGAME_SAVE] == 1)
         {
             centerTextVblank(20, "Imaging Per-Game Save Memory to Console");
-            ret = satiatorPreparePerGameSRAM();
-            if(ret != SATIATOR_SUCCESS)
-            {
-                //TODO if we fail to to do pergame saves should we prompt user to continue anyway?
-                while(1);
-            }
+            satiatorPreparePerGameSRAM();
         }
         return 0;
     }

@@ -134,7 +134,7 @@ enum SAVE_ERROR_CODE saveBulkCopyBetweenDevices(int sourceDevice, int destinatio
         }
         if (ret != 0) 
         {
-            continue; // skip any saves that we have issues reading //TODO more descriptive error
+            continue; 
         }
         bytecount += g_Saves[i].datasize;
         if (bytecount >= 32 * 1024)
@@ -173,7 +173,7 @@ enum SAVE_ERROR_CODE saveBulkDeleteDevice(int targetDevice,char * gameid)
     {
         if (gameid == NULL)
         {
-            result = SAVE_ERROR; //TODO more descriptive error
+            result = SAVE_ERROR; 
             return result;
         }
         char savepath[SAVE_MAXDIRPATHSIZE];
