@@ -20,6 +20,8 @@ SRCS+=$(wildcard satiator/disc_format/cdparse.c)
 SRCS+=$(wildcard satiator/iapetus/cd/*.c)
 SRCS+=$(wildcard satiator/iapetus/sh2/*.c)
 SRCS+=$(wildcard satiator/iapetus/video/*.c)
+SRCS+=$(wildcard Save-Game-Copier/*.c)
+SRCS+=$(wildcard Save-Game-Copier/backends/*.c)
 JO_ENGINE_SRC_DIR=../../jo_engine
 COMPILER_DIR=../../Compiler
 include $(COMPILER_DIR)/COMMON/jo_engine_makefile

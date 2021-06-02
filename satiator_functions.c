@@ -8,6 +8,7 @@
 #include "satiator/disc_format/cdparse.h"
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
+#include "save_functions.h"
 #include "debug.h"
 #include "options_file.h" // needed for desc file caching
 
@@ -15,6 +16,7 @@ enum SATIATOR_STATE satiatorState = SATIATOR_STATE_NOT_FOUND;
 extern void addItemToRecentHistory();
 int patchModeRequired = 0;
 char statbuf[280];
+char gameId[11];  // needed for per-game saves
 
 enum SATIATOR_ERROR_CODE satiatorCreateDirectory(char * dir)
 {
@@ -45,8 +47,9 @@ void initSatiator()
         else 
         {
             satiatorState = SATIATOR_STATE_WORKING;
-            s_chdir("/");
-            satiatorCreateDirectory("/satiator-rings");
+            s_chdir("/"); 
+            satiatorCreateDirectory("/satiator-rings");   
+            satiatorCreateDirectory(SAVE_FOLDERNAME);     
         }
     } else
     {
@@ -161,8 +164,9 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     }
 }
 
-// verify the image that is about to be loaded in the desc file needs patching, returns 1 if its at 0x00 or 2 if its at 0x10
-int satiatorVerifyPatchDescFileImage(const char * curRegion)
+// verify the image that is about to be loaded in the desc file needs patching, returns 1 if its at 0x00 or 2 if its at 0x10 <--Not true, fix this comment
+// return the 10 character gameId as a null-terminated 11 byte string
+int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
 {
     centerTextVblank(21, "[>        ]");
     s_stat_t *st = (s_stat_t*)statbuf;
@@ -179,6 +183,7 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
     }
     centerTextVblank(21, "[>>>      ]");
     int verifyLoc1 = 0x00;
+    int gameidLoc = 0x20;
     int verifyLoc2 = 0xdc0;
     int regionLoc2 = 0xe04;
     patchModeRequired = 0;
@@ -200,6 +205,7 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
     if(strncmp("SEGA SEGASATURN ", checkStr, 16)) {
         // try the 2nd veryify location
         verifyLoc1 = 0x10;
+        gameidLoc = 0x30;
         verifyLoc2 = 0xf00;
         regionLoc2 = 0xf44;
         patchModeRequired = 1;
@@ -237,13 +243,38 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion)
         strcat(regionStr, " ");
         strcat(checkStr, " ");
     }
+    //extract gameid and trim before returning
+    char rawGameId[11];
+    char * firstSpace;
+    int gameIdLength = sizeof(rawGameId);
+    s_seek(fp, gameidLoc, SEEK_SET);
+    s_read(fp, rawGameId, 10);
+    firstSpace = strchr(rawGameId,' ');
+    if (firstSpace != NULL) {
+        gameIdLength = firstSpace-rawGameId+1;
+    }
+    rawGameId[gameIdLength-1] = '\0';  //null terminate at the first space
+    strcpy(outGameId,rawGameId);
+
     s_close(fp);
     centerTextVblank(21, " ");
     if(!strcmp(regionStr, checkStr))
     {
+        enum SATIATOR_ERROR_CODE ret;
         centerTextVblank(20, "Adding To Recent History");
         // no patching needed
         addItemToRecentHistory();
+        
+        if(options[OPTIONS_PERGAME_SAVE] == 1)
+        {
+            centerTextVblank(20, "Imaging Per-Game Save Memory to Console");
+            ret = satiatorPreparePerGameSRAM();
+            if(ret != SATIATOR_SUCCESS)
+            {
+                //TODO if we fail to to do pergame saves should we prompt user to continue anyway?
+                while(1);
+            }
+        }
         return 0;
     }
     return 1;
@@ -304,6 +335,54 @@ bool satiatorPatchDescFileImage(const char * curRegion)
     return true;
 }
 
+enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
+{
+    enum SATIATOR_ERROR_CODE ret;
+    
+    centerTextVblank(20, "Backing up current SRAM");
+    ret = saveCreateSaveDirectory("_BACKUP");
+    if (ret == SATIATOR_WRITE_ERR) 
+    {
+        jo_nbg2_printf(2,  22,"Error: saveCreateSaveDirectory - Out of Space?");
+        return ret;
+    }
+    ret = saveCopyInternalMemoryToSaveDirectory("_BACKUP");
+    if (ret != SAVE_SUCCESS)
+    {
+        jo_nbg2_printf(2,  22,"Error: saveCopyInternalMemoryToSaveDirectory");
+        return ret;
+    }
+
+    centerTextVblank(20, "Clearing SRAM");
+    ret = saveClearInternalMemory();
+    if (ret != SAVE_SUCCESS)
+    {
+        jo_nbg2_printf(2,  22,"Error: saveClearInternalMemory");
+        return ret;
+    }
+    
+    centerTextVblank(20, "Creating Game Save Directory");
+    ret = saveCreateSaveDirectory(gameId);
+    if(ret == SATIATOR_ALREADY_EXISTS) //directory already exists, copy existing BUPs to SRAM
+    {
+        centerTextVblank(20, "Directory Exists, Copying Previous Saves To SRAM");
+        ret = saveCopySaveDirectoryToInternalMemory(gameId);
+        if(ret != SATIATOR_SUCCESS)
+        {
+            jo_nbg2_printf(2,  22,"Error: saveCopySaveDirectoryToInternalMemory");
+            return ret;
+        }
+    }
+    centerTextVblank(20, "Marking SRAM with active GameID");
+    saveSaveGameIdToInternalMemory(gameId);
+    if (ret != SAVE_SUCCESS)
+    {
+            jo_nbg2_printf(2,  22,"Error: saveSaveGameIdToInternalMemory");
+            return ret;
+    }
+    return SATIATOR_SUCCESS;
+}
+
 // launch the orignal menu
 int satiatorLaunchOriginalMenu()
 {
@@ -346,7 +425,7 @@ enum SATIATOR_ERROR_CODE satiatorLaunchDescFile(char * fn)
 {
     #if BIOS_BOOT
     centerTextVblank(20, "Verifying Region");
-    int ret = satiatorVerifyPatchDescFileImage(getRegionString());
+    int ret = satiatorVerifyPatchDescFileImage(getRegionString(),gameId);
     if(ret < 0)
     {
         return SATIATOR_PATCH_FAILURE;

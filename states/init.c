@@ -6,6 +6,7 @@
 #include "routine_states.h"
 #include "../libsatiator/satiator.h"
 #include "../satiator_functions.h"
+#include "../save_functions.h"
 
 enum routine_state_types init_state = ROUTINE_STATE_INITIALIZE;
 
@@ -81,6 +82,7 @@ void logic_init()
         case ROUTINE_STATE_INITIALIZE:
             initOptions();
             initSatiator();
+            initSaves(); 
             load_font_satiator("/satiator-rings/gfx", "FONT.TGA");
             routine_scene = 0;
             init_state = ROUTINE_STATE_RUN;                       
