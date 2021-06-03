@@ -84,12 +84,11 @@ enum SATIATOR_ERROR_CODE saveCreateSaveDirectory(char* gameid)
     
     if (gameid[0] != '\0') 
     {
-        char * savepath = jo_malloc(SAVE_MAXDIRPATHSIZE);
+        char savepath[SAVE_MAXDIRPATHSIZE];
         strcpy(savepath,SAVE_FOLDERNAME);
         strcat(savepath,"/");
         strcat(savepath,gameid);        
         ret = satiatorCreateDirectory(savepath);
-        jo_free(savepath);
     }
     return ret;
 }

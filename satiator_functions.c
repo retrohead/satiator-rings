@@ -244,16 +244,15 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
         strcat(checkStr, " ");
     }
     //extract gameid and trim before returning
-    char rawGameId[11];
+    char rawGameId[MAX_SAVE_COMMENT];
     char * firstSpace;
-    int gameIdLength = sizeof(rawGameId);
+    rawGameId[sizeof(rawGameId)-1] = '\0'; //null terminate raw buffer
     s_seek(fp, gameidLoc, SEEK_SET);
     s_read(fp, rawGameId, 10);
-    firstSpace = strchr(rawGameId,' ');
+    firstSpace = strchr(rawGameId,' '); 
     if (firstSpace != NULL) {
-        gameIdLength = firstSpace-rawGameId+1;
+        *firstSpace = '\0'; //null terminate at the first space
     }
-    rawGameId[gameIdLength-1] = '\0';  //null terminate at the first space
     strcpy(outGameId,rawGameId);
 
     s_close(fp);
@@ -334,7 +333,8 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
 {
     enum SATIATOR_ERROR_CODE ret;
     
-    centerTextVblank(20, "Backing up current SRAM");
+    centerTextVblank(20, "Backing up current SRAM"); // double vblank to try and address the satiator hanging during sd ops
+    centerTextVblank(20, "Backing up current SRAM"); 
     ret = saveCreateSaveDirectory("_BACKUP");
     if (ret == SATIATOR_WRITE_ERR) 
     {
@@ -356,10 +356,12 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
         return ret;
     }
     
+    centerTextVblank(20, "Creating Game Save Directory"); // double vblank to try and address the satiator hanging during sd ops
     centerTextVblank(20, "Creating Game Save Directory");
     ret = saveCreateSaveDirectory(gameId);
     if(ret == SATIATOR_ALREADY_EXISTS) //directory already exists, copy existing BUPs to SRAM
     {
+        centerTextVblank(20, "Directory Exists, Copying Previous Saves To SRAM"); // double vblank to try and address the satiator hanging during sd ops
         centerTextVblank(20, "Directory Exists, Copying Previous Saves To SRAM");
         ret = saveCopySaveDirectoryToInternalMemory(gameId);
         if(ret != SATIATOR_SUCCESS)
