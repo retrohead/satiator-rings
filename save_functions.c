@@ -274,11 +274,11 @@ enum SAVE_ERROR_CODE saveSaveGameIdToInternalMemory(char * gameid)
     saveBupHeader->dir.comment[MAX_SAVE_COMMENT - 1] = '\0';
     saveBupHeader->dir.datasize = SAVE_MAGICFILESIZE; //0x33
     
-    saveBupHeader->dir.blocksize = 2; // this was the value used by Ultraman in its 0x33 datasize save so i copied that
+    saveBupHeader->dir.blocksize = SAVE_MAGICBLOCKSIZE; // this was the value used by Ultraman in its 0x33 datasize save so i copied that
     saveBupHeader->dir.language = backup_english;
     saveBupHeader->dir.date = 0x014BDE33; // Currently set to a random date. Should use this field for future multi save slot designation
     saveBupHeader->date = saveBupHeader->dir.date;
-    strncpy((char*)saveFileData,"TESTTESTTESTTEST",SAVE_MAGICFILESIZE); // additional metadata about the game and save folder can be stored here
+    //strncpy((char*)saveFileData,"TESTTESTTESTTEST",SAVE_MAGICFILESIZE); // additional metadata about the game and save folder can be stored here
     ret = writeSaveFile(JoInternalMemoryBackup, SAVE_MAGICFILENAME, (unsigned char*) saveBupHeader, sizeof(BUP_HEADER) + SAVE_MAGICFILESIZE);
     if (ret != 0)
     {

@@ -5,7 +5,8 @@
 
 #define SAVE_FOLDERNAME "/satiator-saves"
 #define SAVE_MAGICFILENAME "SAVRING"
-#define SAVE_MAGICFILESIZE 52
+#define SAVE_MAGICFILESIZE 0
+#define SAVE_MAGICBLOCKSIZE 0
 #define SAVE_MAXDIRPATHSIZE sizeof(SAVE_FOLDERNAME)+MAX_SAVE_COMMENT // the appended slash and null termination byte is accounted for as sizeof and MAX_SAVE_COMMENT include an additional byte for null term
 
 #define COUNTOF(x) sizeof(x)/sizeof(x[0])
