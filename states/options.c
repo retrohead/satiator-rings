@@ -41,6 +41,11 @@ static char * getOptionName(enum optionsType option, int value)
             return getListTypeName(value);
         case OPTIONS_LIST_CATEGORY:
             return getListCategoryName(value);
+        case OPTIONS_PERGAME_SAVE:
+            if(value == 0)
+                return "Per-Game Saves <Off>";
+            else
+                return "Per-Game Saves <On> ";
         case OPTIONS_SKIP_SPLASH:
             if(value == 0)
                 return "Skip Splash Screen <Off>";
@@ -135,6 +140,7 @@ void logic_options()
                         case OPTIONS_SKIP_SPLASH:
                         case OPTIONS_AUTO_PATCH:
                         case OPTIONS_DESC_CACHE:
+                        case OPTIONS_PERGAME_SAVE:
                             options[selectedMenuOption] += changed;
                             if(options[selectedMenuOption] < 0)
                                 options[selectedMenuOption] = 1;

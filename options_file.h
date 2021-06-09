@@ -6,6 +6,7 @@ enum optionsType
     OPTIONS_AUTO_PATCH,
     OPTIONS_DESC_CACHE,
     OPTIONS_SKIP_SPLASH,
+    OPTIONS_PERGAME_SAVE,
     /* end */
     OPTIONS_COUNT
 };

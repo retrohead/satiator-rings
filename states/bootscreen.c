@@ -5,6 +5,7 @@
 #include "../debug.h"
 #include "routine_states.h"
 #include "../satiator_functions.h"
+#include "../save_functions.h"
 #include "../ini.h"
 #include "../bios.h"
 
@@ -132,6 +133,13 @@ void logic_bootscreen()
                         }
                         centerTextVblank(20, "Adding To Recent History");
                         addItemToRecentHistory();
+                        
+                        if(options[OPTIONS_PERGAME_SAVE] == 1)
+                        {
+                            centerTextVblank(20, "Imaging Per-Game Save Memory to Console");
+                            satiatorPreparePerGameSRAM();
+                        }
+
                         centerTextVblank(20, "Booting Disc");
                         ret = satiatorEmulateDesc("emu.desc");
                         if(ret == SATIATOR_PATCH_REQUIRED)

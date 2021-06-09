@@ -35,6 +35,9 @@ void initOptions()
             case OPTIONS_SKIP_SPLASH:
                 options[i] = 0;
                 break;
+            case OPTIONS_PERGAME_SAVE:
+                options[i] = 0;
+                break;
             case OPTIONS_COUNT:
                 break;
         }
@@ -85,6 +88,8 @@ void loadOptions(bool firstInit)
                 sscanf(oneline, "desccache=%d", &options[OPTIONS_DESC_CACHE]);
             if(!strncmp(oneline, "skipsplash", 10))
                 sscanf(oneline, "skipsplash=%d", &options[OPTIONS_SKIP_SPLASH]);
+            if(!strncmp(oneline, "pergamesave", 11))
+                sscanf(oneline, "pergamesave=%d", &options[OPTIONS_PERGAME_SAVE]);
             oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fr, &bytes, st->size);
             if(!strncmp(oneline, "[END]", 5))
                 break;
@@ -160,6 +165,9 @@ bool saveOptions()
     s_write(fw, line, strlen(line));
     
     sprintf(line, "skipsplash=%d\r\n", options[OPTIONS_SKIP_SPLASH]);
+    s_write(fw, line, strlen(line));
+
+    sprintf(line, "pergamesave=%d\r\n", options[OPTIONS_PERGAME_SAVE]);
     s_write(fw, line, strlen(line));
 
     s_write(fw, "[THEME]\r\n", 9);
