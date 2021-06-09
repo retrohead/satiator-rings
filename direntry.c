@@ -85,6 +85,8 @@ void loadFileList(char * directory, int (*filter)(dirEntry *entry))
             continue;
         if(!strncmp(st->name, "satiator-rings", 14) && !strcmp(currentDirectory, "/"))
             continue;
+        if(!strncmp(st->name, "satiator-saves", 14) && !strcmp(currentDirectory, "/"))
+            continue;
         if(!strncmp(st->name, "autoboot", 8) && !strcmp(currentDirectory, "/"))
             continue;
         // thanks Windows

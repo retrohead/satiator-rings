@@ -338,7 +338,7 @@ int readSATFromBlock(unsigned char* partitionBuf, unsigned int partitionSize, un
 
     // loop through the block, recording SAT table entries until you find the
     // 0x0000 terminator or reach the end of the block
-    for(startByte; startByte < blockSize; startByte += sizeof(unsigned short))
+    while(startByte < blockSize)
     {
         unsigned short index = *(unsigned short*)((unsigned char*)metadata + startByte);
 
@@ -360,6 +360,7 @@ int readSATFromBlock(unsigned char* partitionBuf, unsigned int partitionSize, un
             satBlocks[currBlock].flags |= SAT_TABLE_END_BLOCK_FLAG;
             return 0;
         }
+        startByte += sizeof(unsigned short);
     }
 
     // didn't find end val, continue checking

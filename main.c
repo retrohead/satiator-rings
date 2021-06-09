@@ -139,6 +139,7 @@ void			jo_main(void)
     initSfx();
     initControllers();
     sci_init();
+    sciLog("hello rings!\r\n");
 	jo_core_add_callback(application_logic);
 	jo_core_add_callback(draw_objects);
 	jo_core_run();

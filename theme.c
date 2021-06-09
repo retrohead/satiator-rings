@@ -93,7 +93,7 @@ bool loadThemeFile(char * theme)
         if (fp >= 0) {
             char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
             strcpy(oneline, "");
-            uint32_t bytes;
+            uint32_t bytes = 0;
             while(strncmp(oneline, "[START]", 7))
             {
                 oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);

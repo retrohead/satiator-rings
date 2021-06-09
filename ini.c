@@ -6,6 +6,7 @@
 #include "ini.h"
 #include "states/routine_states.h"
 #include "satiator_functions.h"
+#include "sci.h"
 
 bool loadIniListFirstLine(char * fn, char * destbuf)
 {
@@ -23,7 +24,7 @@ bool loadIniListFirstLine(char * fn, char * destbuf)
         if (fp >= 0) {
             char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
             strcpy(oneline, "");
-            uint32_t bytes;
+            uint32_t bytes = 0;
             while(strncmp(oneline, "[START]", 7))
             {
                 oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
@@ -67,7 +68,7 @@ void writeIniList(char * fn, char * deleteEntry)
 }
 bool addItemToIni(char * ini, char * fn, bool addStart, bool keepList, bool sort, int maxItems)
 {
-    bool ret = loadIniList(ini, sort, fn, addStart, maxItems);
+    bool ret = loadIniList(ini, false, fn, addStart, maxItems);
     writeIniList(ini, NULL);
     if(!keepList)
     {
@@ -98,6 +99,7 @@ void addDirEntryItem(char * fn)
 }
 bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int maxItems)
 {
+    sci_init();
     bool ret = true;
     s_chdir("/satiator-rings");
     truncatedList = false;
@@ -111,7 +113,9 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int m
     else
         maxItems = MAX_LOADED_DIR_ENTRIES;
     if(addItem && addAtStart)
+    {
         addDirEntryItem(addItemStr);
+    }
 
 
     s_stat_t *st = (s_stat_t*)statbuf;
@@ -122,7 +126,7 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int m
         if (fp >= 0) {
             char * oneline = jo_malloc(ONE_LINE_MAX_LEN);
             strcpy(oneline, "");
-            uint32_t bytes;
+            uint32_t bytes = 0;
             while(strncmp(oneline, "[START]", 7))
             {
                 oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
@@ -134,21 +138,24 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int m
                 {
                     ret = false;
                     if(!addAtStart)
+                    {
                         addDirEntryItem(oneline);
+                    }
                     oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
-                    continue;
-                }
-                addDirEntryItem(oneline);
-                if(dirEntryCount == MAX_LOADED_DIR_ENTRIES / 4) // using a shorter list as shortcuts could be much longer
+                } else
                 {
-                    truncatedList = true;
-                    break;
+                    addDirEntryItem(oneline);
+                    if(dirEntryCount == MAX_LOADED_DIR_ENTRIES / 4) // using a shorter list as shortcuts could be much longer
+                    {
+                        truncatedList = true;
+                        break;
+                    }
+                    if(dirEntryCount == maxItems)
+                        break;
+                    if(addItem && !addAtStart && ret && (dirEntryCount == maxItems - 1))
+                        break;
+                    oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
                 }
-                if(dirEntryCount == maxItems)
-                    break;
-                if(addItem && !addAtStart && ret && (dirEntryCount == maxItems - 1))
-                    break;
-                oneline = s_gets(oneline, ONE_LINE_MAX_LEN, fp, &bytes, st->size);
             }
             s_close(fp);
             jo_free(oneline);
@@ -156,7 +163,9 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int m
     }
     s_chdir(currentDirectory);
     if(addItem && !addAtStart && ret)
+    {
         addDirEntryItem(addItemStr);
+    }
     for(int i=dirEntryCount; i < MAX_LOADED_DIR_ENTRIES; i++)
     {
         if(dirEntries[i].name)
@@ -165,6 +174,8 @@ bool loadIniList(char * fn, bool sort, char * addItemStr, bool addAtStart, int m
         dirEntries[i].type = DIR_NULL;
     }
     if(sort)
+    {
         sortDirEntries();
+    }
     return ret;
 }

@@ -1,5 +1,6 @@
 #include "../main.h"
 #include "routine_states.h"
+#define MAX_MENU_OPTIONS 20
 
 enum menu_option_types
 {
@@ -16,7 +17,7 @@ typedef struct
     int sfx;
 } menuOption;
 
-extern menuOption menuOptions[10];
+extern menuOption menuOptions[MAX_MENU_OPTIONS];
 extern int selectorSprite;
 
 extern void clearMenuOptions();

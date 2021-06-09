@@ -1,7 +1,6 @@
 #include <string.h>
 #include "menu_options.h"
 #include "../direntry.h"
-#define MAX_MENU_OPTIONS 10
 
 
 int selectorSprite;

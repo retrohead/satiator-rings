@@ -43,9 +43,9 @@ static char * getOptionName(enum optionsType option, int value)
             return getListCategoryName(value);
         case OPTIONS_PERGAME_SAVE:
             if(value == 0)
-                return "Per-Game Saves <Off>";
+                return "Per-Game Saves     <Off>";
             else
-                return "Per-Game Saves <On> ";
+                return "Per-Game Saves     <On> ";
         case OPTIONS_SKIP_SPLASH:
             if(value == 0)
                 return "Skip Splash Screen <Off>";

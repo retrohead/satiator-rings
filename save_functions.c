@@ -46,7 +46,7 @@ void initSaves()  // initialization routine for Save subsystem currently does no
             saveClearSaveDirectory(gameId);
 
             ret = saveCopyInternalMemoryToSaveDirectory(gameId);
-            if (ret == SATIATOR_WRITE_ERR) 
+            if ((int)ret == SATIATOR_WRITE_ERR) 
             {
                 return;
             }
@@ -58,7 +58,7 @@ void initSaves()  // initialization routine for Save subsystem currently does no
                 return;
             }
             ret = saveCreateSaveDirectory("_BACKUP");
-            if (ret == SATIATOR_WRITE_ERR)
+            if ((int)ret == SATIATOR_WRITE_ERR)
             {
                 return;
             }

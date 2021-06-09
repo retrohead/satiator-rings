@@ -259,7 +259,6 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
     centerTextVblank(21, " ");
     if(!strcmp(regionStr, checkStr))
     {
-        enum SATIATOR_ERROR_CODE ret;
         centerTextVblank(20, "Adding To Recent History");
         // no patching needed
         addItemToRecentHistory();
@@ -342,7 +341,7 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
         return ret;
     }
     ret = saveCopyInternalMemoryToSaveDirectory("_BACKUP");
-    if (ret != SAVE_SUCCESS)
+    if ((int)ret != SAVE_SUCCESS)
     {
         jo_nbg2_printf(2,  22,"Error: saveCopyInternalMemoryToSaveDirectory");
         return ret;
@@ -350,7 +349,7 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
 
     centerTextVblank(20, "Clearing SRAM");
     ret = saveClearInternalMemory();
-    if (ret != SAVE_SUCCESS)
+    if ((int)ret != SAVE_SUCCESS)
     {
         jo_nbg2_printf(2,  22,"Error: saveClearInternalMemory");
         return ret;
@@ -372,7 +371,7 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
     }
     centerTextVblank(20, "Marking SRAM with active GameID");
     saveSaveGameIdToInternalMemory(gameId);
-    if (ret != SAVE_SUCCESS)
+    if ((int)ret != SAVE_SUCCESS)
     {
             jo_nbg2_printf(2,  22,"Error: saveSaveGameIdToInternalMemory");
             return ret;
@@ -506,7 +505,7 @@ int satiatorExecutableFilter(dirEntry *entry) {
 // Read one line of data with a maximum buffer size
 char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t totalBytes)
 {
-    if(*bytesRead == totalBytes)
+    if(*bytesRead >= totalBytes)
         return buf;
     char c[2];
     strcpy(buf, "");
@@ -514,7 +513,7 @@ char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t
     {
         int j = s_read(fd, &c, 1);
         *bytesRead = *bytesRead + 1;
-        if(j < 0)
+        if(j <= 0)
         {
             break;
         }
@@ -526,7 +525,7 @@ char * s_gets(char *buf, uint32_t maxsize, int fd, uint32_t *bytesRead, uint32_t
         if(c[0] == '\r')
             continue;
         strcat(buf, c);
-        if(*bytesRead == totalBytes)
+        if(*bytesRead >= totalBytes)
         {
             break;
         }
