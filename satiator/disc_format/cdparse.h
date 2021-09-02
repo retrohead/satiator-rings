@@ -4,7 +4,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#define MAX_SEGMENTS 300
+#define MAX_SEGMENTS 700
 #define MAX_FILENAMES 100
 
 extern char *cdparse_error_string;
