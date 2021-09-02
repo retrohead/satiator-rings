@@ -178,7 +178,7 @@ void logic_splash()
                 {
                     case SATIATOR_STATE_NOT_FOUND:
                         centerTextVblank(20, "Satiator Not Detected");
-                        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+                        if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
                                 routine_scene = MAX_SPLASH_FRAME - 1;
@@ -192,7 +192,7 @@ void logic_splash()
                     case SATIATOR_STATE_NOT_WORKING:
                         centerTextVblank(20, "Satiator Detected");
                         centerTextVblank(22, "Satiator Is Not Working");
-                        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+                        if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
                                 routine_scene = MAX_SPLASH_FRAME - 1;
@@ -207,7 +207,7 @@ void logic_splash()
                         centerTextVblank(20, "Satiator Detected");
                         centerTextVblank(22, "Satiator Is Working");
 
-                        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+                        if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS))
                         {
                             if(routine_scene < MAX_SPLASH_FRAME - 1)
                                 routine_scene = MAX_SPLASH_FRAME - 1;
@@ -217,7 +217,7 @@ void logic_splash()
                             splash_state = ROUTINE_STATE_END;
                             exit_state = PROG_STATE_GAMELIST;
                         }
-                        if(pad_controllers[0].btn_z == BUTTON_STATE_HELD)
+                        if(pad_controllers[controllerMonitor].btn_z == BUTTON_STATE_HELD)
                         {
                             centerTextVblank(28, "Skipping To Boot Sequence");
                             exit_state = PROG_STATE_QUICKBOOT;
@@ -226,7 +226,7 @@ void logic_splash()
                         break;
                 }
             }
-            if((pad_controllers[0].btn_z == BUTTON_STATE_HELD) || (pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+            if((pad_controllers[controllerMonitor].btn_z == BUTTON_STATE_HELD) || (pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS))
             {
                 if(routine_scene < 4)
                     routine_scene = 4;

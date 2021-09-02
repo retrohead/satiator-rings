@@ -51,23 +51,23 @@ void displayMenuOptions(int selectedOption)
 int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state, enum prog_state_types * exit_state)
 {
     static int delay = 0;
-    if((pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS) || ((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (*selectedOption == OPTIONS_SOUND_VOLUME)))
+    if((pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_NEWPRESS) || ((pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_HELD) && (*selectedOption == OPTIONS_SOUND_VOLUME)))
     {
-        switch(pad_controllers[0].direction_id)
+        switch(pad_controllers[controllerMonitor].direction_id)
         {
             case LEFT:
             case UP_LEFT:
             case DOWN_LEFT:
                 if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
                 {
-                    if((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (delay < 10))
+                    if((pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_HELD) && (delay < 10))
                     {
                         if(*selectedOption != OPTIONS_SOUND_VOLUME)
                             break;
                         delay++;
                         break;
                     }
-                    if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+                    if(pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_NEWPRESS)
                         delay = 0;
                     playSfx(SFX_OPTION, false);
                     return -1;
@@ -78,21 +78,21 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
             case UP_RIGHT:
                 if(menuOptions[*selectedOption].type != OPTION_PROGRAM_STATE)
                 {
-                    if((pad_controllers[0].direction_status == BUTTON_STATE_HELD) && (delay < 10))
+                    if((pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_HELD) && (delay < 10))
                     {
                         if(*selectedOption != OPTIONS_SOUND_VOLUME)
                             break;
                         delay++;
                         break;
                     }
-                    if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+                    if(pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_NEWPRESS)
                         delay = 0;
                     playSfx(SFX_OPTION, false);
                     return 1;
                 }
                 break;
             case UP:
-                if((pad_controllers[0].direction_status != BUTTON_STATE_HELD) && (usedMenuOptions > 0))
+                if((pad_controllers[controllerMonitor].direction_status != BUTTON_STATE_HELD) && (usedMenuOptions > 0))
                 {
                     playSfx(SFX_MOVE, false);
                     *selectedOption = *selectedOption - 1;
@@ -101,7 +101,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
                 }
                 break;
             case DOWN:
-                if((pad_controllers[0].direction_status != BUTTON_STATE_HELD) && (usedMenuOptions > 0))
+                if((pad_controllers[controllerMonitor].direction_status != BUTTON_STATE_HELD) && (usedMenuOptions > 0))
                 {
                     playSfx(SFX_MOVE, false);
                     *selectedOption = *selectedOption + 1;
@@ -112,7 +112,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
         }
         displayMenuOptions(*selectedOption);
     }
-    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_CHANGE, false);
         *menu_state = ROUTINE_STATE_END_CANCEL;
@@ -120,7 +120,7 @@ int controlMenuOptions(int *selectedOption, enum routine_state_types *menu_state
     }
     if(menuOptions[*selectedOption].type == OPTION_PROGRAM_STATE)
     {
-        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+        if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
         {
             playSfx(menuOptions[*selectedOption].sfx, false);
             *menu_state = ROUTINE_STATE_END;

@@ -20,6 +20,9 @@ typedef struct
     enum controllerButtonStateType btn_start;
 } controllerStateType;
 
+extern int controllerMonitor;
+
+
 extern controllerStateType pad_controllers[JO_INPUT_MAX_DEVICE];
 
 extern void initControllers();

@@ -156,7 +156,7 @@ void displayGameList(bool triggersHeld)
 void logic_gamelist_standard(enum game_list_display_types * display_type, enum prog_state_types * exit_state, bool triggersHeld, int * depth)
 {
     jo_nbg2_printf(1, 3, "%s                                                  ", currentDirectory);
-    if (pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
+    if (pad_controllers[controllerMonitor].btn_x == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
@@ -171,7 +171,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         loadIniList("favs.ini", true, "", false, -1);
         displayGameList(triggersHeld);
     }
-    if (pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    if (pad_controllers[controllerMonitor].btn_y == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_OPTION, false);
         char * addFav = jo_malloc(1024);
@@ -198,7 +198,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
         else
             displayStatus("Already Added To Favourites");
     }
-    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
     {
         if(dirEntryCount > 0)
         {
@@ -236,7 +236,7 @@ void logic_gamelist_standard(enum game_list_display_types * display_type, enum p
             }
         }
     }
-    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
     {
         if(*depth == 0)
         {
@@ -325,7 +325,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
     {
         displayStatus("Confirm Delete [A/C] Cancel [B]");
         
-        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+        if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
         {
             awaitConfirmation = false;
             playSfx(SFX_SELECT, false);
@@ -340,7 +340,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
             displayGameList(triggersHeld);
             displayStatus("Item deleted from favourites");
         }
-        if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+        if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
         {
             awaitConfirmation = false;
             playSfx(SFX_BACK, false);
@@ -348,7 +348,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         }
         return;
     }
-    if(pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS)
+    if(pad_controllers[controllerMonitor].btn_x == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         jo_nbg2_clear();
@@ -363,13 +363,13 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
         loadIniList("recent.ini", false, "", false, -1);
         displayGameList(triggersHeld);
     }
-    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    if(pad_controllers[controllerMonitor].btn_y == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         awaitConfirmation = true;
     }
     
-    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
     {
         if(dirEntryCount > 0)
         {
@@ -383,7 +383,7 @@ void logic_gamelist_favourites(enum game_list_display_types * display_type, enum
             }
         }
     }
-    if (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    if (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_SELECT, false);
         *display_type = GAME_LIST_STANDARD;
@@ -408,7 +408,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
     {
         displayStatus("Confirm Delete [A/C] Cancel [B]");
         
-        if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+        if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
         {
             awaitConfirmation = false;
             playSfx(SFX_SELECT, false);
@@ -422,7 +422,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
             displayGameList(triggersHeld);
             displayStatus("Item deleted from recents");
         }
-        if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+        if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
         {
             awaitConfirmation = false;
             playSfx(SFX_BACK, false);
@@ -430,12 +430,12 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
         }
         return;
     }
-    if(pad_controllers[0].btn_y == BUTTON_STATE_NEWPRESS)
+    if(pad_controllers[controllerMonitor].btn_y == BUTTON_STATE_NEWPRESS)
     {
         awaitConfirmation = true;
         playSfx(SFX_SELECT, false);
     }
-    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
     {
         if(dirEntryCount > 0)
         {
@@ -449,7 +449,7 @@ void logic_gamelist_recents(enum game_list_display_types * display_type, enum pr
             }
         }
     }
-    if((pad_controllers[0].btn_x == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS))
+    if((pad_controllers[controllerMonitor].btn_x == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS))
     {
         playSfx(SFX_SELECT, false);
         *display_type = GAME_LIST_STANDARD;
@@ -541,13 +541,13 @@ void logic_gamelist()
 
             if(!awaitConfirmation)
             {
-                if(pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS)
+                if(pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS)
                 {
                     game_list_state = ROUTINE_STATE_END;
                     exit_state = PROG_STATE_MENU;
                     playSfx(SFX_CHANGE, false);
                 }
-                if(pad_controllers[0].btn_z == BUTTON_STATE_NEWPRESS)
+                if(pad_controllers[controllerMonitor].btn_z == BUTTON_STATE_NEWPRESS)
                 {
                     // changing display mode
                     if(options[OPTIONS_LIST_MODE] == GAME_VIEW_MAX_COUNT - 1)
@@ -559,9 +559,9 @@ void logic_gamelist()
                     playSfx(SFX_SLIDE, false);
                 }
                 
-                if(pad_controllers[0].direction_status == BUTTON_STATE_HELD)
+                if(pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_HELD)
                 {
-                    switch(pad_controllers[0].direction_id)
+                    switch(pad_controllers[controllerMonitor].direction_id)
                     {    
                         case UP:
                             if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
@@ -585,9 +585,9 @@ void logic_gamelist()
                             break;
                     }
                 }
-                if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+                if(pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_NEWPRESS)
                 {
-                    switch(pad_controllers[0].direction_id)
+                    switch(pad_controllers[controllerMonitor].direction_id)
                     {
                         case LEFT:
                         case DOWN_LEFT:
@@ -630,7 +630,7 @@ void logic_gamelist()
                     }
                     displayGameList(triggersHeld);
                 }
-                if(pad_controllers[0].btn_l == BUTTON_STATE_HELD)
+                if(pad_controllers[controllerMonitor].btn_l == BUTTON_STATE_HELD)
                 {
                     playSfx(SFX_MOVE, true);
                     if(selectedDirEntry > 0)
@@ -649,7 +649,7 @@ void logic_gamelist()
                     displayGameList(triggersHeld);
                     clearGameBoxSprite();
                 }
-                if(pad_controllers[0].btn_r == BUTTON_STATE_HELD)
+                if(pad_controllers[controllerMonitor].btn_r == BUTTON_STATE_HELD)
                 {
                     playSfx(SFX_MOVE, true);
                     if(selectedDirEntry < dirEntryCount - 1)
@@ -666,7 +666,7 @@ void logic_gamelist()
                     displayGameList(triggersHeld);
                     clearGameBoxSprite();
                 }
-                if((pad_controllers[0].btn_r == BUTTON_STATE_IDLE) && (pad_controllers[0].btn_l == BUTTON_STATE_IDLE) && (triggersHeld))
+                if((pad_controllers[controllerMonitor].btn_r == BUTTON_STATE_IDLE) && (pad_controllers[controllerMonitor].btn_l == BUTTON_STATE_IDLE) && (triggersHeld))
                 {
                     triggersHeld = false;
                     updateBoxarts();

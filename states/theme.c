@@ -41,7 +41,7 @@ void logic_standard(enum prog_state_types * exit_state)
 {
     jo_nbg2_printf(1, 3, "Loaded Theme: %s                              ", loadedThemeName);
 
-    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
     {
         if(dirEntryCount > 0)
         {
@@ -58,7 +58,7 @@ void logic_standard(enum prog_state_types * exit_state)
             }
         }
     }
-    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+    if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
     {
         playSfx(SFX_CHANGE, false);
         theme_list_state = ROUTINE_STATE_END;
@@ -98,9 +98,9 @@ void logic_themelist()
                 displayDirListItem(dirEntries[selectedDirEntry].name, (selectedDirEntry - listOffset) + 5, true, dirEntries[selectedDirEntry].type, triggersHeld);
             }
             
-            if(pad_controllers[0].direction_status == BUTTON_STATE_HELD)
+            if(pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_HELD)
             {
-                switch(pad_controllers[0].direction_id)
+                switch(pad_controllers[controllerMonitor].direction_id)
                 {    
                     case UP:
                         if((listScrolldelay < LIST_SCROLL_DELAY) && !triggersHeld)
@@ -124,9 +124,9 @@ void logic_themelist()
                         break;
                 }
             }
-            if(pad_controllers[0].direction_status == BUTTON_STATE_NEWPRESS)
+            if(pad_controllers[controllerMonitor].direction_status == BUTTON_STATE_NEWPRESS)
             {
-                switch(pad_controllers[0].direction_id)
+                switch(pad_controllers[controllerMonitor].direction_id)
                 {
                     case LEFT:
                         break;

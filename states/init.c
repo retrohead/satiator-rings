@@ -93,7 +93,7 @@ void logic_init()
             {
                 case SATIATOR_STATE_NOT_FOUND:
                     centerTextVblank(20, "Satiator Not Detected");
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+                    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS))
                     {
                         init_state = ROUTINE_STATE_END;
                         exit_state = PROG_STATE_EXIT;
@@ -102,14 +102,14 @@ void logic_init()
                 case SATIATOR_STATE_NOT_WORKING:
                     centerTextVblank(20, "Satiator Detected");
                     centerTextVblank(22, "Satiator Is Not Working");
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_start == BUTTON_STATE_NEWPRESS))
+                    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_start == BUTTON_STATE_NEWPRESS))
                     {
                         init_state = ROUTINE_STATE_END;
                         exit_state = PROG_STATE_EXIT;
                     }
                     break;
                 case SATIATOR_STATE_WORKING:
-                    if(pad_controllers[0].btn_z == BUTTON_STATE_HELD)
+                    if(pad_controllers[controllerMonitor].btn_z == BUTTON_STATE_HELD)
                     {
                         centerTextVblank(28, "Skipping To Boot Sequence");
                         exit_state = PROG_STATE_QUICKBOOT;

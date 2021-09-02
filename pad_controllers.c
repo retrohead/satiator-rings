@@ -2,6 +2,7 @@
 #include "pad_controllers.h"
 
 controllerStateType pad_controllers[JO_INPUT_MAX_DEVICE];
+int controllerMonitor = 0;
 
 void initControllers()
 {
@@ -38,9 +39,9 @@ void updateControllerButtonStatus(enum controllerButtonStateType *btn, bool is_p
     }
 }
 
-void updateController(int i, int monitorController)
+void updateController(int i)
 {
-    int newDirection = jo_get_input_direction_pressed(monitorController);
+    int newDirection = jo_get_input_direction_pressed(i);
     if((pad_controllers[i].direction_id == newDirection) && ((pad_controllers[i].direction_status == BUTTON_STATE_NEWPRESS) || (pad_controllers[i].direction_status == BUTTON_STATE_HELD)))
     {
         // same direction pressed, change to held status
@@ -54,21 +55,38 @@ void updateController(int i, int monitorController)
         pad_controllers[i].direction_status = BUTTON_STATE_NEWPRESS;
     }
     pad_controllers[i].direction_id = newDirection;
-    updateControllerButtonStatus(&pad_controllers[i].btn_start, jo_is_input_key_pressed(monitorController, JO_KEY_START));
-    updateControllerButtonStatus(&pad_controllers[i].btn_a, jo_is_input_key_pressed(monitorController, JO_KEY_A));
-    updateControllerButtonStatus(&pad_controllers[i].btn_b, jo_is_input_key_pressed(monitorController, JO_KEY_B));
-    updateControllerButtonStatus(&pad_controllers[i].btn_c, jo_is_input_key_pressed(monitorController, JO_KEY_C));
-    updateControllerButtonStatus(&pad_controllers[i].btn_x, jo_is_input_key_pressed(monitorController, JO_KEY_X));
-    updateControllerButtonStatus(&pad_controllers[i].btn_y, jo_is_input_key_pressed(monitorController, JO_KEY_Y));
-    updateControllerButtonStatus(&pad_controllers[i].btn_z, jo_is_input_key_pressed(monitorController, JO_KEY_Z));
-    updateControllerButtonStatus(&pad_controllers[i].btn_l, jo_is_input_key_pressed(monitorController, JO_KEY_L));
-    updateControllerButtonStatus(&pad_controllers[i].btn_r, jo_is_input_key_pressed(monitorController, JO_KEY_R));
+    updateControllerButtonStatus(&pad_controllers[i].btn_start, jo_is_input_key_pressed(i, JO_KEY_START));
+    updateControllerButtonStatus(&pad_controllers[i].btn_a, jo_is_input_key_pressed(i, JO_KEY_A));
+    updateControllerButtonStatus(&pad_controllers[i].btn_b, jo_is_input_key_pressed(i, JO_KEY_B));
+    updateControllerButtonStatus(&pad_controllers[i].btn_c, jo_is_input_key_pressed(i, JO_KEY_C));
+    updateControllerButtonStatus(&pad_controllers[i].btn_x, jo_is_input_key_pressed(i, JO_KEY_X));
+    updateControllerButtonStatus(&pad_controllers[i].btn_y, jo_is_input_key_pressed(i, JO_KEY_Y));
+    updateControllerButtonStatus(&pad_controllers[i].btn_z, jo_is_input_key_pressed(i, JO_KEY_Z));
+    updateControllerButtonStatus(&pad_controllers[i].btn_l, jo_is_input_key_pressed(i, JO_KEY_L));
+    updateControllerButtonStatus(&pad_controllers[i].btn_r, jo_is_input_key_pressed(i, JO_KEY_R));
+
+    if((i != controllerMonitor) && 
+        (
+            (pad_controllers[i].btn_start != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_a != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_b != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_c != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_x != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_y != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_z != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_l != BUTTON_STATE_IDLE) ||
+            (pad_controllers[i].btn_r != BUTTON_STATE_IDLE)
+        )
+    )
+        {
+            controllerMonitor = i;
+        }
 }
 
 void updateControllers()
 {
     for(int i=0;i<JO_INPUT_MAX_DEVICE;i++)
     {
-        updateController(0, i);
+        updateController(i);
     }
 }

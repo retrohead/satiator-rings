@@ -106,7 +106,7 @@ void logic_bootscreen()
                     break;
                 case 2:
                     // error occurred
-                    if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+                    if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
                     {
                         bootscreen_state = ROUTINE_STATE_END;
                     }
@@ -120,7 +120,7 @@ void logic_bootscreen()
                         printCenterText(25,"Cancel (B)");
                     }
 
-                    if((pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS) || (options[OPTIONS_AUTO_PATCH] == 1))
+                    if((pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (options[OPTIONS_AUTO_PATCH] == 1))
                     {
                         printCenterText(22,"");
                         printCenterText(24,"");
@@ -154,7 +154,7 @@ void logic_bootscreen()
                             bootscreen_state = ROUTINE_STATE_END;
                         }
                     }
-                    if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+                    if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
                     {
                         bootscreen_state = ROUTINE_STATE_END;
                     }

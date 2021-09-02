@@ -103,14 +103,14 @@ void logic_options()
                 // confirm clear recent history
                 displayStatus("Confirm Clear [A/C] Cancel [B]");
                 
-                if((pad_controllers[0].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[0].btn_c == BUTTON_STATE_NEWPRESS))
+                if((pad_controllers[controllerMonitor].btn_a == BUTTON_STATE_NEWPRESS) || (pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS))
                 {
                     routine_scene = 0;
                     playSfx(SFX_SELECT, false);
                     s_unlink("/satiator-rings/recent.ini");
                     displayStatus("Recent history was cleared");
                 }
-                if(pad_controllers[0].btn_b == BUTTON_STATE_NEWPRESS)
+                if(pad_controllers[controllerMonitor].btn_b == BUTTON_STATE_NEWPRESS)
                 {
                     routine_scene = 0;
                     playSfx(SFX_BACK, false);
