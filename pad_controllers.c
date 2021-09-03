@@ -1,5 +1,9 @@
 #include <jo/jo.h>
 #include "pad_controllers.h"
+#include "debug.h"
+#include "states/routine_states.h"
+
+#define PORT2 (9)
 
 controllerStateType pad_controllers[JO_INPUT_MAX_DEVICE];
 int controllerMonitor = 0;
@@ -39,9 +43,35 @@ void updateControllerButtonStatus(enum controllerButtonStateType *btn, bool is_p
     }
 }
 
+int get_input_direction_pressed(int port)
+{
+    Uint16 data = 0;
+    if(port >= 6)
+        port += PORT2; // port 2 data is offset
+    data = Smpc_Peripheral[port].data;
+    if((data & PER_DGT_KD)== 0)
+    {
+        return DOWN;
+    }
+    else if((data & PER_DGT_KU)== 0)
+    {
+        return UP;
+    }
+    // Check horizontal movement
+    else if((data & PER_DGT_KR)== 0)
+    {
+        return RIGHT;
+    }
+    else if((data & PER_DGT_KL)== 0)
+    {
+        return LEFT;
+    }
+    return NONE;
+}
+
 void updateController(int i)
 {
-    int newDirection = jo_get_input_direction_pressed(i);
+    int newDirection = get_input_direction_pressed(i);
     if((pad_controllers[i].direction_id == newDirection) && ((pad_controllers[i].direction_status == BUTTON_STATE_NEWPRESS) || (pad_controllers[i].direction_status == BUTTON_STATE_HELD)))
     {
         // same direction pressed, change to held status
@@ -55,18 +85,25 @@ void updateController(int i)
         pad_controllers[i].direction_status = BUTTON_STATE_NEWPRESS;
     }
     pad_controllers[i].direction_id = newDirection;
-    updateControllerButtonStatus(&pad_controllers[i].btn_start, jo_is_input_key_pressed(i, JO_KEY_START));
-    updateControllerButtonStatus(&pad_controllers[i].btn_a, jo_is_input_key_pressed(i, JO_KEY_A));
-    updateControllerButtonStatus(&pad_controllers[i].btn_b, jo_is_input_key_pressed(i, JO_KEY_B));
-    updateControllerButtonStatus(&pad_controllers[i].btn_c, jo_is_input_key_pressed(i, JO_KEY_C));
-    updateControllerButtonStatus(&pad_controllers[i].btn_x, jo_is_input_key_pressed(i, JO_KEY_X));
-    updateControllerButtonStatus(&pad_controllers[i].btn_y, jo_is_input_key_pressed(i, JO_KEY_Y));
-    updateControllerButtonStatus(&pad_controllers[i].btn_z, jo_is_input_key_pressed(i, JO_KEY_Z));
-    updateControllerButtonStatus(&pad_controllers[i].btn_l, jo_is_input_key_pressed(i, JO_KEY_L));
-    updateControllerButtonStatus(&pad_controllers[i].btn_r, jo_is_input_key_pressed(i, JO_KEY_R));
+
+    Uint16 data = 0;
+    if(i < 6)
+        data = Smpc_Peripheral[i].data;
+    else
+        data = Smpc_Peripheral[i+PORT2].data; // port 2 data is offset
+    updateControllerButtonStatus(&pad_controllers[i].btn_start, ((data & PER_DGT_ST)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_a, ((data & PER_DGT_TA)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_b, ((data & PER_DGT_TB)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_c, ((data & PER_DGT_TC)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_x, ((data & PER_DGT_TX)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_y, ((data & PER_DGT_TY)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_z, ((data & PER_DGT_TX)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_l, ((data & PER_DGT_TL)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_r, ((data & PER_DGT_TR)== 0));
 
     if((i != controllerMonitor) && 
         (
+            (newDirection != NONE) ||
             (pad_controllers[i].btn_start != BUTTON_STATE_IDLE) ||
             (pad_controllers[i].btn_a != BUTTON_STATE_IDLE) ||
             (pad_controllers[i].btn_b != BUTTON_STATE_IDLE) ||
@@ -78,9 +115,9 @@ void updateController(int i)
             (pad_controllers[i].btn_r != BUTTON_STATE_IDLE)
         )
     )
-        {
-            controllerMonitor = i;
-        }
+    {
+        controllerMonitor = i;
+    }
 }
 
 void updateControllers()
