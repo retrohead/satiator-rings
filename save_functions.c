@@ -136,10 +136,7 @@ enum SAVE_ERROR_CODE saveBulkCopyBetweenDevices(int sourceDevice, int destinatio
     int ret;
     int bytecount = 0; // count of the total transfered bytes in copy operation
     
-    char * savepath = getPathForGameId(slot, gameid);
-    
-    // create a savedir in case this is a different card than the one used to boot the game previously
-    saveCreateSaveDirectory(gameId, slot);   
+    char * savepath = getPathForGameId(slot, gameid);   
     s_chdir(savepath);
 
     int count = 0;
