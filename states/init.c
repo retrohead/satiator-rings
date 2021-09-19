@@ -82,7 +82,7 @@ void logic_init()
         case ROUTINE_STATE_INITIALIZE:
             initOptions();
             initSatiator();
-            initSaves(); 
+            initSaves(); // load the per game slot from the save data instead if it exists
             load_font_satiator("/satiator-rings/gfx", "FONT.TGA");
             routine_scene = 0;
             init_state = ROUTINE_STATE_RUN;                       
@@ -125,17 +125,19 @@ void logic_init()
         case ROUTINE_STATE_END_CANCEL:
         case ROUTINE_STATE_END:
             if(satiatorState == SATIATOR_STATE_WORKING)
-                loadOptions(true);
-            if(options[OPTIONS_SKIP_SPLASH] == 1)
             {
-                freeSfx();
-                loadSfx(SFX_SELECT);
-                loadSfx(SFX_MOVE);
-                loadSfx(SFX_SLIDE);
-                loadSfx(SFX_CHANGE);
-                loadSfx(SFX_BACK);
-                loadSfx(SFX_OPTION);
-                exit_state = PROG_STATE_GAMELIST;
+                loadOptions(true);
+                if(options[OPTIONS_SKIP_SPLASH] == 1)
+                {
+                    freeSfx();
+                    loadSfx(SFX_SELECT);
+                    loadSfx(SFX_MOVE);
+                    loadSfx(SFX_SLIDE);
+                    loadSfx(SFX_CHANGE);
+                    loadSfx(SFX_BACK);
+                    loadSfx(SFX_OPTION);
+                    exit_state = PROG_STATE_GAMELIST;
+                }
             }
 
             init_state = ROUTINE_STATE_INITIALIZE;

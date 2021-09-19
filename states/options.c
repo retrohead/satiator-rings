@@ -5,6 +5,7 @@
 #include "../main.h"
 #include "menu_options.h"
 #include "../satiator_functions.h"
+#include "../save_functions.h"
 
 enum routine_state_types options_state = ROUTINE_STATE_INITIALIZE;
 
@@ -43,9 +44,13 @@ static char * getOptionName(enum optionsType option, int value)
             return getListCategoryName(value);
         case OPTIONS_PERGAME_SAVE:
             if(value == 0)
-                return "Per-Game Saves     <Off>";
+                return "Per-Game Save Slot <Off>";
             else
-                return "Per-Game Saves     <On> ";
+            {
+                sprintf(optionName, "Per-Game Save Slot <%02d> ", options[option] -1); 
+                return (char *)optionName;
+            }
+
         case OPTIONS_SKIP_SPLASH:
             if(value == 0)
                 return "Skip Splash Screen <Off>";
@@ -143,9 +148,9 @@ void logic_options()
                         case OPTIONS_PERGAME_SAVE:
                             options[selectedMenuOption] += changed;
                             if(options[selectedMenuOption] < 0)
-                                options[selectedMenuOption] = 1;
-                            if(options[selectedMenuOption] > 1)
                                 options[selectedMenuOption] = 0;
+                            if(options[selectedMenuOption] > MAX_SAVE_SLOTS)
+                                options[selectedMenuOption] = MAX_SAVE_SLOTS;
                             break;
                         case OPTIONS_SOUND_VOLUME:
                             options[selectedMenuOption] += changed;

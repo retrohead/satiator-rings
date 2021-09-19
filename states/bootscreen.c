@@ -134,10 +134,10 @@ void logic_bootscreen()
                         centerTextVblank(20, "Adding To Recent History");
                         addItemToRecentHistory();
                         
-                        if(options[OPTIONS_PERGAME_SAVE] == 1)
+                        if(options[OPTIONS_PERGAME_SAVE] >= 1)
                         {
                             centerTextVblank(20, "Imaging Per-Game Save Memory to Console");
-                            satiatorPreparePerGameSRAM();
+                            satiatorPreparePerGameSRAM(options[OPTIONS_PERGAME_SAVE] - 1);
                         }
 
                         centerTextVblank(20, "Booting Disc");

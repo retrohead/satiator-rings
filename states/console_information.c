@@ -24,6 +24,9 @@ void logic_console_info()
             displayVersion();
             displayStatus("Press any button to continue");
             jo_nbg2_printf(1, 10, "Cartridge     : %s", getCartridgeString());
+
+            int total = jo_backup_get_total_block_count(JoInternalMemoryBackup );
+            jo_nbg2_printf(1, 11, "System        : %d/%d Blocks", total - jo_backup_get_free_block_count(JoInternalMemoryBackup ), total);
             console_info_state = ROUTINE_STATE_RUN;
             exit_state = PROG_STATE_MENU;
             break;

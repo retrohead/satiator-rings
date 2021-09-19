@@ -263,10 +263,10 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
         // no patching needed
         addItemToRecentHistory();
         
-        if(options[OPTIONS_PERGAME_SAVE] == 1)
+        if(options[OPTIONS_PERGAME_SAVE] >= 1)
         {
             centerTextVblank(20, "Imaging Per-Game Save Memory to Console");
-            satiatorPreparePerGameSRAM();
+            satiatorPreparePerGameSRAM(options[OPTIONS_PERGAME_SAVE] -1);
         }
         return 0;
     }
@@ -328,19 +328,19 @@ bool satiatorPatchDescFileImage(const char * curRegion)
     return true;
 }
 
-enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
+enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM(int slot)
 {
     enum SATIATOR_ERROR_CODE ret;
     
     centerTextVblank(20, "Backing up current SRAM"); // double vblank to try and address the satiator hanging during sd ops
     centerTextVblank(20, "Backing up current SRAM"); 
-    ret = saveCreateSaveDirectory("_BACKUP");
+    ret = saveCreateSaveDirectory("_BACKUP", 0);
     if (ret == SATIATOR_WRITE_ERR) 
     {
         jo_nbg2_printf(2,  22,"Error: saveCreateSaveDirectory - Out of Space?");
         return ret;
     }
-    ret = saveCopyInternalMemoryToSaveDirectory("_BACKUP");
+    ret = saveCopyInternalMemoryToSaveDirectory("_BACKUP", 0);
     if ((int)ret != SAVE_SUCCESS)
     {
         jo_nbg2_printf(2,  22,"Error: saveCopyInternalMemoryToSaveDirectory");
@@ -357,12 +357,12 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
     
     centerTextVblank(20, "Creating Game Save Directory"); // double vblank to try and address the satiator hanging during sd ops
     centerTextVblank(20, "Creating Game Save Directory");
-    ret = saveCreateSaveDirectory(gameId);
+    ret = saveCreateSaveDirectory(gameId, slot);
     if(ret == SATIATOR_ALREADY_EXISTS) //directory already exists, copy existing BUPs to SRAM
     {
         centerTextVblank(20, "Directory Exists, Copying Previous Saves To SRAM"); // double vblank to try and address the satiator hanging during sd ops
         centerTextVblank(20, "Directory Exists, Copying Previous Saves To SRAM");
-        ret = saveCopySaveDirectoryToInternalMemory(gameId);
+        ret = saveCopySaveDirectoryToInternalMemory(gameId, slot);
         if(ret != SATIATOR_SUCCESS)
         {
             jo_nbg2_printf(2,  22,"Error: saveCopySaveDirectoryToInternalMemory");
@@ -370,7 +370,7 @@ enum SATIATOR_ERROR_CODE satiatorPreparePerGameSRAM()
         }
     }
     centerTextVblank(20, "Marking SRAM with active GameID");
-    saveSaveGameIdToInternalMemory(gameId);
+    ret = saveSaveGameIdToInternalMemory(gameId, slot);
     if ((int)ret != SAVE_SUCCESS)
     {
             jo_nbg2_printf(2,  22,"Error: saveSaveGameIdToInternalMemory");
