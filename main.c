@@ -103,8 +103,7 @@ void application_logic(void)
         case PROG_STATE_EXIT_TO_MULIPLAYER:
             s_chdir("/");
             s_mode(s_cdrom);
-            //jo_core_exit_to_multiplayer();
-            ((void(*)(void))0x288bec)();
+            jo_core_exit_to_multiplayer();
             break;
         case PROG_STATE_EXIT_TO_MENU:
             dirEntryCount = 1;
