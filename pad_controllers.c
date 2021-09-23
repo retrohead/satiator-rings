@@ -97,7 +97,7 @@ void updateController(int i)
     updateControllerButtonStatus(&pad_controllers[i].btn_c, ((data & PER_DGT_TC)== 0));
     updateControllerButtonStatus(&pad_controllers[i].btn_x, ((data & PER_DGT_TX)== 0));
     updateControllerButtonStatus(&pad_controllers[i].btn_y, ((data & PER_DGT_TY)== 0));
-    updateControllerButtonStatus(&pad_controllers[i].btn_z, ((data & PER_DGT_TX)== 0));
+    updateControllerButtonStatus(&pad_controllers[i].btn_z, ((data & PER_DGT_TZ)== 0));
     updateControllerButtonStatus(&pad_controllers[i].btn_l, ((data & PER_DGT_TL)== 0));
     updateControllerButtonStatus(&pad_controllers[i].btn_r, ((data & PER_DGT_TR)== 0));
 
