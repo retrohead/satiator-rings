@@ -24,7 +24,7 @@ void initOptions()
                 options[i] = 0;
                 break;
             case OPTIONS_AUTO_PATCH:
-                options[i] = 0;
+                options[i] = 2;
                 break;
             case OPTIONS_DESC_CACHE:
                 options[i] = 0;

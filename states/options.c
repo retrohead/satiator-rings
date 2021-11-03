@@ -59,8 +59,10 @@ static char * getOptionName(enum optionsType option, int value)
         case OPTIONS_AUTO_PATCH:
             if(value == 0)
                 return "Auto Region Patch  <Off>";
-            else
+            else if(value == 1)
                 return "Auto Region Patch  <On> ";
+            else
+                return "Auto Region Patch  <Emu> ";
         case OPTIONS_DESC_CACHE:
             if(value == 0)
                 return "Desc File Caching  <Off>";
@@ -142,9 +144,21 @@ void logic_options()
                             if(options[selectedMenuOption] < 0)
                                 options[selectedMenuOption] = GAME_LIST_DISPLAY_MAX_COUNT - 1;
                             break;
-                        case OPTIONS_SKIP_SPLASH:
                         case OPTIONS_AUTO_PATCH:
+                            options[selectedMenuOption] += changed;
+                            if(options[selectedMenuOption] < 0)
+                                options[selectedMenuOption] = 2;
+                            if(options[selectedMenuOption] > 2)
+                                options[selectedMenuOption] = 0;
+                            break;
+                        case OPTIONS_SKIP_SPLASH:
                         case OPTIONS_DESC_CACHE:
+                            options[selectedMenuOption] += changed;
+                            if(options[selectedMenuOption] < 0)
+                                options[selectedMenuOption] = 1;
+                            if(options[selectedMenuOption] > 1)
+                                options[selectedMenuOption] = 0;
+                            break;
                         case OPTIONS_PERGAME_SAVE:
                             options[selectedMenuOption] += changed;
                             if(options[selectedMenuOption] < 0)

@@ -122,14 +122,17 @@ void logic_bootscreen()
 
                     if((pad_controllers[controllerMonitor].btn_c == BUTTON_STATE_NEWPRESS) || (options[OPTIONS_AUTO_PATCH] == 1))
                     {
-                        printCenterText(22,"");
-                        printCenterText(24,"");
-                        printCenterText(25,"");
-                        centerTextVblank(20, "Patching Image");
-                        if(!satiatorPatchDescFileImage(getRegionString()))
+                        if(options[OPTIONS_AUTO_PATCH] == 1)
                         {
-                            routine_scene = 2;
-                            break;
+                            printCenterText(22,"");
+                            printCenterText(24,"");
+                            printCenterText(25,"");
+                            centerTextVblank(20, "Patching Image");
+                            if(!satiatorPatchDescFileImage(getRegionString()))
+                            {
+                                routine_scene = 2;
+                                break;
+                            }
                         }
                         centerTextVblank(20, "Adding To Recent History");
                         addItemToRecentHistory();

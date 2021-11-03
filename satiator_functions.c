@@ -9,6 +9,8 @@
 #include "satiator/jhloader.h"
 #include "satiator_functions.h"
 #include "save_functions.h"
+#include "sprite_manager.h"
+#include "background.h"
 #include "debug.h"
 #include "options_file.h" // needed for desc file caching
 
@@ -138,10 +140,101 @@ enum SATIATOR_ERROR_CODE satiatorWriteU32(int fd, uint32_t val)
     return satiatorWriteData(fd, &data, sizeof(int));
 }
 
+// launch the orignal menu
+int satiatorPrepareOriginalBootCode()
+{
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+
+    s_chdir("satiator-rings");
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat("emulate.bin", st, sizeof(statbuf)-1);
+    if (fr < 0)
+        return -1;
+    char * data = (char *)0x200000;
+    // try open the file
+    fr = s_open("emulate.bin", FA_READ | FA_OPEN_EXISTING);
+    if (fr < 0)
+    {
+        s_chdir(currentDirectory);
+        return -1;
+    }
+    s_seek(fr, 0x1000, SEEK_SET);
+    uint32_t readBytes = 0x1000;
+    while(readBytes < st->size)
+    {
+        uint32_t readSize = S_MAXBUF;
+        if(st->size - readBytes < readSize)
+            readSize = st->size - readBytes;
+        int ret = s_read(fr, data + (readBytes - 0x1000), readSize);
+        if(ret != (int)readSize)
+        {
+            s_close(fr);
+            s_chdir(currentDirectory);
+            return -1;
+        }
+        readBytes += readSize;
+    }
+    s_close(fr);
+    s_chdir(currentDirectory);
+    return 0;
+}
+
+bool writeBootDescFile()
+{
+    char * ini = "autobootdesc.txt";
+    if(strcmp("/", currentDirectory))
+        s_chdir("/");
+
+    // stat the file
+    s_stat_t *st = (s_stat_t*)statbuf;
+    int fr = s_stat(ini, st, sizeof(statbuf));
+    if(fr >= 0)
+    {
+        // file already exists, delete
+        s_unlink(ini);
+    }
+
+    // open new file for writing
+    int fw = s_open(ini, FA_WRITE | FA_CREATE_NEW);
+    if (fw < 0)
+    {
+        // change back to the current dir
+        s_chdir(currentDirectory);
+        return false;
+    }
+    s_write(fw, currentDirectory, strlen(currentDirectory));
+    s_write(fw, "\r\n", 2);
+    s_close(fw);
+    // change back to the current dir
+    s_chdir(currentDirectory);
+    return true;
+}
+
 enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
 {
     //fadeout(0x20);
+    if(options[OPTIONS_AUTO_PATCH] == 2)
+    {
+        centerTextVblank(20, "Preparing Boot Code");
+        // using original boot code, prepare the bin
+        if(satiatorPrepareOriginalBootCode() != 0)
+            return SATIATOR_LAUNCH_ERR;
+        centerTextVblank(20, "Writing File");
+        if(!writeBootDescFile())
+            return SATIATOR_LAUNCH_ERR;
+        centerTextVblank(20, "Booting");
 
+        init_sprites();
+        draw_sprites();
+        
+        // boot the launch code instead
+        void (*entry)(uint32_t) = (void*)0x200000;
+        entry(0);
+        // should never get here
+        return SATIATOR_LAUNCH_ERR;
+        
+    }
     satiator_cart_header_t *cart = s_find_cartridge();
     if (cart && cart->header_version >= 1)
         cart->install_soft_reset_hook();
@@ -151,6 +244,7 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     s_emulate(descfile);
     while (is_cd_present());
     while (!is_cd_present());
+
     s_mode(s_cdrom);
     if(boot_disc() < 0)
     {
@@ -164,7 +258,7 @@ enum SATIATOR_ERROR_CODE satiatorEmulateDesc(char * descfile)
     }
 }
 
-// verify the image that is about to be loaded in the desc file needs patching, returns 1 if its at 0x00 or 2 if its at 0x10 <--Not true, fix this comment
+// verify the image that is about to be loaded in the desc file needs patching, returns 1: patching is needed, -1: failed, 0: no patch needed
 // return the 10 character gameId as a null-terminated 11 byte string
 int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
 {
@@ -218,46 +312,59 @@ int satiatorVerifyPatchDescFileImage(const char * curRegion, char * outGameId)
             return -1;
         }
     }
-    centerTextVblank(21, "[>>>>>>   ]");
-    s_seek(fp, verifyLoc2, SEEK_SET);
-    s_read(fp, checkStr, 16);
-    if(strncmp("COPYRIGHT(C) SEG", checkStr, 16)) {
-        cdparse_set_error("Could not verify image -2");
-        cdparse_set_error("Verify Failure 2=%s", checkStr);
-        s_close(fp);
-        return -1;
-    }
-    centerTextVblank(21, "[>>>>>>>  ]");
-
-    s_seek(fp, regionLoc2, SEEK_SET);
-    s_read(fp, checkStr, 28);
-
-    centerTextVblank(21, "[>>>>>>>> ]");
+    
     char regionStr[32];
-    strcpy(regionStr, "For ");
-    strcat(regionStr, curRegion);
-    strcat(regionStr, ".");
-    checkStr[strlen(regionStr)] = '\0';
-    while(strlen(regionStr) < 28)
+    if(options[OPTIONS_AUTO_PATCH] != 2)
     {
-        strcat(regionStr, " ");
-        strcat(checkStr, " ");
+        // need region string check only if auto patch is not on "emu"
+        centerTextVblank(21, "[>>>>>>   ]");
+        s_seek(fp, verifyLoc2, SEEK_SET);
+        s_read(fp, checkStr, 16);
+        if(strncmp("COPYRIGHT(C) SEG", checkStr, 16)) {
+            cdparse_set_error("Could not verify image -2");
+            cdparse_set_error("Verify Failure 2=%s", checkStr);
+            s_close(fp);
+            return -1;
+        }
+        centerTextVblank(21, "[>>>>>>>  ]");
+
+        s_seek(fp, regionLoc2, SEEK_SET);
+        s_read(fp, checkStr, 28);
+
+        centerTextVblank(21, "[>>>>>>>> ]");
+        strcpy(regionStr, "For ");
+        strcat(regionStr, curRegion);
+        strcat(regionStr, ".");
+        checkStr[strlen(regionStr)] = '\0';
+        while(strlen(regionStr) < 28)
+        {
+            strcat(regionStr, " ");
+            strcat(checkStr, " ");
+        }
+    } else
+    {
+        strcpy(regionStr, "");
     }
-    //extract gameid and trim before returning
-    char rawGameId[MAX_SAVE_COMMENT];
-    char * firstSpace;
-    rawGameId[sizeof(rawGameId)-1] = '\0'; //null terminate raw buffer
-    s_seek(fp, gameidLoc, SEEK_SET);
-    s_read(fp, rawGameId, 10);
-    firstSpace = strchr(rawGameId,' '); 
-    if (firstSpace != NULL) {
-        *firstSpace = '\0'; //null terminate at the first space
+    
+    if(options[OPTIONS_PERGAME_SAVE] >= 1)
+    {
+        //extract gameid and trim before returning if needed
+        char rawGameId[MAX_SAVE_COMMENT];
+        char * firstSpace;
+        rawGameId[sizeof(rawGameId)-1] = '\0'; //null terminate raw buffer
+        s_seek(fp, gameidLoc, SEEK_SET);
+        s_read(fp, rawGameId, 10);
+        firstSpace = strchr(rawGameId,' '); 
+        if (firstSpace != NULL) {
+            *firstSpace = '\0'; //null terminate at the first space
+        }
+        strcpy(outGameId,rawGameId);
     }
-    strcpy(outGameId,rawGameId);
 
     s_close(fp);
     centerTextVblank(21, " ");
-    if(!strcmp(regionStr, checkStr))
+    
+    if(!strcmp(regionStr, checkStr) || (options[OPTIONS_AUTO_PATCH] == 2))
     {
         centerTextVblank(20, "Adding To Recent History");
         // no patching needed
@@ -420,16 +527,16 @@ int satiatorLaunchOriginalMenu()
 enum SATIATOR_ERROR_CODE satiatorLaunchDescFile(char * fn)
 {
     #if BIOS_BOOT
-    centerTextVblank(20, "Verifying Region");
-    int ret = satiatorVerifyPatchDescFileImage(getRegionString(),gameId);
-    if(ret < 0)
-    {
-        return SATIATOR_PATCH_FAILURE;
-    }
-    if(ret == 1)
-    {
-        return SATIATOR_PATCH_REQUIRED;
-    }
+        centerTextVblank(20, "Verifying Region");
+        int ret = satiatorVerifyPatchDescFileImage(getRegionString(),gameId);
+        if(ret < 0)
+        {
+            return SATIATOR_PATCH_FAILURE;
+        }
+        if(ret == 1)
+        {
+            return SATIATOR_PATCH_REQUIRED;
+        }
     #endif
     centerTextVblank(20, "Booting Disc");
     return satiatorEmulateDesc(fn);
