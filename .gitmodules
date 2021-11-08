@@ -1,6 +1,3 @@
 [submodule "libsatiator"]
 	path = libsatiator
 	url = https://github.com/retrohead/libsatiator
-[submodule "satiator-rings-emulate"]
-	path = satiator-rings-emulate
-	url = https://github.com/retrohead/satiator-rings-emulate
