@@ -4,3 +4,6 @@
 [submodule "satiator-rings-emulate"]
 	path = satiator-rings-emulate
 	url = https://github.com/retrohead/satiator-rings-emulate
+[submodule "satiator-rings-arpatch"]
+	path = satiator-rings-arpatch
+	url = https://github.com/retrohead/satiator-rings-arpatch
