@@ -24,4 +24,7 @@ rm -f ./*.map
 rm -f ./*.iso
 rm -f ./*.cue
 
+cd satiator-rings-emulate
+clean
+
 ECHO Done.
