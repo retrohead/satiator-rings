@@ -42,7 +42,7 @@ mkdir "SD\satiator-rings\ar"
 cd satiator-rings-arpatch
 START /WAIT build
 cd..
-MOVE "satiator-rings-arpatch\release\*.bin" "SD\satiator-rings\ar\*.bin"
+move satiator-rings-arpatch\release\*.bin SD\satiator-rings\ar\
 
 echo .
 echo .
